@@ -50,5 +50,15 @@ export const useClients = () => {
     return data as Client;
   };
 
-  return { clients, loading, addClient, reload: load };
+  const removeClient = async (id: string) => {
+    const { error } = await supabase.from("clients").delete().eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return false;
+    }
+    toast.success("Cliente removido");
+    return true;
+  };
+
+  return { clients, loading, addClient, removeClient, reload: load };
 };
