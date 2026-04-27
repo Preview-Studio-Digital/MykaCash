@@ -214,11 +214,19 @@ export const RegistrationSection = () => {
                   <div className="space-y-3">
                     <div className="space-y-2">
                       <Label>Nome / Razão social</Label>
-                      <Input value={newClientName} onChange={(e) => setNewClientName(e.target.value)} />
+                      <Input
+                        value={newClientName}
+                        onChange={(e) => setNewClientName(e.target.value.toUpperCase())}
+                        style={{ textTransform: "uppercase" }}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>CNPJ / CPF (opcional)</Label>
-                      <Input value={newClientDoc} onChange={(e) => setNewClientDoc(e.target.value)} />
+                      <Input
+                        value={newClientDoc}
+                        onChange={(e) => setNewClientDoc(e.target.value.toUpperCase())}
+                        style={{ textTransform: "uppercase" }}
+                      />
                     </div>
                   </div>
                   <DialogFooter>
