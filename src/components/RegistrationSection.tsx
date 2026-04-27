@@ -222,11 +222,12 @@ export const RegistrationSection = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>CNPJ / CPF (opcional)</Label>
+                      <Label>CNPJ / CPF</Label>
                       <Input
                         value={newClientDoc}
                         onChange={(e) => setNewClientDoc(e.target.value.toUpperCase())}
                         style={{ textTransform: "uppercase" }}
+                        required
                       />
                     </div>
 
