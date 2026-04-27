@@ -133,7 +133,7 @@ export const CalcMemory = ({
 
       {/* Desktop table */}
       <div className="hidden md:block rounded-lg border border-border/50">
-        <table className="w-full table-fixed text-[11px]">
+        <table className="w-full text-[11px]">
           <thead className="bg-muted/40 font-mono tracking-widest">
             <tr className="text-muted-foreground">
               <th className="px-2 py-2 text-center font-medium">PARCELA</th>
