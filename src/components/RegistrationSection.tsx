@@ -33,7 +33,7 @@ export const RegistrationSection = () => {
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [invoiceValue, setInvoiceValue] = useState<number>(0);
   const [operationDate, setOperationDate] = useState<string>(todayISO());
-  const [monthlyRate, setMonthlyRate] = useState<number>(2.5);
+  const [monthlyRate, setMonthlyRate] = useState<number>(3.0);
   const [installments, setInstallments] = useState<Installment[]>([
     { id: uid(), value: 0, dueDate: addDaysISO(todayISO(), 30) },
   ]);
