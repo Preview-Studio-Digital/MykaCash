@@ -54,13 +54,22 @@ export const CalcMemory = ({
         <h2 className="font-display text-xl font-semibold tracking-tight">Memória de cálculo</h2>
       </div>
 
-      <div className="mb-3 flex flex-wrap items-center gap-x-6 gap-y-1 font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
-        <span>DATA DA OPERAÇÃO · {fmtDate(operationDate)}</span>
-        <span>TAXA MENSAL · {formatPct(monthlyRate)}</span>
-        <span>PARCELAS · {rows.length}</span>
+      {/* Mobile: operation summary */}
+      <div className="mb-2 grid grid-cols-3 gap-2 md:hidden">
+        <div className="rounded-lg border border-border/40 bg-muted/20 p-2 text-center">
+          <div className="font-mono text-[9px] tracking-widest text-muted-foreground">DATA OP.</div>
+          <div className="font-mono text-xs">{fmtDate(operationDate)}</div>
+        </div>
+        <div className="rounded-lg border border-border/40 bg-muted/20 p-2 text-center">
+          <div className="font-mono text-[9px] tracking-widest text-muted-foreground">TAXA MÊS</div>
+          <div className="font-mono text-xs">{formatPct(monthlyRate)}</div>
+        </div>
+        <div className="rounded-lg border border-border/40 bg-muted/20 p-2 text-center">
+          <div className="font-mono text-[9px] tracking-widest text-muted-foreground">PARCELAS</div>
+          <div className="font-mono text-xs">{rows.length}</div>
+        </div>
       </div>
 
-      {/* Mobile cards */}
       <div className="space-y-2 md:hidden">
         {rows.map((r, idx) => (
           <div
@@ -127,7 +136,9 @@ export const CalcMemory = ({
         <table className="w-full text-xs whitespace-nowrap">
           <thead className="bg-muted/40 font-mono tracking-widest">
             <tr className="text-muted-foreground">
-              <th className="px-3 py-2 text-center font-medium">#</th>
+              <th className="px-3 py-2 text-center font-medium">DATA DA OPERAÇÃO</th>
+              <th className="px-3 py-2 text-center font-medium">TAXA MENSAL</th>
+              <th className="px-3 py-2 text-center font-medium">PARCELA</th>
               {columns.map((c) => (
                 <th key={c} className="px-3 py-2 text-center font-medium">
                   {c}
@@ -138,8 +149,10 @@ export const CalcMemory = ({
           <tbody>
             {rows.map((r, idx) => (
               <tr key={r.id} className="border-t border-border/40 font-mono tabular-nums text-center">
+                <td className="px-3 py-2">{fmtDate(operationDate)}</td>
+                <td className="px-3 py-2">{formatPct(monthlyRate)}</td>
                 <td className="px-3 py-2">
-                  {showTotals ? String(idx + 1).padStart(2, "0") : "ÚNICA"}
+                  {showTotals ? `${String(idx + 1).padStart(2, "0")} / ${rows.length}` : "ÚNICA"}
                 </td>
                 <td className="px-3 py-2">{fmtDate(r.dueDate)}</td>
                 <td className="px-3 py-2">{r.days}</td>
@@ -152,6 +165,8 @@ export const CalcMemory = ({
 
             {showTotals && (
               <tr className="border-t-2 border-primary-glow/50 bg-primary-glow/15 font-mono tabular-nums text-center font-semibold">
+                <td className="px-3 py-2">—</td>
+                <td className="px-3 py-2">—</td>
                 <td className="px-3 py-2 tracking-widest text-primary-glow">TOTAL</td>
                 <td className="px-3 py-2">—</td>
                 <td className="px-3 py-2">—</td>
