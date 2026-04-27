@@ -15,6 +15,7 @@ import { useClients } from "@/hooks/useClients";
 import { Installment, calculate, formatBRL, formatPct } from "@/lib/calc";
 import { ResultPanels } from "@/components/ResultPanels";
 import { CalcMemory } from "@/components/CalcMemory";
+import { DateField } from "@/components/DateField";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
@@ -271,12 +272,7 @@ export const RegistrationSection = () => {
 
           <div className="space-y-2">
             <Label>Data da operação</Label>
-            <Input
-              type="date"
-              value={operationDate}
-              onChange={(e) => setOperationDate(e.target.value)}
-              className="font-mono"
-            />
+            <DateField value={operationDate} onChange={setOperationDate} />
           </div>
 
           <div className="space-y-2">
@@ -337,11 +333,9 @@ export const RegistrationSection = () => {
                     className="pl-10 font-mono"
                   />
                 </div>
-                <Input
-                  type="date"
+                <DateField
                   value={inst.dueDate}
-                  onChange={(e) => updateInstallmentDate(inst.id, e.target.value)}
-                  className="font-mono"
+                  onChange={(iso) => updateInstallmentDate(inst.id, iso)}
                 />
                 <Button
                   variant="ghost"
@@ -372,13 +366,12 @@ export const RegistrationSection = () => {
         </div>
       </section>
 
-      <ResultPanels result={result} />
+      <ResultPanels result={result} monthlyRate={monthlyRate} />
 
       <CalcMemory
         result={result}
         monthlyRate={monthlyRate}
         operationDate={operationDate}
-        dueDate={installments[installments.length - 1]?.dueDate ?? ""}
       />
 
       <div className="flex justify-center">

@@ -1,6 +1,6 @@
 import { CalcResult, formatBRL, formatPct } from "@/lib/calc";
 
-export const ResultPanels = ({ result }: { result: CalcResult }) => {
+export const ResultPanels = ({ result, monthlyRate }: { result: CalcResult; monthlyRate: number }) => {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {/* Net value — green */}
@@ -30,15 +30,15 @@ export const ResultPanels = ({ result }: { result: CalcResult }) => {
           <div className="mt-3 h-px bg-white/20" />
           <div className="mt-3 grid grid-cols-2 gap-2">
             <div>
-              <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">TAXA EFETIVA</div>
+              <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">TAXA MENSAL</div>
               <div className="mt-0.5 font-display text-sm font-semibold tabular-nums">
-                {formatPct(result.effectiveRatePct)}
+                {formatPct(monthlyRate)}
               </div>
             </div>
             <div>
-              <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">PRAZO MÉDIO</div>
+              <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">TAXA EFETIVA</div>
               <div className="mt-0.5 font-display text-sm font-semibold tabular-nums">
-                {Math.round(result.averageDays)} dias
+                {formatPct(result.effectiveRatePct)}
               </div>
             </div>
           </div>
