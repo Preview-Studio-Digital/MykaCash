@@ -55,13 +55,15 @@ export const RegistrationSection = () => {
 
   const [saving, setSaving] = useState(false);
 
-  // Reset installment when invoice value changes and single installment is untouched
+  // Single installment mirrors the invoice value and operation date + 30 days
   useEffect(() => {
     if (installments.length === 1) {
-      setInstallments([{ ...installments[0], value: invoiceValue }]);
+      setInstallments([
+        { ...installments[0], value: invoiceValue, dueDate: addDaysISO(operationDate, 30) },
+      ]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [invoiceValue]);
+  }, [invoiceValue, operationDate]);
 
   const totalAllocated = useMemo(
     () => installments.reduce((s, i) => s + (Number(i.value) || 0), 0),
