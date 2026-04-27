@@ -36,11 +36,11 @@ export const AppHeader = () => {
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-1.5 backdrop-blur-sm">
           <span className="h-1.5 w-1.5 rounded-full bg-primary-glow animate-pulse-glow" />
           <span className="font-mono text-[10px] tracking-[0.35em] text-primary-foreground/90">
-            FINTECH · ADIANTAMENTO DE RECEBÍVEIS
+            ADIANTAMENTO DE RECEBÍVEIS
           </span>
         </div>
 
-        <h1 className="font-title text-4xl title-gradient font-extrabold leading-[0.9] tracking-tighter text-[clamp(3rem,10vw,8rem)] animate-fade-up">
+        <h1 className="font-title title-gradient font-extrabold leading-[0.9] tracking-tighter animate-fade-up text-6xl">
           SMART MONEY
         </h1>
 
