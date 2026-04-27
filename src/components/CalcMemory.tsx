@@ -41,8 +41,8 @@ export const CalcMemory = ({
   const columns = [
     "DATA DE VENCIMENTO",
     "DIAS",
-    "VALOR",
-    "VP (LÍQUIDO)",
+    "VALOR BRUTO",
+    "VALOR LÍQUIDO",
     "CUSTO",
     "TAXA EFETIVA",
   ];
@@ -85,11 +85,11 @@ export const CalcMemory = ({
             <div className="font-mono text-xs">{fmtDate(r.dueDate)} · {r.days} dias</div>
             <div className="grid grid-cols-2 gap-2 pt-2 font-mono text-xs tabular-nums">
               <div>
-                <div className="text-[9px] tracking-widest text-muted-foreground">VALOR</div>
+                <div className="text-[9px] tracking-widest text-muted-foreground">VALOR BRUTO</div>
                 <div>{formatBRL(r.value)}</div>
               </div>
               <div>
-                <div className="text-[9px] tracking-widest text-muted-foreground">VP</div>
+                <div className="text-[9px] tracking-widest text-muted-foreground">VALOR LÍQUIDO</div>
                 <div className="text-net-green">{formatBRL(r.presentValue)}</div>
               </div>
               <div>
@@ -111,11 +111,11 @@ export const CalcMemory = ({
             </div>
             <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-xs tabular-nums">
               <div>
-                <div className="text-[9px] tracking-widest text-muted-foreground">VALOR</div>
+                <div className="text-[9px] tracking-widest text-muted-foreground">VALOR BRUTO</div>
                 <div>{formatBRL(totals.value)}</div>
               </div>
               <div>
-                <div className="text-[9px] tracking-widest text-muted-foreground">VP</div>
+                <div className="text-[9px] tracking-widest text-muted-foreground">VALOR LÍQUIDO</div>
                 <div className="text-net-green">{formatBRL(totals.presentValue)}</div>
               </div>
               <div>
@@ -132,15 +132,15 @@ export const CalcMemory = ({
       </div>
 
       {/* Desktop table */}
-      <div className="hidden md:block overflow-x-auto rounded-lg border border-border/50">
-        <table className="w-full text-xs whitespace-nowrap">
+      <div className="hidden md:block rounded-lg border border-border/50">
+        <table className="w-full table-fixed text-[11px]">
           <thead className="bg-muted/40 font-mono tracking-widest">
             <tr className="text-muted-foreground">
-              <th className="px-3 py-2 text-center font-medium">DATA DA OPERAÇÃO</th>
-              <th className="px-3 py-2 text-center font-medium">TAXA MENSAL</th>
-              <th className="px-3 py-2 text-center font-medium">PARCELA</th>
+              <th className="px-2 py-2 text-center font-medium">DATA DA OPERAÇÃO</th>
+              <th className="px-2 py-2 text-center font-medium">TAXA MENSAL</th>
+              <th className="px-2 py-2 text-center font-medium">PARCELA</th>
               {columns.map((c) => (
-                <th key={c} className="px-3 py-2 text-center font-medium">
+                <th key={c} className="px-2 py-2 text-center font-medium">
                   {c}
                 </th>
               ))}
@@ -149,31 +149,31 @@ export const CalcMemory = ({
           <tbody>
             {rows.map((r, idx) => (
               <tr key={r.id} className="border-t border-border/40 font-mono tabular-nums text-center">
-                <td className="px-3 py-2">{fmtDate(operationDate)}</td>
-                <td className="px-3 py-2">{formatPct(monthlyRate)}</td>
-                <td className="px-3 py-2">
+                <td className="px-2 py-2">{fmtDate(operationDate)}</td>
+                <td className="px-2 py-2">{formatPct(monthlyRate)}</td>
+                <td className="px-2 py-2">
                   {showTotals ? `${String(idx + 1).padStart(2, "0")} / ${rows.length}` : "ÚNICA"}
                 </td>
-                <td className="px-3 py-2">{fmtDate(r.dueDate)}</td>
-                <td className="px-3 py-2">{r.days}</td>
-                <td className="px-3 py-2">{formatBRL(r.value)}</td>
-                <td className="px-3 py-2 text-net-green">{formatBRL(r.presentValue)}</td>
-                <td className="px-3 py-2 text-cost-red">{formatBRL(r.cost)}</td>
-                <td className="px-3 py-2">{formatPct(r.effectivePct)}</td>
+                <td className="px-2 py-2">{fmtDate(r.dueDate)}</td>
+                <td className="px-2 py-2">{r.days}</td>
+                <td className="px-2 py-2">{formatBRL(r.value)}</td>
+                <td className="px-2 py-2 text-net-green">{formatBRL(r.presentValue)}</td>
+                <td className="px-2 py-2 text-cost-red">{formatBRL(r.cost)}</td>
+                <td className="px-2 py-2">{formatPct(r.effectivePct)}</td>
               </tr>
             ))}
 
             {showTotals && (
               <tr className="border-t-2 border-primary-glow/50 bg-primary-glow/15 font-mono tabular-nums text-center font-semibold">
-                <td className="px-3 py-2">—</td>
-                <td className="px-3 py-2">—</td>
-                <td className="px-3 py-2 tracking-widest text-primary-glow">TOTAL</td>
-                <td className="px-3 py-2">—</td>
-                <td className="px-3 py-2">—</td>
-                <td className="px-3 py-2">{formatBRL(totals.value)}</td>
-                <td className="px-3 py-2 text-net-green">{formatBRL(totals.presentValue)}</td>
-                <td className="px-3 py-2 text-cost-red">{formatBRL(totals.cost)}</td>
-                <td className="px-3 py-2">{formatPct(totalEffective)}</td>
+                <td className="px-2 py-2">—</td>
+                <td className="px-2 py-2">—</td>
+                <td className="px-2 py-2 tracking-widest text-primary-glow">TOTAL</td>
+                <td className="px-2 py-2">—</td>
+                <td className="px-2 py-2">—</td>
+                <td className="px-2 py-2">{formatBRL(totals.value)}</td>
+                <td className="px-2 py-2 text-net-green">{formatBRL(totals.presentValue)}</td>
+                <td className="px-2 py-2 text-cost-red">{formatBRL(totals.cost)}</td>
+                <td className="px-2 py-2">{formatPct(totalEffective)}</td>
               </tr>
             )}
           </tbody>
