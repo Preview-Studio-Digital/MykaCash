@@ -50,7 +50,7 @@ export const CalcMemory = ({
   return (
     <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 shadow-card animate-fade-up">
       <div className="mb-5 flex items-center gap-3">
-        <span className="h-2 w-2 rounded-full bg-primary-glow animate-pulse-glow" />
+        <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary-glow))] animate-pulse-glow" />
         <h2 className="font-display text-xl font-semibold tracking-tight">Memória de cálculo</h2>
       </div>
 
