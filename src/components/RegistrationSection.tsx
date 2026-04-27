@@ -366,7 +366,7 @@ export const RegistrationSection = () => {
         </div>
       </section>
 
-      <ResultPanels result={result} />
+      <ResultPanels result={result} monthlyRate={monthlyRate} />
 
       <CalcMemory
         result={result}
