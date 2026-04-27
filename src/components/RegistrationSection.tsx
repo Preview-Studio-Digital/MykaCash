@@ -279,8 +279,12 @@ export const RegistrationSection = () => {
               type="number"
               step="0.01"
               min="0"
-              value={monthlyRate}
+              value={monthlyRate || ""}
               onChange={(e) => setMonthlyRate(parseFloat(e.target.value) || 0)}
+              onBlur={(e) => {
+                const v = parseFloat(e.target.value) || 0;
+                setMonthlyRate(Math.round(v * 100) / 100);
+              }}
               className="font-mono"
             />
           </div>
