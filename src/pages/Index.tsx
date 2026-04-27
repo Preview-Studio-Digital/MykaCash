@@ -1,16 +1,20 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { AppHeader } from "@/components/AppHeader";
+import { RegistrationSection } from "@/components/RegistrationSection";
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
+    <div className="min-h-screen">
+      <AppHeader />
+      <main className="container mx-auto max-w-6xl px-4 py-10 md:py-14">
+        <RegistrationSection />
+      </main>
+      <footer className="border-t border-border/40 py-6 text-center">
+        <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">
+          SMART MONEY · PREVIEW STUDIO DIGITAL · V1.0
+        </p>
+      </footer>
     </div>
   );
 };
-
-const Index = PlaceholderIndex;
 
 export default Index;
