@@ -59,7 +59,8 @@ const Auth = () => {
       <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[600px] w-[600px] rounded-full bg-primary/20 blur-3xl animate-pulse-glow pointer-events-none" />
 
       <div className="relative w-full max-w-md rounded-2xl border border-border/60 bg-gradient-card p-8 shadow-panel animate-fade-up">
-        <div className="mb-8 text-center">
+        <div className="mb-8 text-center flex flex-col items-center">
+          <img src={logo} alt="Smart Money" className="h-16 w-16 mb-4" />
           <h1 className="font-title font-bold title-gradient text-2xl">SMART MONEY</h1>
         </div>
 
