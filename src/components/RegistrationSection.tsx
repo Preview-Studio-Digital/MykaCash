@@ -113,6 +113,26 @@ export const RegistrationSection = () => {
     }
   };
 
+  const archiveRef = useRef<HTMLDivElement>(null);
+
+  const generateArchivePng = async (clientName: string) => {
+    const node = archiveRef.current;
+    if (!node) return;
+    // Temporarily make it visible for rendering
+    const prev = node.style.cssText;
+    node.style.cssText = "position:fixed;left:-10000px;top:0;width:1000px;background:#ffffff;";
+    try {
+      const canvas = await html2canvas(node, { backgroundColor: "#ffffff", scale: 2 });
+      const link = document.createElement("a");
+      const safeClient = clientName.replace(/[^a-z0-9]+/gi, "_");
+      link.download = `operacao_${safeClient}_NF${invoiceNumber.trim()}_${operationDate}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } finally {
+      node.style.cssText = prev;
+    }
+  };
+
   const handleSaveInvoice = async () => {
     if (!clientId) return toast.error("Selecione um cliente");
     if (!invoiceNumber.trim()) return toast.error("Informe o número da nota");
@@ -129,9 +149,18 @@ export const RegistrationSection = () => {
       monthly_rate: monthlyRate,
       installments: installments as any,
     });
+    if (error) {
+      setSaving(false);
+      return toast.error(error.message);
+    }
+    const clientName = clients.find((c) => c.id === clientId)?.name ?? "cliente";
+    try {
+      await generateArchivePng(clientName);
+      toast.success("Operação salva e arquivo PNG gerado");
+    } catch (e) {
+      toast.success("Operação salva (falha ao gerar PNG)");
+    }
     setSaving(false);
-    if (error) return toast.error(error.message);
-    toast.success("Operação salva no sistema");
     setInvoiceNumber("");
   };
 
