@@ -54,12 +54,6 @@ export const CalcMemory = ({
         <h2 className="font-display text-xl font-semibold tracking-tight">Memória de cálculo</h2>
       </div>
 
-      <div className="mb-3 flex flex-wrap items-center gap-x-6 gap-y-1 font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
-        <span>DATA DA OPERAÇÃO · {fmtDate(operationDate)}</span>
-        <span>TAXA MENSAL · {formatPct(monthlyRate)}</span>
-        <span>PARCELAS · {rows.length}</span>
-      </div>
-
       {/* Mobile cards */}
       <div className="space-y-2 md:hidden">
         {rows.map((r, idx) => (
