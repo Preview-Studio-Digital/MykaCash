@@ -416,7 +416,7 @@ export const RegistrationSection = () => {
             type="button"
             variant="outline"
             size="sm"
-            disabled={!canAddInstallment}
+            disabled={invoiceValue <= 0}
             onClick={addInstallment}
             className="mt-3 font-mono tracking-wider"
           >
