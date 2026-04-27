@@ -389,7 +389,7 @@ export const RegistrationSection = () => {
         <div className="mt-8">
           <div className="mb-3 flex items-center justify-between">
             <Label className="text-sm font-display tracking-tight">
-              Parcelas ({installments.length})
+              Parcelamento
             </Label>
             <span className="font-mono text-[11px] tracking-widest text-muted-foreground">
               RESTANTE: <span className="text-primary-glow">{formatBRL(remaining)}</span>
