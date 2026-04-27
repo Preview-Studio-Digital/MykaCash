@@ -1,6 +1,7 @@
 import { CalcResult, formatBRL, formatPct } from "@/lib/calc";
 
 export const ResultPanels = ({ result }: { result: CalcResult }) => {
+  const savings = Math.max(0, result.factoringCost - result.operationCost);
   return (
     <div className="grid gap-5 md:grid-cols-3">
       {/* Net value — green */}
@@ -13,7 +14,7 @@ export const ResultPanels = ({ result }: { result: CalcResult }) => {
           </div>
           <div className="mt-6 h-px bg-white/20" />
           <div className="mt-4 font-mono text-[10px] tracking-[0.3em] opacity-80">VALOR LÍQUIDO A RECEBER</div>
-          <div className="mt-1 font-display text-4xl font-bold tabular-nums">
+          <div className="mt-1 font-display text-2xl md:text-3xl font-bold tabular-nums break-words">
             {formatBRL(result.netValue)}
           </div>
         </div>
@@ -24,31 +25,41 @@ export const ResultPanels = ({ result }: { result: CalcResult }) => {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
         <div className="relative">
           <div className="font-mono text-[10px] tracking-[0.3em] opacity-80">CUSTO DA OPERAÇÃO</div>
-          <div className="mt-1 font-display text-4xl font-bold tabular-nums">
+          <div className="mt-1 font-display text-3xl font-bold tabular-nums">
             {formatBRL(result.operationCost)}
           </div>
           <div className="mt-6 h-px bg-white/20" />
-          <div className="mt-4 font-mono text-[10px] tracking-[0.3em] opacity-80">TAXA EFETIVA</div>
-          <div className="mt-1 font-display text-2xl font-semibold tabular-nums">
-            {formatPct(result.effectiveRatePct)}
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div>
+              <div className="font-mono text-[10px] tracking-[0.3em] opacity-80">TAXA EFETIVA</div>
+              <div className="mt-1 font-display text-lg font-semibold tabular-nums">
+                {formatPct(result.effectiveRatePct)}
+              </div>
+            </div>
+            <div>
+              <div className="font-mono text-[10px] tracking-[0.3em] opacity-80">PRAZO MÉDIO</div>
+              <div className="mt-1 font-display text-lg font-semibold tabular-nums">
+                {result.averageDays.toFixed(1)} dias
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Factoring — amber */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-factoring p-6 text-factoring-amber-foreground panel-glow-factoring animate-fade-up">
+      {/* Factoring savings — amber */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-factoring p-6 text-white panel-glow-factoring animate-fade-up">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.3),transparent_60%)]" />
         <div className="relative">
-          <div className="font-mono text-[10px] tracking-[0.3em] opacity-80">CUSTO COM FACTORING</div>
-          <div className="mt-1 font-display text-4xl font-bold tabular-nums">
+          <div className="font-mono text-[10px] tracking-[0.3em] opacity-90 text-white">ECONOMIA FACTORING</div>
+          <div className="mt-1 font-display text-3xl font-bold tabular-nums text-white">
+            {formatBRL(savings)}
+          </div>
+          <div className="mt-6 h-px bg-white/25" />
+          <div className="mt-4 font-mono text-[10px] tracking-[0.3em] opacity-90 text-white">
+            CUSTO FACTORING ({formatPct(result.factoringMonthlyRatePct)}/mês)
+          </div>
+          <div className="mt-1 font-display text-xl font-semibold tabular-nums text-white">
             {formatBRL(result.factoringCost)}
-          </div>
-          <div className="mt-6 h-px bg-black/15" />
-          <div className="mt-4 font-mono text-[10px] tracking-[0.3em] opacity-80">
-            TAXA DE REFERÊNCIA
-          </div>
-          <div className="mt-1 font-display text-2xl font-semibold tabular-nums">
-            {formatPct(result.factoringMonthlyRatePct)} / mês
           </div>
         </div>
       </div>
