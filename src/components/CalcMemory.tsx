@@ -41,8 +41,8 @@ export const CalcMemory = ({
   const columns = [
     "DATA DE VENCIMENTO",
     "DIAS",
-    "VALOR",
-    "VP (LÍQUIDO)",
+    "VALOR BRUTO",
+    "VALOR LÍQUIDO",
     "CUSTO",
     "TAXA EFETIVA",
   ];
@@ -132,8 +132,8 @@ export const CalcMemory = ({
       </div>
 
       {/* Desktop table */}
-      <div className="hidden md:block overflow-x-auto rounded-lg border border-border/50">
-        <table className="w-full text-xs whitespace-nowrap">
+      <div className="hidden md:block rounded-lg border border-border/50">
+        <table className="w-full table-fixed text-[11px]">
           <thead className="bg-muted/40 font-mono tracking-widest">
             <tr className="text-muted-foreground">
               <th className="px-3 py-2 text-center font-medium">DATA DA OPERAÇÃO</th>
