@@ -214,11 +214,19 @@ export const RegistrationSection = () => {
                   <div className="space-y-3">
                     <div className="space-y-2">
                       <Label>Nome / Razão social</Label>
-                      <Input value={newClientName} onChange={(e) => setNewClientName(e.target.value)} />
+                      <Input
+                        value={newClientName}
+                        onChange={(e) => setNewClientName(e.target.value.toUpperCase())}
+                        style={{ textTransform: "uppercase" }}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>CNPJ / CPF (opcional)</Label>
-                      <Input value={newClientDoc} onChange={(e) => setNewClientDoc(e.target.value)} />
+                      <Input
+                        value={newClientDoc}
+                        onChange={(e) => setNewClientDoc(e.target.value.toUpperCase())}
+                        style={{ textTransform: "uppercase" }}
+                      />
                     </div>
                   </div>
                   <DialogFooter>
@@ -244,8 +252,12 @@ export const RegistrationSection = () => {
               type="number"
               step="0.01"
               min="0"
-              value={invoiceValue ? invoiceValue.toFixed(2) : ""}
+              value={invoiceValue || ""}
               onChange={(e) => setInvoiceValue(parseFloat(e.target.value) || 0)}
+              onBlur={(e) => {
+                const v = parseFloat(e.target.value) || 0;
+                setInvoiceValue(Math.round(v * 100) / 100);
+              }}
               placeholder="0,00"
               className="font-mono"
             />
@@ -267,8 +279,12 @@ export const RegistrationSection = () => {
               type="number"
               step="0.01"
               min="0"
-              value={monthlyRate}
+              value={monthlyRate || ""}
               onChange={(e) => setMonthlyRate(parseFloat(e.target.value) || 0)}
+              onBlur={(e) => {
+                const v = parseFloat(e.target.value) || 0;
+                setMonthlyRate(Math.round(v * 100) / 100);
+              }}
               className="font-mono"
             />
           </div>
@@ -335,22 +351,24 @@ export const RegistrationSection = () => {
             ADICIONAR PARCELA
           </Button>
 
-          <p className="mt-2 font-mono text-[10px] leading-relaxed tracking-wider text-muted-foreground">
-            Novas parcelas aparecem somente se a parcela única for menor que o valor da nota. A próxima parcela é pré-preenchida com o valor restante e limitada ao total da nota.
-          </p>
-        </div>
-
-        <div className="mt-6 flex justify-end">
-          <Button onClick={handleSaveInvoice} disabled={saving} className="font-display tracking-wide">
-            <Save className="mr-2 h-4 w-4" />
-            {saving ? "Salvando..." : "Salvar operação"}
-          </Button>
         </div>
       </section>
 
       <ResultPanels result={result} />
 
       <CalcMemory result={result} monthlyRate={monthlyRate} />
+
+      <div className="flex justify-center">
+        <Button
+          onClick={handleSaveInvoice}
+          disabled={saving}
+          size="lg"
+          className="font-display tracking-wide"
+        >
+          <Save className="mr-2 h-4 w-4" />
+          {saving ? "Salvando..." : "CADASTRAR E EXPORTAR"}
+        </Button>
+      </div>
 
       {/* Offscreen archive document for PNG export */}
       <div
