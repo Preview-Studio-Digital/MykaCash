@@ -249,14 +249,15 @@ export const RegistrationSection = () => {
           <div className="space-y-2">
             <Label>Valor da Nota Fiscal</Label>
             <Input
-              type="number"
-              step="0.01"
-              min="0"
-              value={invoiceValue || ""}
-              onChange={(e) => setInvoiceValue(parseFloat(e.target.value) || 0)}
-              onBlur={(e) => {
-                const v = parseFloat(e.target.value) || 0;
-                setInvoiceValue(Math.round(v * 100) / 100);
+              inputMode="numeric"
+              value={(invoiceValue || 0).toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, "");
+                const n = digits ? parseInt(digits, 10) / 100 : 0;
+                setInvoiceValue(n);
               }}
               placeholder="0,00"
               className="font-mono"
@@ -356,7 +357,12 @@ export const RegistrationSection = () => {
 
       <ResultPanels result={result} />
 
-      <CalcMemory result={result} monthlyRate={monthlyRate} />
+      <CalcMemory
+        result={result}
+        monthlyRate={monthlyRate}
+        operationDate={operationDate}
+        dueDate={installments[installments.length - 1]?.dueDate ?? ""}
+      />
 
       <div className="flex justify-center">
         <Button
