@@ -248,20 +248,25 @@ export const RegistrationSection = () => {
 
           <div className="space-y-2">
             <Label>Valor da Nota Fiscal</Label>
-            <Input
-              inputMode="numeric"
-              value={(invoiceValue || 0).toLocaleString("pt-BR", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-              onChange={(e) => {
-                const digits = e.target.value.replace(/\D/g, "");
-                const n = digits ? parseInt(digits, 10) / 100 : 0;
-                setInvoiceValue(n);
-              }}
-              placeholder="0,00"
-              className="font-mono"
-            />
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">
+                R$
+              </span>
+              <Input
+                inputMode="numeric"
+                value={(invoiceValue || 0).toLocaleString("pt-BR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, "");
+                  const n = digits ? parseInt(digits, 10) / 100 : 0;
+                  setInvoiceValue(n);
+                }}
+                placeholder="0,00"
+                className="pl-10 font-mono"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -277,15 +282,17 @@ export const RegistrationSection = () => {
           <div className="space-y-2">
             <Label>Taxa mensal (%)</Label>
             <Input
-              type="number"
-              step="0.01"
-              min="0"
-              value={monthlyRate || ""}
-              onChange={(e) => setMonthlyRate(parseFloat(e.target.value) || 0)}
-              onBlur={(e) => {
-                const v = parseFloat(e.target.value) || 0;
-                setMonthlyRate(Math.round(v * 100) / 100);
+              inputMode="numeric"
+              value={(monthlyRate || 0).toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, "");
+                const n = digits ? parseInt(digits, 10) / 100 : 0;
+                setMonthlyRate(n);
               }}
+              placeholder="0,00"
               className="font-mono"
             />
           </div>
@@ -311,15 +318,25 @@ export const RegistrationSection = () => {
                 <span className="font-mono text-xs tracking-widest text-muted-foreground w-14">
                   {idx === 0 && installments.length === 1 ? "ÚNICA" : `P ${String(idx + 1).padStart(2, "0")}`}
                 </span>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={inst.value || ""}
-                  onChange={(e) => updateInstallmentValue(inst.id, parseFloat(e.target.value) || 0)}
-                  placeholder="Valor"
-                  className="font-mono"
-                />
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">
+                    R$
+                  </span>
+                  <Input
+                    inputMode="numeric"
+                    value={(inst.value || 0).toLocaleString("pt-BR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, "");
+                      const n = digits ? parseInt(digits, 10) / 100 : 0;
+                      updateInstallmentValue(inst.id, n);
+                    }}
+                    placeholder="0,00"
+                    className="pl-10 font-mono"
+                  />
+                </div>
                 <Input
                   type="date"
                   value={inst.dueDate}
