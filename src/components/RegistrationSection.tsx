@@ -80,11 +80,28 @@ export const RegistrationSection = () => {
     setInstallments((prev) => {
       const idx = prev.findIndex((i) => i.id === id);
       if (idx === -1) return prev;
-      const othersTotal = prev.reduce((s, i) => (i.id === id ? s : s + (i.value || 0)), 0);
-      const max = Math.max(0, invoiceValue - othersTotal);
-      const value = Math.min(Math.max(0, raw || 0), max);
+      const before = prev.slice(0, idx);
+      const beforeSum = before.reduce((s, i) => s + (i.value || 0), 0);
+      const maxForThis = Math.max(0, invoiceValue - beforeSum);
+      const value = Math.min(Math.max(0, raw || 0), maxForThis);
+
+      const afterCount = prev.length - idx - 1;
+      const remainingAfter = Math.max(0, invoiceValue - beforeSum - value);
+
       const next = [...prev];
       next[idx] = { ...next[idx], value };
+
+      if (afterCount > 0) {
+        const share = Math.floor((remainingAfter * 100) / afterCount) / 100;
+        const lastExtra = +(remainingAfter - share * (afterCount - 1)).toFixed(2);
+        for (let k = 0; k < afterCount; k++) {
+          const pos = idx + 1 + k;
+          next[pos] = {
+            ...next[pos],
+            value: k === afterCount - 1 ? lastExtra : share,
+          };
+        }
+      }
       return next;
     });
   };
