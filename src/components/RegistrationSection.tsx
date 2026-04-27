@@ -372,7 +372,6 @@ export const RegistrationSection = () => {
         result={result}
         monthlyRate={monthlyRate}
         operationDate={operationDate}
-        dueDate={installments[installments.length - 1]?.dueDate ?? ""}
       />
 
       <div className="flex justify-center">
