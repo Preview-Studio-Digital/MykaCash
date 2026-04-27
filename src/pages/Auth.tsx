@@ -63,7 +63,7 @@ const Auth = () => {
             PREVIEW STUDIO DIGITAL
           </div>
           <h1 className="font-title font-bold title-gradient text-2xl">SMART MONEY</h1>
-          <p className="mt-2 text-muted-foreground font-thin text-sm">Myka Compressores - Preview Studio Digital</p>
+          <p className="mt-2 text-muted-foreground font-thin text-sm font-title">Myka Compressores - Preview Studio Digital</p>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4">
