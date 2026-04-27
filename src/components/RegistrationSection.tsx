@@ -351,6 +351,144 @@ export const RegistrationSection = () => {
       <ResultPanels result={result} />
 
       <CalcMemory result={result} monthlyRate={monthlyRate} />
+
+      {/* Offscreen archive document for PNG export */}
+      <div
+        ref={archiveRef}
+        style={{ position: "fixed", left: "-10000px", top: 0, width: "1000px", background: "#ffffff" }}
+        aria-hidden
+      >
+        <div style={{ padding: "48px", color: "#0a0a0a", fontFamily: "Arial, sans-serif" }}>
+          <div style={{ borderBottom: "2px solid #0a0a0a", paddingBottom: "16px", marginBottom: "24px" }}>
+            <div style={{ fontSize: "22px", fontWeight: 700, letterSpacing: "0.08em" }}>
+              MYKA COMPRESSORES DO BRASIL
+            </div>
+            <div style={{ fontSize: "12px", color: "#555", marginTop: "4px", letterSpacing: "0.2em" }}>
+              REGISTRO DE OPERAÇÃO · PREVIEW STUDIO DIGITAL
+            </div>
+          </div>
+
+          <table style={{ width: "100%", fontSize: "13px", marginBottom: "24px", borderCollapse: "collapse" }}>
+            <tbody>
+              <tr>
+                <td style={{ padding: "6px 0", color: "#555", width: "30%" }}>Cliente</td>
+                <td style={{ padding: "6px 0", fontWeight: 600 }}>
+                  {clients.find((c) => c.id === clientId)?.name ?? "-"}
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: "6px 0", color: "#555" }}>Nota Fiscal</td>
+                <td style={{ padding: "6px 0", fontWeight: 600 }}>{invoiceNumber || "-"}</td>
+              </tr>
+              <tr>
+                <td style={{ padding: "6px 0", color: "#555" }}>Data da operação</td>
+                <td style={{ padding: "6px 0", fontWeight: 600 }}>
+                  {new Date(operationDate + "T00:00:00").toLocaleDateString("pt-BR")}
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: "6px 0", color: "#555" }}>Taxa mensal</td>
+                <td style={{ padding: "6px 0", fontWeight: 600 }}>{formatPct(monthlyRate)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse", marginBottom: "20px" }}>
+            <thead>
+              <tr style={{ background: "#f1f1f1" }}>
+                <th style={{ padding: "8px", textAlign: "left", borderBottom: "1px solid #ddd" }}>#</th>
+                <th style={{ padding: "8px", textAlign: "left", borderBottom: "1px solid #ddd" }}>VENCIMENTO</th>
+                <th style={{ padding: "8px", textAlign: "right", borderBottom: "1px solid #ddd" }}>DIAS</th>
+                <th style={{ padding: "8px", textAlign: "right", borderBottom: "1px solid #ddd" }}>VALOR</th>
+                <th style={{ padding: "8px", textAlign: "right", borderBottom: "1px solid #ddd" }}>VP</th>
+              </tr>
+            </thead>
+            <tbody>
+              {result.installmentCalcs.map((i, idx) => (
+                <tr key={i.id}>
+                  <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>{idx + 1}</td>
+                  <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>
+                    {i.dueDate ? new Date(i.dueDate + "T00:00:00").toLocaleDateString("pt-BR") : "-"}
+                  </td>
+                  <td style={{ padding: "8px", textAlign: "right", borderBottom: "1px solid #eee" }}>{i.days}</td>
+                  <td style={{ padding: "8px", textAlign: "right", borderBottom: "1px solid #eee" }}>
+                    {formatBRL(i.value)}
+                  </td>
+                  <td style={{ padding: "8px", textAlign: "right", borderBottom: "1px solid #eee" }}>
+                    {formatBRL(i.presentValue)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <table style={{ width: "100%", fontSize: "13px", borderCollapse: "collapse", marginBottom: "40px" }}>
+            <tbody>
+              <tr>
+                <td style={{ padding: "6px 0", color: "#555" }}>Valor total da nota</td>
+                <td style={{ padding: "6px 0", textAlign: "right", fontWeight: 700 }}>
+                  {formatBRL(result.totalInvoice)}
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: "6px 0", color: "#555" }}>Valor líquido a receber</td>
+                <td style={{ padding: "6px 0", textAlign: "right", fontWeight: 700, color: "#0a7a3a" }}>
+                  {formatBRL(result.netValue)}
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: "6px 0", color: "#555" }}>Custo da operação</td>
+                <td style={{ padding: "6px 0", textAlign: "right", fontWeight: 700, color: "#b02a2a" }}>
+                  {formatBRL(result.operationCost)}
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: "6px 0", color: "#555" }}>Taxa efetiva</td>
+                <td style={{ padding: "6px 0", textAlign: "right", fontWeight: 700 }}>
+                  {formatPct(result.effectiveRatePct)}
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: "6px 0", color: "#555" }}>Prazo médio ponderado</td>
+                <td style={{ padding: "6px 0", textAlign: "right", fontWeight: 700 }}>
+                  {result.averageDays.toFixed(1)} dias
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: "6px 0", color: "#555" }}>
+                  Custo factoring ({formatPct(result.factoringMonthlyRatePct)}/mês)
+                </td>
+                <td style={{ padding: "6px 0", textAlign: "right", fontWeight: 700 }}>
+                  {formatBRL(result.factoringCost)}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px", marginTop: "80px" }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ borderTop: "1px solid #0a0a0a", paddingTop: "8px", fontSize: "12px", fontWeight: 600 }}>
+                MYKA COMPRESSORES DO BRASIL
+              </div>
+              <div style={{ fontSize: "10px", color: "#666", marginTop: "4px", letterSpacing: "0.15em" }}>
+                ASSINATURA · CARIMBO
+              </div>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ borderTop: "1px solid #0a0a0a", paddingTop: "8px", fontSize: "12px", fontWeight: 600 }}>
+                PREVIEW STUDIO DIGITAL
+              </div>
+              <div style={{ fontSize: "10px", color: "#666", marginTop: "4px", letterSpacing: "0.15em" }}>
+                ASSINATURA · CARIMBO
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: "48px", textAlign: "center", fontSize: "10px", color: "#888", letterSpacing: "0.3em" }}>
+            SMART MONEY · DOCUMENTO GERADO EM {new Date().toLocaleString("pt-BR")}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
