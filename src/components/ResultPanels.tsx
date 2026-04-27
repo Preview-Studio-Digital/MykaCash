@@ -39,7 +39,7 @@ export const ResultPanels = ({ result }: { result: CalcResult }) => {
             <div>
               <div className="font-mono text-[10px] tracking-[0.3em] opacity-80">PRAZO MÉDIO</div>
               <div className="mt-1 font-display text-lg font-semibold tabular-nums">
-                {result.averageDays.toFixed(1)} dias
+                {Math.round(result.averageDays)} dias
               </div>
             </div>
           </div>
