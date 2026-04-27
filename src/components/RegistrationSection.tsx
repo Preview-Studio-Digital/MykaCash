@@ -189,7 +189,7 @@ export const RegistrationSection = () => {
             <h2 className="font-display text-xl font-semibold tracking-tight">Cadastro</h2>
           </div>
           <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
-            OPERAÇÃO · {result.maxDays} DIAS
+            OPERAÇÃO
           </span>
         </div>
 
