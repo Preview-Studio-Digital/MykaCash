@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,11 +12,12 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Plus, Trash2, UserPlus, Save } from "lucide-react";
 import { useClients } from "@/hooks/useClients";
-import { Installment, calculate, formatBRL } from "@/lib/calc";
+import { Installment, calculate, formatBRL, formatPct } from "@/lib/calc";
 import { ResultPanels } from "@/components/ResultPanels";
 import { CalcMemory } from "@/components/CalcMemory";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import html2canvas from "html2canvas";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const todayISO = () => new Date().toISOString().slice(0, 10);
