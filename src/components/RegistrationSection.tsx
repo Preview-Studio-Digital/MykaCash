@@ -80,11 +80,28 @@ export const RegistrationSection = () => {
     setInstallments((prev) => {
       const idx = prev.findIndex((i) => i.id === id);
       if (idx === -1) return prev;
-      const othersTotal = prev.reduce((s, i) => (i.id === id ? s : s + (i.value || 0)), 0);
-      const max = Math.max(0, invoiceValue - othersTotal);
-      const value = Math.min(Math.max(0, raw || 0), max);
+      const before = prev.slice(0, idx);
+      const beforeSum = before.reduce((s, i) => s + (i.value || 0), 0);
+      const maxForThis = Math.max(0, invoiceValue - beforeSum);
+      const value = Math.min(Math.max(0, raw || 0), maxForThis);
+
+      const afterCount = prev.length - idx - 1;
+      const remainingAfter = Math.max(0, invoiceValue - beforeSum - value);
+
       const next = [...prev];
       next[idx] = { ...next[idx], value };
+
+      if (afterCount > 0) {
+        const share = Math.floor((remainingAfter * 100) / afterCount) / 100;
+        const lastExtra = +(remainingAfter - share * (afterCount - 1)).toFixed(2);
+        for (let k = 0; k < afterCount; k++) {
+          const pos = idx + 1 + k;
+          next[pos] = {
+            ...next[pos],
+            value: k === afterCount - 1 ? lastExtra : share,
+          };
+        }
+      }
       return next;
     });
   };
@@ -372,29 +389,39 @@ export const RegistrationSection = () => {
             {installments.map((inst, idx) => (
               <div
                 key={inst.id}
-                className="grid grid-cols-[auto_1fr_1fr_auto] items-center gap-3 rounded-lg border border-border/50 bg-background/40 p-3"
+                className="grid grid-cols-[5rem_1fr_1fr_2.5rem] items-end gap-3 rounded-lg border border-border/50 bg-background/40 p-3"
               >
-                <span className="font-mono text-xs tracking-widest text-muted-foreground w-14">
-                  {idx === 0 && installments.length === 1 ? "ÚNICA" : `P ${String(idx + 1).padStart(2, "0")}`}
-                </span>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">
-                    R$
+                <div className="space-y-1">
+                  <span className="block font-mono text-[9px] tracking-[0.25em] text-muted-foreground">
+                    PARCELA
                   </span>
-                  <Input
-                    inputMode="numeric"
-                    value={(inst.value || 0).toLocaleString("pt-BR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                    onChange={(e) => {
-                      const digits = e.target.value.replace(/\D/g, "");
-                      const n = digits ? parseInt(digits, 10) / 100 : 0;
-                      updateInstallmentValue(inst.id, n);
-                    }}
-                    placeholder="0,00"
-                    className="pl-10 font-mono"
-                  />
+                  <div className="flex h-10 items-center font-mono text-xs tracking-widest text-muted-foreground">
+                    {idx === 0 && installments.length === 1 ? "ÚNICA" : `P ${String(idx + 1).padStart(2, "0")}`}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <span className="block font-mono text-[9px] tracking-[0.25em] text-muted-foreground">
+                    VALOR
+                  </span>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">
+                      R$
+                    </span>
+                    <Input
+                      inputMode="numeric"
+                      value={(inst.value || 0).toLocaleString("pt-BR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, "");
+                        const n = digits ? parseInt(digits, 10) / 100 : 0;
+                        updateInstallmentValue(inst.id, n);
+                      }}
+                      placeholder="0,00"
+                      className="pl-10 font-mono"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <span className="block font-mono text-[9px] tracking-[0.25em] text-muted-foreground">
@@ -405,16 +432,21 @@ export const RegistrationSection = () => {
                     onChange={(iso) => updateInstallmentDate(inst.id, iso)}
                   />
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  disabled={installments.length <= 1}
-                  onClick={() => removeInstallment(inst.id)}
-                  aria-label="Remover parcela"
-                  className="text-muted-foreground hover:text-cost-red"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="space-y-1">
+                  <span className="block font-mono text-[9px] tracking-[0.25em] text-muted-foreground opacity-0">
+                    .
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={installments.length <= 1}
+                    onClick={() => removeInstallment(inst.id)}
+                    aria-label="Remover parcela"
+                    className="text-muted-foreground hover:text-cost-red"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>

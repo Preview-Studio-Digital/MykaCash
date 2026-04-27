@@ -1,4 +1,4 @@
-import { CalcResult, formatBRL, formatPct, FACTORING_MONTHLY_RATE_PCT } from "@/lib/calc";
+import { CalcResult, formatBRL, formatPct } from "@/lib/calc";
 
 export const CalcMemory = ({
   result,
@@ -12,13 +12,9 @@ export const CalcMemory = ({
   const fmtDate = (iso: string) =>
     iso ? new Date(iso + "T00:00:00").toLocaleDateString("pt-BR") : "-";
 
-  const rFactoring = FACTORING_MONTHLY_RATE_PCT / 100;
-
-  // Per-installment breakdown as if each were an individual operation
   const rows = result.installmentCalcs.map((i) => {
     const cost = i.value - i.presentValue;
     const effectivePct = i.value > 0 ? (cost / i.value) * 100 : 0;
-    const factoringCost = i.value * rFactoring * (i.days / 30);
     return {
       id: i.id,
       dueDate: i.dueDate,
@@ -27,7 +23,6 @@ export const CalcMemory = ({
       presentValue: i.presentValue,
       cost,
       effectivePct,
-      factoringCost,
     };
   });
 
@@ -36,9 +31,8 @@ export const CalcMemory = ({
       value: acc.value + r.value,
       presentValue: acc.presentValue + r.presentValue,
       cost: acc.cost + r.cost,
-      factoringCost: acc.factoringCost + r.factoringCost,
     }),
-    { value: 0, presentValue: 0, cost: 0, factoringCost: 0 }
+    { value: 0, presentValue: 0, cost: 0 }
   );
 
   const showTotals = rows.length > 1;
@@ -51,7 +45,6 @@ export const CalcMemory = ({
     "VP (LÍQUIDO)",
     "CUSTO",
     "TAXA EFETIVA",
-    `FACTORING (${formatPct(FACTORING_MONTHLY_RATE_PCT)}/mês)`,
   ];
 
   return (
@@ -62,7 +55,7 @@ export const CalcMemory = ({
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-x-6 gap-y-1 font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
-        <span>DATA OPERAÇÃO · {fmtDate(operationDate)}</span>
+        <span>DATA DA OPERAÇÃO · {fmtDate(operationDate)}</span>
         <span>TAXA MENSAL · {formatPct(monthlyRate)}</span>
         <span>PARCELAS · {rows.length}</span>
       </div>
@@ -98,16 +91,12 @@ export const CalcMemory = ({
                 <div className="text-[9px] tracking-widest text-muted-foreground">TAXA EF.</div>
                 <div>{formatPct(r.effectivePct)}</div>
               </div>
-              <div className="col-span-2">
-                <div className="text-[9px] tracking-widest text-muted-foreground">FACTORING</div>
-                <div>{formatBRL(r.factoringCost)}</div>
-              </div>
             </div>
           </div>
         ))}
 
         {showTotals && (
-          <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 space-y-1 text-center">
+          <div className="rounded-lg border border-primary-glow/50 bg-primary-glow/10 p-3 space-y-1 text-center">
             <div className="font-mono text-[10px] tracking-widest text-primary-glow">
               TOTAIS
             </div>
@@ -127,10 +116,6 @@ export const CalcMemory = ({
               <div>
                 <div className="text-[9px] tracking-widest text-muted-foreground">TAXA EF.</div>
                 <div>{formatPct(totalEffective)}</div>
-              </div>
-              <div className="col-span-2">
-                <div className="text-[9px] tracking-widest text-muted-foreground">FACTORING</div>
-                <div>{formatBRL(totals.factoringCost)}</div>
               </div>
             </div>
           </div>
@@ -162,12 +147,11 @@ export const CalcMemory = ({
                 <td className="px-3 py-2 text-net-green">{formatBRL(r.presentValue)}</td>
                 <td className="px-3 py-2 text-cost-red">{formatBRL(r.cost)}</td>
                 <td className="px-3 py-2">{formatPct(r.effectivePct)}</td>
-                <td className="px-3 py-2">{formatBRL(r.factoringCost)}</td>
               </tr>
             ))}
 
             {showTotals && (
-              <tr className="border-t-2 border-primary/40 bg-primary/5 font-mono tabular-nums text-center font-semibold">
+              <tr className="border-t-2 border-primary-glow/50 bg-primary-glow/15 font-mono tabular-nums text-center font-semibold">
                 <td className="px-3 py-2 tracking-widest text-primary-glow">TOTAL</td>
                 <td className="px-3 py-2">—</td>
                 <td className="px-3 py-2">—</td>
@@ -175,16 +159,11 @@ export const CalcMemory = ({
                 <td className="px-3 py-2 text-net-green">{formatBRL(totals.presentValue)}</td>
                 <td className="px-3 py-2 text-cost-red">{formatBRL(totals.cost)}</td>
                 <td className="px-3 py-2">{formatPct(totalEffective)}</td>
-                <td className="px-3 py-2">{formatBRL(totals.factoringCost)}</td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
-
-      <p className="mt-3 text-center font-mono text-[10px] leading-relaxed tracking-wider text-muted-foreground">
-        Fórmula: VP = Valor / (1 + taxa)^(dias/30) · Custo = Valor − VP · soma dos VPs = líquido total.
-      </p>
     </section>
   );
 };
