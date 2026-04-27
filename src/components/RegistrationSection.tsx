@@ -394,7 +394,7 @@ export const RegistrationSection = () => {
                 Parcelamento
               </Label>
             </div>
-            <span className="font-mono text-[11px] tracking-widest text-muted-foreground">
+            <span className="font-mono text-[11px] tracking-widest text-muted-foreground invisible">
               RESTANTE: <span className="text-primary-glow">{formatBRL(remaining)}</span>
             </span>
           </div>
