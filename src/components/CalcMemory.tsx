@@ -136,7 +136,9 @@ export const CalcMemory = ({
         <table className="w-full text-xs whitespace-nowrap">
           <thead className="bg-muted/40 font-mono tracking-widest">
             <tr className="text-muted-foreground">
-              <th className="px-3 py-2 text-center font-medium">#</th>
+              <th className="px-3 py-2 text-center font-medium">DATA DA OPERAÇÃO</th>
+              <th className="px-3 py-2 text-center font-medium">TAXA MENSAL</th>
+              <th className="px-3 py-2 text-center font-medium">PARCELA</th>
               {columns.map((c) => (
                 <th key={c} className="px-3 py-2 text-center font-medium">
                   {c}
@@ -147,8 +149,10 @@ export const CalcMemory = ({
           <tbody>
             {rows.map((r, idx) => (
               <tr key={r.id} className="border-t border-border/40 font-mono tabular-nums text-center">
+                <td className="px-3 py-2">{fmtDate(operationDate)}</td>
+                <td className="px-3 py-2">{formatPct(monthlyRate)}</td>
                 <td className="px-3 py-2">
-                  {showTotals ? String(idx + 1).padStart(2, "0") : "ÚNICA"}
+                  {showTotals ? `${String(idx + 1).padStart(2, "0")} / ${rows.length}` : "ÚNICA"}
                 </td>
                 <td className="px-3 py-2">{fmtDate(r.dueDate)}</td>
                 <td className="px-3 py-2">{r.days}</td>
@@ -161,6 +165,8 @@ export const CalcMemory = ({
 
             {showTotals && (
               <tr className="border-t-2 border-primary-glow/50 bg-primary-glow/15 font-mono tabular-nums text-center font-semibold">
+                <td className="px-3 py-2">—</td>
+                <td className="px-3 py-2">—</td>
                 <td className="px-3 py-2 tracking-widest text-primary-glow">TOTAL</td>
                 <td className="px-3 py-2">—</td>
                 <td className="px-3 py-2">—</td>
