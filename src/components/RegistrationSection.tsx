@@ -29,7 +29,7 @@ const addDaysISO = (baseISO: string, days: number) => {
 };
 
 export const RegistrationSection = () => {
-  const { clients, addClient } = useClients();
+  const { clients, addClient, removeClient } = useClients();
 
   const [clientId, setClientId] = useState<string>("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
@@ -210,7 +210,7 @@ export const RegistrationSection = () => {
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle className="font-display">Novo cliente</DialogTitle>
+                    <DialogTitle className="font-display">Gerenciar clientes</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-3">
                     <div className="space-y-2">
@@ -229,6 +229,44 @@ export const RegistrationSection = () => {
                         style={{ textTransform: "uppercase" }}
                       />
                     </div>
+
+                    {clients.length > 0 && (
+                      <div className="space-y-2 pt-2">
+                        <Label className="text-xs font-mono tracking-widest text-muted-foreground">
+                          CLIENTES CADASTRADOS ({clients.length})
+                        </Label>
+                        <div className="max-h-48 overflow-y-auto rounded-md border border-border/50 divide-y divide-border/40">
+                          {clients.map((c) => (
+                            <div
+                              key={c.id}
+                              className="flex items-center justify-between gap-2 px-3 py-2 text-sm"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <div className="truncate font-medium">{c.name}</div>
+                                {c.document && (
+                                  <div className="truncate text-xs text-muted-foreground font-mono">
+                                    {c.document}
+                                  </div>
+                                )}
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-muted-foreground hover:text-cost-red h-8 w-8"
+                                aria-label={`Remover ${c.name}`}
+                                onClick={async () => {
+                                  if (!confirm(`Remover "${c.name}"?`)) return;
+                                  const ok = await removeClient(c.id);
+                                  if (ok && clientId === c.id) setClientId("");
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <DialogFooter>
                     <Button onClick={handleCreateClient}>Cadastrar cliente</Button>
