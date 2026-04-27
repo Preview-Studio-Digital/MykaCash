@@ -40,7 +40,7 @@ export const AppHeader = () => {
           </span>
         </div>
 
-        <h1 className="text-4xl title-gradient font-sans font-extrabold leading-[0.9] tracking-tighter text-[clamp(3.5rem,12vw,9rem)] animate-fade-up">
+        <h1 className="font-title text-4xl title-gradient font-extrabold leading-[0.9] tracking-tighter text-[clamp(3rem,10vw,8rem)] animate-fade-up">
           SMART MONEY
         </h1>
 
