@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { z } from "zod";
-import logo from "@/assets/money-management.ico";
 
 const schema = z.object({
   email: z.string().trim().email({ message: "Email inválido" }).max(255),
