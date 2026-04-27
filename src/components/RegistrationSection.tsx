@@ -105,7 +105,11 @@ export const RegistrationSection = () => {
       toast.error("Informe o nome do cliente");
       return;
     }
-    const c = await addClient(newClientName.trim(), newClientDoc.trim() || null);
+    if (!newClientDoc.trim()) {
+      toast.error("Informe o CNPJ ou CPF do cliente");
+      return;
+    }
+    const c = await addClient(newClientName.trim(), newClientDoc.trim());
     if (c) {
       setClientId(c.id);
       setNewClientOpen(false);
@@ -222,11 +226,12 @@ export const RegistrationSection = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>CNPJ / CPF (opcional)</Label>
+                      <Label>CNPJ / CPF</Label>
                       <Input
                         value={newClientDoc}
                         onChange={(e) => setNewClientDoc(e.target.value.toUpperCase())}
                         style={{ textTransform: "uppercase" }}
+                        required
                       />
                     </div>
 
