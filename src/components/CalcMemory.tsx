@@ -85,11 +85,11 @@ export const CalcMemory = ({
             <div className="font-mono text-xs">{fmtDate(r.dueDate)} · {r.days} dias</div>
             <div className="grid grid-cols-2 gap-2 pt-2 font-mono text-xs tabular-nums">
               <div>
-                <div className="text-[9px] tracking-widest text-muted-foreground">VALOR</div>
+                <div className="text-[9px] tracking-widest text-muted-foreground">VALOR BRUTO</div>
                 <div>{formatBRL(r.value)}</div>
               </div>
               <div>
-                <div className="text-[9px] tracking-widest text-muted-foreground">VP</div>
+                <div className="text-[9px] tracking-widest text-muted-foreground">VALOR LÍQUIDO</div>
                 <div className="text-net-green">{formatBRL(r.presentValue)}</div>
               </div>
               <div>
@@ -111,11 +111,11 @@ export const CalcMemory = ({
             </div>
             <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-xs tabular-nums">
               <div>
-                <div className="text-[9px] tracking-widest text-muted-foreground">VALOR</div>
+                <div className="text-[9px] tracking-widest text-muted-foreground">VALOR BRUTO</div>
                 <div>{formatBRL(totals.value)}</div>
               </div>
               <div>
-                <div className="text-[9px] tracking-widest text-muted-foreground">VP</div>
+                <div className="text-[9px] tracking-widest text-muted-foreground">VALOR LÍQUIDO</div>
                 <div className="text-net-green">{formatBRL(totals.presentValue)}</div>
               </div>
               <div>
