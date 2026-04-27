@@ -44,9 +44,9 @@ export const AppHeader = () => {
           SMART MONEY
         </h1>
 
-        <p className="mt-6 font-display text-lg md:text-xl font-medium tracking-[0.15em] text-foreground/90 animate-fade-up">
+        <p className="mt-4 font-mono text-[10px] md:text-xs font-medium tracking-[0.4em] text-muted-foreground animate-fade-up">
           MYKA COMPRESSORES DO BRASIL
-          <span className="mx-3 text-primary">·</span>
+          <span className="mx-2 text-primary">·</span>
           PREVIEW STUDIO DIGITAL
         </p>
 
