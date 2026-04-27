@@ -62,7 +62,7 @@ const Auth = () => {
           <div className="text-xs font-mono tracking-[0.3em] text-muted-foreground mb-3">
             PREVIEW STUDIO DIGITAL
           </div>
-          <h1 className="font-display text-4xl font-bold title-gradient">SMART MONEY</h1>
+          <h1 className="font-title text-4xl font-bold title-gradient">SMART MONEY</h1>
           <p className="mt-2 text-sm text-muted-foreground">Acesso restrito · Myka Compressores</p>
         </div>
 
