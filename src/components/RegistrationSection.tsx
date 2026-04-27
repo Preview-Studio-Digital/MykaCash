@@ -105,7 +105,11 @@ export const RegistrationSection = () => {
       toast.error("Informe o nome do cliente");
       return;
     }
-    const c = await addClient(newClientName.trim(), newClientDoc.trim() || null);
+    if (!newClientDoc.trim()) {
+      toast.error("Informe o CNPJ ou CPF do cliente");
+      return;
+    }
+    const c = await addClient(newClientName.trim(), newClientDoc.trim());
     if (c) {
       setClientId(c.id);
       setNewClientOpen(false);
