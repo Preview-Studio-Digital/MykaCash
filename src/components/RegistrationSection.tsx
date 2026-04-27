@@ -396,10 +396,15 @@ export const RegistrationSection = () => {
                     className="pl-10 font-mono"
                   />
                 </div>
-                <DateField
-                  value={inst.dueDate}
-                  onChange={(iso) => updateInstallmentDate(inst.id, iso)}
-                />
+                <div className="space-y-1">
+                  <span className="block font-mono text-[9px] tracking-[0.25em] text-muted-foreground">
+                    DATA DE VENCIMENTO
+                  </span>
+                  <DateField
+                    value={inst.dueDate}
+                    onChange={(iso) => updateInstallmentDate(inst.id, iso)}
+                  />
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
