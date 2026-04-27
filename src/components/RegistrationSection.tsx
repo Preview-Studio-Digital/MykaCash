@@ -125,7 +125,18 @@ export const RegistrationSection = () => {
   };
 
   const removeInstallment = (id: string) => {
-    setInstallments((prev) => (prev.length <= 1 ? prev : prev.filter((i) => i.id !== id)));
+    setInstallments((prev) => {
+      if (prev.length <= 1) return prev;
+      const filtered = prev.filter((i) => i.id !== id);
+      const count = filtered.length;
+      const equalShare = Math.floor((invoiceValue * 100) / count) / 100;
+      const remainder = +(invoiceValue - equalShare * (count - 1)).toFixed(2);
+      return filtered.map((i, idx) => ({
+        ...i,
+        value: idx === count - 1 ? remainder : equalShare,
+        dueDate: addDaysISO(operationDate, 30 * (idx + 1)),
+      }));
+    });
   };
 
   const result = useMemo(
