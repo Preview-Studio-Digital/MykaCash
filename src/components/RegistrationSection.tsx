@@ -400,19 +400,11 @@ export const RegistrationSection = () => {
             {installments.map((inst, idx) => (
               <div
                 key={inst.id}
-                className="grid grid-cols-[5rem_1fr_1fr_2.5rem] items-end gap-3 rounded-lg border border-border/50 bg-background/40 p-3"
+                className="grid grid-cols-[1fr_1fr_2.5rem] items-end gap-3 rounded-lg border border-border/50 bg-background/40 p-3"
               >
                 <div className="space-y-1">
                   <span className="block font-mono text-[9px] tracking-[0.25em] text-muted-foreground">
-                    PARCELA
-                  </span>
-                  <div className="flex h-10 items-center font-mono text-xs tracking-widest text-muted-foreground">
-                    {idx === 0 && installments.length === 1 ? "ÚNICA" : `P ${String(idx + 1).padStart(2, "0")}`}
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <span className="block font-mono text-[9px] tracking-[0.25em] text-muted-foreground">
-                    VALOR
+                    {installments.length === 1 ? "PARCELA ÚNICA" : `PARCELA ${idx + 1}`}
                   </span>
                   <div className="relative">
                     <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">
