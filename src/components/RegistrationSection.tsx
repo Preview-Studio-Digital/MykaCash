@@ -55,13 +55,15 @@ export const RegistrationSection = () => {
 
   const [saving, setSaving] = useState(false);
 
-  // Reset installment when invoice value changes and single installment is untouched
+  // Single installment mirrors the invoice value and operation date + 30 days
   useEffect(() => {
     if (installments.length === 1) {
-      setInstallments([{ ...installments[0], value: invoiceValue }]);
+      setInstallments([
+        { ...installments[0], value: invoiceValue, dueDate: addDaysISO(operationDate, 30) },
+      ]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [invoiceValue]);
+  }, [invoiceValue, operationDate]);
 
   const totalAllocated = useMemo(
     () => installments.reduce((s, i) => s + (Number(i.value) || 0), 0),
@@ -92,12 +94,17 @@ export const RegistrationSection = () => {
   };
 
   const addInstallment = () => {
-    if (!canAddInstallment) return;
-    const lastDate = installments[installments.length - 1]?.dueDate ?? operationDate;
-    setInstallments((prev) => [
-      ...prev,
-      { id: uid(), value: remaining, dueDate: addDaysISO(lastDate, 30) },
-    ]);
+    if (invoiceValue <= 0) return;
+    setInstallments((prev) => {
+      const newCount = prev.length + 1;
+      const equalShare = Math.floor((invoiceValue * 100) / newCount) / 100;
+      const remainder = +(invoiceValue - equalShare * (newCount - 1)).toFixed(2);
+      return Array.from({ length: newCount }, (_, idx) => ({
+        id: prev[idx]?.id ?? uid(),
+        value: idx === newCount - 1 ? remainder : equalShare,
+        dueDate: addDaysISO(operationDate, 30 * (idx + 1)),
+      }));
+    });
   };
 
   const removeInstallment = (id: string) => {
@@ -389,10 +396,15 @@ export const RegistrationSection = () => {
                     className="pl-10 font-mono"
                   />
                 </div>
-                <DateField
-                  value={inst.dueDate}
-                  onChange={(iso) => updateInstallmentDate(inst.id, iso)}
-                />
+                <div className="space-y-1">
+                  <span className="block font-mono text-[9px] tracking-[0.25em] text-muted-foreground">
+                    DATA DE VENCIMENTO
+                  </span>
+                  <DateField
+                    value={inst.dueDate}
+                    onChange={(iso) => updateInstallmentDate(inst.id, iso)}
+                  />
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -411,7 +423,7 @@ export const RegistrationSection = () => {
             type="button"
             variant="outline"
             size="sm"
-            disabled={!canAddInstallment}
+            disabled={invoiceValue <= 0}
             onClick={addInstallment}
             className="mt-3 font-mono tracking-wider"
           >

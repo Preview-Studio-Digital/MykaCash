@@ -1,4 +1,4 @@
-import { CalcResult, formatBRL, formatPct } from "@/lib/calc";
+import { CalcResult, formatBRL, formatPct, FACTORING_MONTHLY_RATE_PCT } from "@/lib/calc";
 
 export const CalcMemory = ({
   result,
@@ -12,14 +12,46 @@ export const CalcMemory = ({
   const fmtDate = (iso: string) =>
     iso ? new Date(iso + "T00:00:00").toLocaleDateString("pt-BR") : "-";
 
-  const summary: { label: string; value: string; className?: string }[] = [
-    { label: "VALOR NOTA", value: formatBRL(result.totalInvoice) },
-    { label: "LÍQUIDO", value: formatBRL(result.netValue), className: "text-net-green" },
-    { label: "CUSTO OPERAÇÃO", value: formatBRL(result.operationCost), className: "text-cost-red" },
-    { label: "TAXA MENSAL", value: formatPct(monthlyRate) },
-    { label: "TAXA EFETIVA", value: formatPct(result.effectiveRatePct) },
-    { label: "PRAZO MÉDIO", value: `${Math.round(result.averageDays)} dias` },
-    { label: "DATA OPERAÇÃO", value: fmtDate(operationDate) },
+  const rFactoring = FACTORING_MONTHLY_RATE_PCT / 100;
+
+  // Per-installment breakdown as if each were an individual operation
+  const rows = result.installmentCalcs.map((i) => {
+    const cost = i.value - i.presentValue;
+    const effectivePct = i.value > 0 ? (cost / i.value) * 100 : 0;
+    const factoringCost = i.value * rFactoring * (i.days / 30);
+    return {
+      id: i.id,
+      dueDate: i.dueDate,
+      days: i.days,
+      value: i.value,
+      presentValue: i.presentValue,
+      cost,
+      effectivePct,
+      factoringCost,
+    };
+  });
+
+  const totals = rows.reduce(
+    (acc, r) => ({
+      value: acc.value + r.value,
+      presentValue: acc.presentValue + r.presentValue,
+      cost: acc.cost + r.cost,
+      factoringCost: acc.factoringCost + r.factoringCost,
+    }),
+    { value: 0, presentValue: 0, cost: 0, factoringCost: 0 }
+  );
+
+  const showTotals = rows.length > 1;
+  const totalEffective = totals.value > 0 ? (totals.cost / totals.value) * 100 : 0;
+
+  const columns = [
+    "DATA DE VENCIMENTO",
+    "DIAS",
+    "VALOR",
+    "VP (LÍQUIDO)",
+    "CUSTO",
+    "TAXA EFETIVA",
+    `FACTORING (${formatPct(FACTORING_MONTHLY_RATE_PCT)}/mês)`,
   ];
 
   return (
@@ -29,105 +61,129 @@ export const CalcMemory = ({
         <h2 className="font-display text-xl font-semibold tracking-tight">Memória de cálculo</h2>
       </div>
 
-      {/* Summary — mobile vertical */}
-      <div className="space-y-2 md:hidden">
-        {summary.map((r) => (
-          <div
-            key={r.label}
-            className="flex items-center justify-between gap-3 rounded-lg border border-border/40 bg-muted/20 px-3 py-2"
-          >
-            <span className="font-mono text-[10px] tracking-widest text-muted-foreground">{r.label}</span>
-            <span className={`font-mono text-xs tabular-nums ${r.className ?? ""}`}>{r.value}</span>
-          </div>
-        ))}
+      <div className="mb-3 flex flex-wrap items-center gap-x-6 gap-y-1 font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
+        <span>DATA OPERAÇÃO · {fmtDate(operationDate)}</span>
+        <span>TAXA MENSAL · {formatPct(monthlyRate)}</span>
+        <span>PARCELAS · {rows.length}</span>
       </div>
 
-      {/* Summary — desktop horizontal */}
+      {/* Mobile cards */}
+      <div className="space-y-2 md:hidden">
+        {rows.map((r, idx) => (
+          <div
+            key={r.id}
+            className="rounded-lg border border-border/40 bg-muted/20 p-3 space-y-1 text-center"
+          >
+            <div className="font-mono text-[10px] tracking-widest text-muted-foreground">
+              {showTotals ? `P ${String(idx + 1).padStart(2, "0")}` : "PARCELA ÚNICA"}
+            </div>
+            <div className="font-mono text-[10px] tracking-widest text-muted-foreground">
+              DATA DE VENCIMENTO
+            </div>
+            <div className="font-mono text-xs">{fmtDate(r.dueDate)} · {r.days} dias</div>
+            <div className="grid grid-cols-2 gap-2 pt-2 font-mono text-xs tabular-nums">
+              <div>
+                <div className="text-[9px] tracking-widest text-muted-foreground">VALOR</div>
+                <div>{formatBRL(r.value)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] tracking-widest text-muted-foreground">VP</div>
+                <div className="text-net-green">{formatBRL(r.presentValue)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] tracking-widest text-muted-foreground">CUSTO</div>
+                <div className="text-cost-red">{formatBRL(r.cost)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] tracking-widest text-muted-foreground">TAXA EF.</div>
+                <div>{formatPct(r.effectivePct)}</div>
+              </div>
+              <div className="col-span-2">
+                <div className="text-[9px] tracking-widest text-muted-foreground">FACTORING</div>
+                <div>{formatBRL(r.factoringCost)}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {showTotals && (
+          <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 space-y-1 text-center">
+            <div className="font-mono text-[10px] tracking-widest text-primary-glow">
+              TOTAIS
+            </div>
+            <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-xs tabular-nums">
+              <div>
+                <div className="text-[9px] tracking-widest text-muted-foreground">VALOR</div>
+                <div>{formatBRL(totals.value)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] tracking-widest text-muted-foreground">VP</div>
+                <div className="text-net-green">{formatBRL(totals.presentValue)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] tracking-widest text-muted-foreground">CUSTO</div>
+                <div className="text-cost-red">{formatBRL(totals.cost)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] tracking-widest text-muted-foreground">TAXA EF.</div>
+                <div>{formatPct(totalEffective)}</div>
+              </div>
+              <div className="col-span-2">
+                <div className="text-[9px] tracking-widest text-muted-foreground">FACTORING</div>
+                <div>{formatBRL(totals.factoringCost)}</div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop table */}
       <div className="hidden md:block overflow-x-auto rounded-lg border border-border/50">
         <table className="w-full text-xs whitespace-nowrap">
           <thead className="bg-muted/40 font-mono tracking-widest">
-            <tr className="text-left text-muted-foreground">
-              {summary.map((r) => (
-                <th key={r.label} className="px-3 py-2 font-medium">
-                  {r.label}
+            <tr className="text-muted-foreground">
+              <th className="px-3 py-2 text-center font-medium">#</th>
+              {columns.map((c) => (
+                <th key={c} className="px-3 py-2 text-center font-medium">
+                  {c}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            <tr className="border-t border-border/40 font-mono tabular-nums">
-              {summary.map((r) => (
-                <td key={r.label} className={`px-3 py-2 ${r.className ?? ""}`}>
-                  {r.value}
+            {rows.map((r, idx) => (
+              <tr key={r.id} className="border-t border-border/40 font-mono tabular-nums text-center">
+                <td className="px-3 py-2">
+                  {showTotals ? String(idx + 1).padStart(2, "0") : "ÚNICA"}
                 </td>
-              ))}
-            </tr>
+                <td className="px-3 py-2">{fmtDate(r.dueDate)}</td>
+                <td className="px-3 py-2">{r.days}</td>
+                <td className="px-3 py-2">{formatBRL(r.value)}</td>
+                <td className="px-3 py-2 text-net-green">{formatBRL(r.presentValue)}</td>
+                <td className="px-3 py-2 text-cost-red">{formatBRL(r.cost)}</td>
+                <td className="px-3 py-2">{formatPct(r.effectivePct)}</td>
+                <td className="px-3 py-2">{formatBRL(r.factoringCost)}</td>
+              </tr>
+            ))}
+
+            {showTotals && (
+              <tr className="border-t-2 border-primary/40 bg-primary/5 font-mono tabular-nums text-center font-semibold">
+                <td className="px-3 py-2 tracking-widest text-primary-glow">TOTAL</td>
+                <td className="px-3 py-2">—</td>
+                <td className="px-3 py-2">—</td>
+                <td className="px-3 py-2">{formatBRL(totals.value)}</td>
+                <td className="px-3 py-2 text-net-green">{formatBRL(totals.presentValue)}</td>
+                <td className="px-3 py-2 text-cost-red">{formatBRL(totals.cost)}</td>
+                <td className="px-3 py-2">{formatPct(totalEffective)}</td>
+                <td className="px-3 py-2">{formatBRL(totals.factoringCost)}</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* Installments breakdown */}
-      <div className="mt-6">
-        <div className="mb-3 font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
-          PARCELAS ({result.installmentCalcs.length})
-        </div>
-
-        {/* Mobile */}
-        <div className="space-y-2 md:hidden">
-          {result.installmentCalcs.map((i, idx) => (
-            <div
-              key={i.id}
-              className="rounded-lg border border-border/40 bg-muted/20 p-3 space-y-1"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] tracking-widest text-muted-foreground">
-                  P {String(idx + 1).padStart(2, "0")}
-                </span>
-                <span className="font-mono text-[10px] text-muted-foreground">
-                  {fmtDate(i.dueDate)} · {i.days} dias
-                </span>
-              </div>
-              <div className="flex items-center justify-between font-mono text-xs tabular-nums">
-                <span className="text-muted-foreground">Valor</span>
-                <span>{formatBRL(i.value)}</span>
-              </div>
-              <div className="flex items-center justify-between font-mono text-xs tabular-nums">
-                <span className="text-muted-foreground">VP</span>
-                <span className="text-net-green">{formatBRL(i.presentValue)}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Desktop */}
-        <div className="hidden md:block overflow-x-auto rounded-lg border border-border/50">
-          <table className="w-full text-xs whitespace-nowrap">
-            <thead className="bg-muted/40 font-mono tracking-widest">
-              <tr className="text-left text-muted-foreground">
-                <th className="px-3 py-2 font-medium">#</th>
-                <th className="px-3 py-2 font-medium">VENCIMENTO</th>
-                <th className="px-3 py-2 font-medium">DIAS</th>
-                <th className="px-3 py-2 font-medium text-right">VALOR</th>
-                <th className="px-3 py-2 font-medium text-right">VP</th>
-              </tr>
-            </thead>
-            <tbody>
-              {result.installmentCalcs.map((i, idx) => (
-                <tr key={i.id} className="border-t border-border/40 font-mono tabular-nums">
-                  <td className="px-3 py-2">{String(idx + 1).padStart(2, "0")}</td>
-                  <td className="px-3 py-2">{fmtDate(i.dueDate)}</td>
-                  <td className="px-3 py-2">{i.days}</td>
-                  <td className="px-3 py-2 text-right">{formatBRL(i.value)}</td>
-                  <td className="px-3 py-2 text-right text-net-green">{formatBRL(i.presentValue)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <p className="mt-3 font-mono text-[10px] leading-relaxed tracking-wider text-muted-foreground">
-        Fórmula: VP = Valor / (1 + taxa)^(dias/30) · soma dos VPs = líquido.
+      <p className="mt-3 text-center font-mono text-[10px] leading-relaxed tracking-wider text-muted-foreground">
+        Fórmula: VP = Valor / (1 + taxa)^(dias/30) · Custo = Valor − VP · soma dos VPs = líquido total.
       </p>
     </section>
   );
