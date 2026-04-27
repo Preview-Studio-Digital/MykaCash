@@ -138,9 +138,9 @@ export const CalcMemory = ({
             <tr className="text-muted-foreground">
               <th className="px-2 py-2 text-center font-medium">PARCELA</th>
               <th className="px-2 py-2 text-center font-medium">OPERAÇÃO</th>
-              <th className="px-2 py-2 text-center font-medium">TAXA MENSAL</th>
               <th className="px-2 py-2 text-center font-medium">VENCIMENTO</th>
               <th className="px-2 py-2 text-center font-medium">DIAS</th>
+              <th className="px-2 py-2 text-center font-medium">TAXA MENSAL</th>
               <th className="px-2 py-2 text-center font-medium">TAXA EFETIVA</th>
               <th className="px-2 py-2 text-center font-medium">VALOR BRUTO</th>
               <th className="px-2 py-2 text-center font-medium">VALOR LÍQUIDO</th>
@@ -154,9 +154,9 @@ export const CalcMemory = ({
                   {showTotals ? String(idx + 1).padStart(2, "0") : "ÚNICA"}
                 </td>
                 <td className="px-2 py-2">{fmtDate(operationDate)}</td>
-                <td className="px-2 py-2">{formatPct(monthlyRate)}</td>
                 <td className="px-2 py-2">{fmtDate(r.dueDate)}</td>
                 <td className="px-2 py-2">{r.days}</td>
+                <td className="px-2 py-2">{formatPct(monthlyRate)}</td>
                 <td className="px-2 py-2">{formatPct(r.effectivePct)}</td>
                 <td className="px-2 py-2">{formatBRL(r.value)}</td>
                 <td className="px-2 py-2 text-net-green">{formatBRL(r.presentValue)}</td>
