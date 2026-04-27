@@ -21,6 +21,15 @@ import { toast } from "sonner";
 import html2canvas from "html2canvas";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
+const formatCNPJ = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 14);
+  let out = digits;
+  if (digits.length > 2) out = digits.slice(0, 2) + "." + digits.slice(2);
+  if (digits.length > 5) out = out.slice(0, 6) + "." + out.slice(6);
+  if (digits.length > 8) out = out.slice(0, 10) + "/" + out.slice(10);
+  if (digits.length > 12) out = out.slice(0, 15) + "-" + out.slice(15);
+  return out;
+};
 const todayISO = () => new Date().toISOString().slice(0, 10);
 const addDaysISO = (baseISO: string, days: number) => {
   const d = new Date(baseISO + "T00:00:00");
@@ -105,8 +114,9 @@ export const RegistrationSection = () => {
       toast.error("Informe o nome do cliente");
       return;
     }
-    if (!newClientDoc.trim()) {
-      toast.error("Informe o CNPJ ou CPF do cliente");
+    const cnpjDigits = newClientDoc.replace(/\D/g, "");
+    if (cnpjDigits.length !== 14) {
+      toast.error("Informe um CNPJ válido (14 dígitos)");
       return;
     }
     const c = await addClient(newClientName.trim(), newClientDoc.trim());
@@ -218,7 +228,7 @@ export const RegistrationSection = () => {
                   </DialogHeader>
                   <div className="space-y-3">
                     <div className="space-y-2">
-                      <Label>Nome / Razão social</Label>
+                      <Label>Razão social</Label>
                       <Input
                         value={newClientName}
                         onChange={(e) => setNewClientName(e.target.value.toUpperCase())}
@@ -226,11 +236,14 @@ export const RegistrationSection = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>CNPJ / CPF</Label>
+                      <Label>CNPJ</Label>
                       <Input
                         value={newClientDoc}
-                        onChange={(e) => setNewClientDoc(e.target.value.toUpperCase())}
-                        style={{ textTransform: "uppercase" }}
+                        onChange={(e) => setNewClientDoc(formatCNPJ(e.target.value))}
+                        placeholder="XX.XXX.XXX/XXXX-XX"
+                        inputMode="numeric"
+                        maxLength={18}
+                        className="font-mono"
                         required
                       />
                     </div>
