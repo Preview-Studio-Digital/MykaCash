@@ -92,12 +92,17 @@ export const RegistrationSection = () => {
   };
 
   const addInstallment = () => {
-    if (!canAddInstallment) return;
-    const lastDate = installments[installments.length - 1]?.dueDate ?? operationDate;
-    setInstallments((prev) => [
-      ...prev,
-      { id: uid(), value: remaining, dueDate: addDaysISO(lastDate, 30) },
-    ]);
+    if (invoiceValue <= 0) return;
+    setInstallments((prev) => {
+      const newCount = prev.length + 1;
+      const equalShare = Math.floor((invoiceValue * 100) / newCount) / 100;
+      const remainder = +(invoiceValue - equalShare * (newCount - 1)).toFixed(2);
+      return Array.from({ length: newCount }, (_, idx) => ({
+        id: prev[idx]?.id ?? uid(),
+        value: idx === newCount - 1 ? remainder : equalShare,
+        dueDate: addDaysISO(operationDate, 30 * (idx + 1)),
+      }));
+    });
   };
 
   const removeInstallment = (id: string) => {
