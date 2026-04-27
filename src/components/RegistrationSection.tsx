@@ -244,8 +244,12 @@ export const RegistrationSection = () => {
               type="number"
               step="0.01"
               min="0"
-              value={invoiceValue ? invoiceValue.toFixed(2) : ""}
+              value={invoiceValue || ""}
               onChange={(e) => setInvoiceValue(parseFloat(e.target.value) || 0)}
+              onBlur={(e) => {
+                const v = parseFloat(e.target.value) || 0;
+                setInvoiceValue(Math.round(v * 100) / 100);
+              }}
               placeholder="0,00"
               className="font-mono"
             />
