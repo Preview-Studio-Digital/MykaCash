@@ -1,8 +1,9 @@
-import { CalcResult, formatBRL, formatPct } from "@/lib/calc";
+import { CalcResult, formatBRL, formatPct, FACTORING_MONTHLY_RATE_PCT } from "@/lib/calc";
 
 export const ResultPanels = ({ result, monthlyRate }: { result: CalcResult; monthlyRate: number }) => {
+  const factoringSavings = Math.max(0, result.factoringCost - result.operationCost);
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid gap-4 md:grid-cols-3">
       {/* Net value — green */}
       <div className="relative overflow-hidden rounded-xl bg-gradient-net p-4 text-net-green-foreground panel-glow-net animate-fade-up">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
