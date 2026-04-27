@@ -388,9 +388,12 @@ export const RegistrationSection = () => {
         {/* Installments */}
         <div className="mt-8">
           <div className="mb-3 flex items-center justify-between">
-            <Label className="text-sm font-display tracking-tight">
-              Parcelamento
-            </Label>
+            <div className="flex items-center gap-3">
+              <span className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
+              <Label className="text-xl font-display font-semibold tracking-tight">
+                Parcelamento
+              </Label>
+            </div>
             <span className="font-mono text-[11px] tracking-widest text-muted-foreground">
               RESTANTE: <span className="text-primary-glow">{formatBRL(remaining)}</span>
             </span>
