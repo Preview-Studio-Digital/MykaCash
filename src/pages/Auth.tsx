@@ -59,11 +59,7 @@ const Auth = () => {
 
       <div className="relative w-full max-w-md rounded-2xl border border-border/60 bg-gradient-card p-8 shadow-panel animate-fade-up">
         <div className="mb-8 text-center">
-          <div className="text-xs font-mono tracking-[0.3em] text-muted-foreground mb-3">
-            PREVIEW STUDIO DIGITAL
-          </div>
           <h1 className="font-title font-bold title-gradient text-2xl">SMART MONEY</h1>
-          <p className="mt-2 text-muted-foreground font-thin text-sm font-title">Myka Compressores - Preview Studio Digital</p>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4">
