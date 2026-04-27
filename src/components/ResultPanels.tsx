@@ -1,9 +1,8 @@
 import { CalcResult, formatBRL, formatPct } from "@/lib/calc";
 
 export const ResultPanels = ({ result }: { result: CalcResult }) => {
-  const savings = Math.max(0, result.factoringCost - result.operationCost);
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-2">
       {/* Net value — green */}
       <div className="relative overflow-hidden rounded-xl bg-gradient-net p-4 text-net-green-foreground panel-glow-net animate-fade-up">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
@@ -42,24 +41,6 @@ export const ResultPanels = ({ result }: { result: CalcResult }) => {
                 {Math.round(result.averageDays)} dias
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Factoring savings — amber */}
-      <div className="relative overflow-hidden rounded-xl bg-gradient-factoring p-4 text-white panel-glow-factoring animate-fade-up">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.3),transparent_60%)]" />
-        <div className="relative">
-          <div className="font-mono text-[9px] tracking-[0.3em] opacity-90 text-white">ECONOMIA FACTORING</div>
-          <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums text-white">
-            {formatBRL(savings)}
-          </div>
-          <div className="mt-3 h-px bg-white/25" />
-          <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-90 text-white">
-            CUSTO FACTORING ({formatPct(result.factoringMonthlyRatePct)}/mês)
-          </div>
-          <div className="mt-0.5 font-display text-base font-semibold tabular-nums text-white">
-            {formatBRL(result.factoringCost)}
           </div>
         </div>
       </div>
