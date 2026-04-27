@@ -214,7 +214,7 @@ export const RegistrationSection = () => {
               type="number"
               step="0.01"
               min="0"
-              value={invoiceValue || ""}
+              value={invoiceValue ? invoiceValue.toFixed(2) : ""}
               onChange={(e) => setInvoiceValue(parseFloat(e.target.value) || 0)}
               placeholder="0,00"
               className="font-mono"
