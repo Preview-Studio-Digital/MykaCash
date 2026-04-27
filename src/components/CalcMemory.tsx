@@ -54,7 +54,22 @@ export const CalcMemory = ({
         <h2 className="font-display text-xl font-semibold tracking-tight">Memória de cálculo</h2>
       </div>
 
-      {/* Mobile cards */}
+      {/* Mobile: operation summary */}
+      <div className="mb-2 grid grid-cols-3 gap-2 md:hidden">
+        <div className="rounded-lg border border-border/40 bg-muted/20 p-2 text-center">
+          <div className="font-mono text-[9px] tracking-widest text-muted-foreground">DATA OP.</div>
+          <div className="font-mono text-xs">{fmtDate(operationDate)}</div>
+        </div>
+        <div className="rounded-lg border border-border/40 bg-muted/20 p-2 text-center">
+          <div className="font-mono text-[9px] tracking-widest text-muted-foreground">TAXA MÊS</div>
+          <div className="font-mono text-xs">{formatPct(monthlyRate)}</div>
+        </div>
+        <div className="rounded-lg border border-border/40 bg-muted/20 p-2 text-center">
+          <div className="font-mono text-[9px] tracking-widest text-muted-foreground">PARCELAS</div>
+          <div className="font-mono text-xs">{rows.length}</div>
+        </div>
+      </div>
+
       <div className="space-y-2 md:hidden">
         {rows.map((r, idx) => (
           <div
