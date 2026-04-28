@@ -218,6 +218,13 @@ const Historico = () => {
     return out;
   }, [invoices, todayStr, now, user]);
 
+  const filteredRows = useMemo(() => {
+    if (statusFilter === "todas") return rows;
+    if (statusFilter === "liquidadas") return rows.filter((r) => r.settled);
+    if (statusFilter === "vencidas") return rows.filter((r) => !r.settled && r.overdue);
+    return rows.filter((r) => !r.settled && !r.overdue); // abertas
+  }, [rows, statusFilter]);
+
   const totals = rows.reduce(
     (a, r) => ({
       value: a.value + r.value,
