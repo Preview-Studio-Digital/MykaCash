@@ -276,6 +276,7 @@ const Historico = () => {
     { id: "hoje", label: "HOJE" },
     { id: "semana", label: "SEMANA" },
     { id: "mes", label: "MÊS" },
+    { id: "total", label: "TOTAL" },
     { id: "periodo", label: "PERÍODO" },
   ];
 
