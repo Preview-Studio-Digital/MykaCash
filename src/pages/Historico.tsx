@@ -249,8 +249,27 @@ const Historico = () => {
       acc += byDate.get(d) ?? 0;
       series.push({ date: d, label: fmtDate(d), saldo: Math.round(acc * 100) / 100 });
     }
+
+    // For periods "semana", "mes" and "total", always show today's date on the chart
+    if (period === "semana" || period === "mes" || period === "total") {
+      const last = series[series.length - 1];
+      if (last.date < todayStr) {
+        series.push({ date: todayStr, label: fmtDate(todayStr), saldo: last.saldo });
+      } else if (last.date > todayStr) {
+        // Insert today before future settlement dates so it's visible on the axis
+        const insertIdx = series.findIndex((s) => s.date > todayStr);
+        if (insertIdx > 0) {
+          const prevSaldo = series[insertIdx - 1].saldo;
+          series.splice(insertIdx, 0, {
+            date: todayStr,
+            label: fmtDate(todayStr),
+            saldo: prevSaldo,
+          });
+        }
+      }
+    }
     return series;
-  }, [rows]);
+  }, [rows, period, todayStr]);
 
   const toggleSettlement = async (row: (typeof rows)[number]) => {
     const inv = invoices.find((i) => i.id === row.invoiceId);
