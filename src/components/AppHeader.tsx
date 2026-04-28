@@ -5,7 +5,8 @@ import { Link } from "react-router-dom";
 
 export const AppHeader = () => {
   const { user, signOut, isAdmin } = useAuth();
-  const usernameMeta = (user?.user_metadata as any)?.username as string | undefined;
+  const meta = (user?.user_metadata as any) ?? {};
+  const displayName = (meta.display_name as string | undefined) ?? (meta.username as string | undefined) ?? user?.email;
 
   return (
     <header className="relative overflow-hidden border-b border-border/60">
@@ -20,7 +21,7 @@ export const AppHeader = () => {
           ONLINE
         </span>
         <div className="flex items-center gap-4">
-          <span className="hidden sm:inline">{usernameMeta ?? user?.email}</span>
+          <span className="hidden sm:inline">{displayName}</span>
           {isAdmin && (
             <Button asChild variant="ghost" size="sm" className="h-8 px-3 text-xs font-mono tracking-wider hover:text-primary">
               <Link to="/admin">
