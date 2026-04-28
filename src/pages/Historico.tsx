@@ -112,8 +112,6 @@ const Historico = () => {
       .select(
         "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, created_by, clients(name), profiles:created_by(display_name, username)"
       )
-      .gte("operation_date", range.from)
-      .lte("operation_date", range.to)
       .order("operation_date", { ascending: false });
     if (error) {
       toast.error("Erro ao carregar histórico");
@@ -127,7 +125,7 @@ const Historico = () => {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [range.from, range.to]);
+  }, []);
 
   const todayStr = todayISO();
 
@@ -219,11 +217,17 @@ const Historico = () => {
   }, [invoices, todayStr, now, user]);
 
   const filteredRows = useMemo(() => {
-    if (statusFilter === "todas") return rows;
-    if (statusFilter === "liquidadas") return rows.filter((r) => r.settled);
-    if (statusFilter === "vencidas") return rows.filter((r) => !r.settled && r.overdue);
-    return rows.filter((r) => !r.settled && !r.overdue); // abertas
-  }, [rows, statusFilter]);
+    // Para "liquidadas": filtrar por dueDate (data de vencimento) dentro do período.
+    // Para os demais: filtrar por operationDate (data de abertura).
+    const inRange = (d: string) => d >= range.from && d <= range.to;
+    if (statusFilter === "liquidadas") {
+      return rows.filter((r) => r.settled && inRange(r.dueDate));
+    }
+    const base = rows.filter((r) => inRange(r.operationDate));
+    if (statusFilter === "todas") return base;
+    if (statusFilter === "vencidas") return base.filter((r) => !r.settled && r.overdue);
+    return base.filter((r) => !r.settled && !r.overdue); // abertas
+  }, [rows, statusFilter, range.from, range.to]);
 
   const totals = filteredRows.reduce(
     (a, r) => ({
