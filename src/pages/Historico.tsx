@@ -310,7 +310,7 @@ const Historico = () => {
                 {formatBRL(totals.presentValue)}
               </div>
               <div className="mt-3 h-px bg-white/20" />
-              <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR BRUTO DAS NF</div>
+              <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR BRUTO</div>
               <div className="mt-1 font-display text-base md:text-lg font-semibold tabular-nums">
                 {formatBRL(totals.value)}
               </div>
