@@ -98,7 +98,12 @@ Deno.serve(async (req) => {
     if (Object.keys(authUpdate).length > 0) {
       const { error: upErr } = await admin.auth.admin.updateUserById(targetId, authUpdate);
       if (upErr) {
-        return new Response(JSON.stringify({ error: upErr.message }), {
+        const raw = upErr.message ?? "";
+        let friendly = raw;
+        if (/weak|pwned|known to be/i.test(raw)) {
+          friendly = "Senha muito fraca ou já vazada em outros sites. Use uma senha mais forte (combine letras, números e símbolos).";
+        }
+        return new Response(JSON.stringify({ error: friendly }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
