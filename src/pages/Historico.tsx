@@ -112,8 +112,6 @@ const Historico = () => {
       .select(
         "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, created_by, clients(name), profiles:created_by(display_name, username)"
       )
-      .gte("operation_date", range.from)
-      .lte("operation_date", range.to)
       .order("operation_date", { ascending: false });
     if (error) {
       toast.error("Erro ao carregar histórico");
