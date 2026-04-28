@@ -898,8 +898,8 @@ const Historico = () => {
                         </td>
                         <td className="px-2 py-2">{r.invoiceNumber}</td>
                         <td className="px-2 py-2">{r.parcelLabel}</td>
-                        <td className="px-2 py-2">{fmtDate(r.operationDate)}</td>
-                        <td className="px-2 py-2">{fmtDate(r.dueDate)}</td>
+                        <td className="px-2 py-2">{fmtDateShort(r.operationDate)}</td>
+                        <td className="px-2 py-2">{fmtDateShort(r.dueDate)}</td>
                         <td className="px-2 py-2">{r.days}</td>
                         <td className="px-2 py-2">{formatPct(r.monthlyRate)}</td>
                         <td className="px-2 py-2">{formatPct(r.effectivePct)}</td>
