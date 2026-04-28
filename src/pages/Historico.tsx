@@ -291,7 +291,7 @@ const Historico = () => {
       }
     }
     return series;
-  }, [rows, period, todayStr]);
+  }, [filteredRows, period, todayStr]);
 
   const toggleSettlement = async (row: (typeof rows)[number]) => {
     const inv = invoices.find((i) => i.id === row.invoiceId);
