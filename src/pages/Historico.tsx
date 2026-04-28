@@ -6,8 +6,18 @@ import { DateField } from "@/components/DateField";
 import { supabase } from "@/integrations/supabase/client";
 import { calculate, formatBRL, formatPct, FACTORING_MONTHLY_RATE_PCT, type Installment } from "@/lib/calc";
 import { toast } from "sonner";
-import { CheckCircle2, Circle, Pencil, Trash2 } from "lucide-react";
+import { CheckCircle2, Circle, Pencil, Trash2, Plus, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -271,6 +281,7 @@ const Historico = () => {
   };
 
   const handleDeleteOperation = async (invoiceId: string) => {
+    if (!isAdmin) return toast.error("Apenas administradores podem excluir operações");
     if (!confirm("Deseja realmente excluir a operação? Essa ação não pode ser desfeita.")) return;
     const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
     if (error) {
@@ -280,6 +291,118 @@ const Historico = () => {
     toast.success("Operação removida");
     load();
   };
+
+  // ---- Edit operation (admin only) ----
+  type EditForm = {
+    invoice_number: string;
+    invoice_value: string;
+    operation_date: string;
+    monthly_rate: string;
+    factoring_monthly_rate: string;
+    installments: { id: string; value: string; dueDate: string }[];
+  };
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<EditForm | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const openEdit = (invoiceId: string) => {
+    if (!isAdmin) return toast.error("Apenas administradores podem editar operações");
+    const inv = invoices.find((i) => i.id === invoiceId);
+    if (!inv) return;
+    const insts = (Array.isArray(inv.installments) ? inv.installments : []) as Installment[];
+    setEditForm({
+      invoice_number: inv.invoice_number,
+      invoice_value: String(inv.invoice_value),
+      operation_date: inv.operation_date,
+      monthly_rate: String(inv.monthly_rate),
+      factoring_monthly_rate: String(inv.factoring_monthly_rate ?? FACTORING_MONTHLY_RATE_PCT),
+      installments: insts.map((i) => ({
+        id: i.id,
+        value: String(i.value),
+        dueDate: i.dueDate,
+      })),
+    });
+    setEditingId(invoiceId);
+  };
+
+  const closeEdit = () => {
+    setEditingId(null);
+    setEditForm(null);
+  };
+
+  const updateInstallment = (idx: number, patch: Partial<{ value: string; dueDate: string }>) => {
+    setEditForm((f) =>
+      f
+        ? {
+            ...f,
+            installments: f.installments.map((it, i) => (i === idx ? { ...it, ...patch } : it)),
+          }
+        : f
+    );
+  };
+
+  const addInstallment = () => {
+    setEditForm((f) =>
+      f
+        ? {
+            ...f,
+            installments: [
+              ...f.installments,
+              { id: crypto.randomUUID(), value: "", dueDate: f.operation_date },
+            ],
+          }
+        : f
+    );
+  };
+
+  const removeInstallment = (idx: number) => {
+    setEditForm((f) =>
+      f ? { ...f, installments: f.installments.filter((_, i) => i !== idx) } : f
+    );
+  };
+
+  const saveEdit = async () => {
+    if (!editingId || !editForm) return;
+    const invoiceValue = Number(editForm.invoice_value);
+    const monthlyRate = Number(editForm.monthly_rate);
+    const factoringRate = Number(editForm.factoring_monthly_rate);
+    if (!editForm.invoice_number.trim()) return toast.error("Informe o número da NF");
+    if (!Number.isFinite(invoiceValue) || invoiceValue <= 0)
+      return toast.error("Valor da NF inválido");
+    if (!editForm.operation_date) return toast.error("Informe a data de operação");
+    if (!Number.isFinite(monthlyRate) || monthlyRate < 0)
+      return toast.error("Taxa mensal inválida");
+    if (editForm.installments.length === 0)
+      return toast.error("Adicione ao menos uma parcela");
+    const installments: Installment[] = [];
+    for (const it of editForm.installments) {
+      const v = Number(it.value);
+      if (!Number.isFinite(v) || v <= 0) return toast.error("Valor de parcela inválido");
+      if (!it.dueDate) return toast.error("Informe o vencimento de todas as parcelas");
+      installments.push({ id: it.id, value: v, dueDate: it.dueDate });
+    }
+    setSaving(true);
+    const { error } = await supabase
+      .from("invoices")
+      .update({
+        invoice_number: editForm.invoice_number.trim(),
+        invoice_value: invoiceValue,
+        operation_date: editForm.operation_date,
+        monthly_rate: monthlyRate,
+        factoring_monthly_rate: factoringRate,
+        installments: installments as any,
+      })
+      .eq("id", editingId);
+    setSaving(false);
+    if (error) {
+      const { friendlyDbError } = await import("@/lib/dbErrors");
+      return toast.error(friendlyDbError(error, "Erro ao salvar operação"));
+    }
+    toast.success("Operação atualizada");
+    closeEdit();
+    load();
+  };
+
 
   const periodOptions: { id: Period; label: string }[] = [
     { id: "hoje", label: "HOJE" },
@@ -541,7 +664,7 @@ const Historico = () => {
               </div>
             ) : (
               rows.map((r) => {
-                const canDelete = isAdmin || (r.isAuthor && r.withinEditWindow);
+                const canManage = isAdmin;
                 return (
                   <div
                     key={r.key}
@@ -616,16 +739,27 @@ const Historico = () => {
                           </>
                         )}
                       </Button>
-                      {canDelete && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDeleteOperation(r.invoiceId)}
-                          className="text-muted-foreground hover:text-cost-red"
-                          aria-label="Remover"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                      {canManage && (
+                        <div className="flex items-center gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openEdit(r.invoiceId)}
+                            className="text-muted-foreground hover:text-primary"
+                            aria-label="Editar"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDeleteOperation(r.invoiceId)}
+                            className="text-muted-foreground hover:text-cost-red"
+                            aria-label="Remover"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -670,7 +804,7 @@ const Historico = () => {
                   </tr>
                 ) : (
                   rows.map((r) => {
-                    const canDelete = isAdmin || (r.isAuthor && r.withinEditWindow);
+                    const canManage = isAdmin;
                     return (
                       <tr
                         key={r.key}
@@ -709,15 +843,25 @@ const Historico = () => {
                                 {r.settled ? "DESFAZER" : "LIQUIDAR"}
                               </span>
                             </button>
-                            {canDelete && (
-                              <button
-                                onClick={() => handleDeleteOperation(r.invoiceId)}
-                                className="rounded p-1 text-muted-foreground transition-colors hover:bg-cost-red/15 hover:text-cost-red"
-                                title="Remover operação"
-                                aria-label="Remover"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </button>
+                            {canManage && (
+                              <>
+                                <button
+                                  onClick={() => openEdit(r.invoiceId)}
+                                  className="rounded p-1 text-muted-foreground transition-colors hover:bg-primary/15 hover:text-primary"
+                                  title="Editar operação"
+                                  aria-label="Editar"
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteOperation(r.invoiceId)}
+                                  className="rounded p-1 text-muted-foreground transition-colors hover:bg-cost-red/15 hover:text-cost-red"
+                                  title="Remover operação"
+                                  aria-label="Remover"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </>
                             )}
                           </div>
                         </td>
@@ -766,10 +910,134 @@ const Historico = () => {
           </div>
 
           <p className="mt-4 font-mono text-[10px] tracking-[0.25em] text-muted-foreground text-justify">
-            * EDIÇÃO E REMOÇÃO LIBERADAS POR 5 MIN APÓS O CADASTRO. APÓS ESSE PRAZO, SOMENTE O ADMINISTRADOR.
+            * EDIÇÃO E REMOÇÃO DE OPERAÇÕES PERMITIDAS APENAS AO ADMINISTRADOR.
           </p>
         </section>
       </main>
+
+      {/* Edit operation dialog (admin only) */}
+      <Dialog open={!!editingId} onOpenChange={(o) => !o && closeEdit()}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display">Editar operação</DialogTitle>
+            <DialogDescription className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">
+              ALTERAÇÕES APLICADAS IMEDIATAMENTE AO HISTÓRICO
+            </DialogDescription>
+          </DialogHeader>
+
+          {editForm && (
+            <div className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">NF</Label>
+                  <Input
+                    value={editForm.invoice_number}
+                    onChange={(e) => setEditForm((f) => f && { ...f, invoice_number: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">VALOR DA NF</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={editForm.invoice_value}
+                    onChange={(e) => setEditForm((f) => f && { ...f, invoice_value: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">DATA DA OPERAÇÃO</Label>
+                  <DateField
+                    value={editForm.operation_date}
+                    onChange={(v) => setEditForm((f) => f && { ...f, operation_date: v })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">TAXA MENSAL (%)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={editForm.monthly_rate}
+                    onChange={(e) => setEditForm((f) => f && { ...f, monthly_rate: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">
+                    TAXA FACTORING MENSAL (%)
+                  </Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={editForm.factoring_monthly_rate}
+                    onChange={(e) =>
+                      setEditForm((f) => f && { ...f, factoring_monthly_rate: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
+                    PARCELAS
+                  </Label>
+                  <Button type="button" size="sm" variant="outline" onClick={addInstallment}>
+                    <Plus className="mr-1 h-3 w-3" /> Adicionar
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  {editForm.installments.map((it, idx) => (
+                    <div
+                      key={it.id}
+                      className="grid grid-cols-[1fr_1fr_auto] items-end gap-2 rounded-lg border border-border/50 p-2"
+                    >
+                      <div className="space-y-1">
+                        <Label className="font-mono text-[9px] tracking-widest text-muted-foreground">
+                          VALOR #{idx + 1}
+                        </Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={it.value}
+                          onChange={(e) => updateInstallment(idx, { value: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="font-mono text-[9px] tracking-widest text-muted-foreground">
+                          VENCIMENTO
+                        </Label>
+                        <DateField
+                          value={it.dueDate}
+                          onChange={(v) => updateInstallment(idx, { dueDate: v })}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => removeInstallment(idx)}
+                        aria-label="Remover parcela"
+                        className="text-muted-foreground hover:text-cost-red"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={closeEdit} disabled={saving}>
+              Cancelar
+            </Button>
+            <Button onClick={saveEdit} disabled={saving}>
+              {saving ? "Salvando..." : "Salvar alterações"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <footer className="border-t border-border/40 py-6 text-center">
         <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">MYKA MONEY · VERSÃO 2.0</p>
       </footer>
