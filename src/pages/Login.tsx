@@ -8,16 +8,21 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { z } from "zod";
 
+const USERNAME_DOMAIN = "smartmoney.local";
+
 const schema = z.object({
-  email: z.string().trim().email({ message: "Email inválido" }).max(255),
+  username: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9_.-]{3,32}$/, "Usuário inválido"),
   password: z.string().min(6, { message: "Mínimo de 6 caracteres" }).max(72),
 });
 
 const Login = () => {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -25,28 +30,22 @@ const Login = () => {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = schema.safeParse({ email, password });
+    const parsed = schema.safeParse({ username, password });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
       return;
     }
     setBusy(true);
     try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: `${window.location.origin}/` },
-        });
-        if (error) throw error;
-        toast.success("Conta criada. Verifique seu email para confirmar.");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        navigate("/", { replace: true });
-      }
+      const email = `${parsed.data.username}@${USERNAME_DOMAIN}`;
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password: parsed.data.password,
+      });
+      if (error) throw error;
+      navigate("/", { replace: true });
     } catch (err: any) {
-      toast.error(err.message ?? "Erro na autenticação");
+      toast.error("Usuário ou senha inválidos");
     } finally {
       setBusy(false);
     }
@@ -66,13 +65,13 @@ const Login = () => {
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="username">Usuário</Label>
             <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="username"
+              type="text"
+              autoComplete="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
             />
           </div>
@@ -81,24 +80,20 @@ const Login = () => {
             <Input
               id="password"
               type="password"
-              autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
           <Button type="submit" disabled={busy} className="w-full font-display tracking-wide">
-            {busy ? "Aguarde..." : mode === "signup" ? "Criar conta" : "Entrar"}
+            {busy ? "Aguarde..." : "Entrar"}
           </Button>
         </form>
 
-        <button
-          type="button"
-          onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
-          className="mt-6 w-full text-center text-sm text-muted-foreground hover:text-primary transition-colors"
-        >
-          {mode === "signup" ? "Já tem conta? Entrar" : "Criar uma nova conta"}
-        </button>
+        <p className="mt-6 text-center text-xs font-mono tracking-widest text-muted-foreground">
+          ACESSO RESTRITO · CONTAS CRIADAS PELO ADMINISTRADOR
+        </p>
       </div>
     </main>
   );
