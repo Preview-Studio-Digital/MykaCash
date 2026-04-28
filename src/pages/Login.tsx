@@ -91,8 +91,8 @@ const Login = () => {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-xs font-mono tracking-widest text-muted-foreground">
-          ACESSO RESTRITO · CONTAS CRIADAS PELO ADMINISTRADOR
+        <p className="mt-6 text-center text-xs font-mono tracking-widest text-muted-foreground whitespace-pre-line">
+          {"ACESSO RESTRITO \ncontacte o administrador"}
         </p>
       </div>
     </main>
