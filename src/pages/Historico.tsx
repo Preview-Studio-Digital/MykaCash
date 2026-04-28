@@ -624,7 +624,9 @@ const Historico = () => {
                               VENCIDA
                             </span>
                           ) : (
-                            <span className="text-muted-foreground/60">—</span>
+                            <span className="inline-block rounded-full bg-net-green/15 px-2 py-0.5 text-[9px] tracking-widest text-net-green">
+                              ABERTA
+                            </span>
                           )}
                         </td>
                         <td className="px-2 py-2 text-left max-w-[160px] truncate" title={r.clientName}>
