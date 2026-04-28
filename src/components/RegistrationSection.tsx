@@ -633,7 +633,7 @@ export const RegistrationSection = () => {
           </div>
 
           <div style={{ marginTop: "48px", textAlign: "center", fontSize: "10px", color: "#888", letterSpacing: "0.3em" }}>
-            SMART MONEY · DOCUMENTO GERADO EM {new Date().toLocaleString("pt-BR")}
+            MYKA MONEY · DOCUMENTO GERADO EM {new Date().toLocaleString("pt-BR")}
           </div>
         </div>
       </div>
