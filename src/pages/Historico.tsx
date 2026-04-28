@@ -545,10 +545,10 @@ const Historico = () => {
                     className={
                       "rounded-lg border border-border/40 p-3 space-y-1 " +
                       (r.settled
-                        ? "bg-[hsl(var(--net-green)/0.12)]"
+                        ? "bg-[hsl(var(--factoring-amber)/0.18)]"
                         : r.overdue
-                        ? "bg-[hsl(var(--cost-red)/0.12)]"
-                        : "bg-muted/20")
+                        ? "bg-[hsl(var(--cost-red)/0.15)]"
+                        : "bg-[hsl(var(--net-green)/0.12)]")
                     }
                   >
                     <div className="flex items-center justify-between">
