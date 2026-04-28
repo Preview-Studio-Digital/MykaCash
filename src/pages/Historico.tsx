@@ -739,16 +739,27 @@ const Historico = () => {
                           </>
                         )}
                       </Button>
-                      {canDelete && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDeleteOperation(r.invoiceId)}
-                          className="text-muted-foreground hover:text-cost-red"
-                          aria-label="Remover"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                      {canManage && (
+                        <div className="flex items-center gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openEdit(r.invoiceId)}
+                            className="text-muted-foreground hover:text-primary"
+                            aria-label="Editar"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDeleteOperation(r.invoiceId)}
+                            className="text-muted-foreground hover:text-cost-red"
+                            aria-label="Remover"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </div>
