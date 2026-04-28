@@ -245,7 +245,7 @@ const Historico = () => {
   const chartData = useMemo(() => {
     type Ev = { date: string; delta: number };
     const events: Ev[] = [];
-    for (const r of rows) {
+    for (const r of filteredRows) {
       events.push({ date: r.operationDate, delta: r.presentValue });
       if (r.settled) {
         events.push({ date: r.dueDate, delta: -r.presentValue });
