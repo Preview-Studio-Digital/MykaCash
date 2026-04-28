@@ -682,7 +682,7 @@ const Historico = () => {
 
         {/* Table */}
         <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up">
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
               <h2 className="font-display text-xl font-semibold tracking-tight">Histórico de Operações</h2>
@@ -691,6 +691,38 @@ const Historico = () => {
               {filteredRows.length} {filteredRows.length === 1 ? "PARCELA" : "PARCELAS"} · {invoices.length}{" "}
               {invoices.length === 1 ? "OPERAÇÃO" : "OPERAÇÕES"}
             </span>
+          </div>
+
+          {/* Status filter */}
+          <div className="mb-4 flex flex-wrap items-center gap-1 rounded-full border border-border/60 bg-background/40 p-1 w-fit">
+            {([
+              { id: "todas", label: "TODAS" },
+              { id: "abertas", label: "ABERTAS" },
+              { id: "vencidas", label: "VENCIDAS" },
+              { id: "liquidadas", label: "LIQUIDADAS" },
+            ] as { id: StatusFilter; label: string }[]).map((opt) => {
+              const active = statusFilter === opt.id;
+              const activeCls =
+                opt.id === "abertas"
+                  ? "bg-net-green/20 text-net-green shadow-[0_0_12px_hsl(var(--net-green)/0.35)]"
+                  : opt.id === "vencidas"
+                  ? "bg-cost-red/20 text-cost-red shadow-[0_0_12px_hsl(var(--cost-red)/0.35)]"
+                  : opt.id === "liquidadas"
+                  ? "bg-factoring-amber/20 text-factoring-amber shadow-[0_0_12px_hsl(var(--factoring-amber)/0.35)]"
+                  : "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.4)]";
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => setStatusFilter(opt.id)}
+                  className={
+                    "inline-flex items-center rounded-full px-3 py-1 font-mono text-[9px] tracking-[0.25em] transition-all whitespace-nowrap " +
+                    (active ? activeCls : "text-muted-foreground hover:text-foreground")
+                  }
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
           </div>
 
           {/* Mobile cards */}
