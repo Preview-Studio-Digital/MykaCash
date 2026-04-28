@@ -202,6 +202,8 @@ const Historico = () => {
   );
   const totalEffective = totals.value > 0 ? (totals.cost / totals.value) * 100 : 0;
   const factoringSavings = Math.max(0, totals.factoring - totals.cost);
+  const settledPresent = rows.reduce((s, r) => s + (r.settled ? r.presentValue : 0), 0);
+  const openPresent = Math.max(0, totals.presentValue - settledPresent);
 
   // Chart: "Operações em Transação" — running outstanding balance over time.
   // +netValue on operation date; -presentValue on settlement date.
