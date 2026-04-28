@@ -210,8 +210,8 @@ const Historico = () => {
     const events: Ev[] = [];
     for (const r of rows) {
       events.push({ date: r.operationDate, delta: r.presentValue });
-      if (r.settled && r.settledDate) {
-        events.push({ date: r.settledDate, delta: -r.presentValue });
+      if (r.settled) {
+        events.push({ date: r.dueDate, delta: -r.presentValue });
       }
     }
     if (events.length === 0) return [] as { date: string; label: string; saldo: number }[];
@@ -286,10 +286,10 @@ const Historico = () => {
 
   // Row coloring — when hovering the status pill of an open/overdue row, show orange preview
   const rowClass = (r: (typeof rows)[number]) => {
-    if (!r.settled && hoverKey === r.key) {
+    if (r.settled) return "bg-[hsl(var(--factoring-amber)/0.22)] hover:bg-[hsl(var(--factoring-amber)/0.28)]";
+    if (hoverKey === r.key) {
       return "bg-[hsl(var(--factoring-amber)/0.22)]";
     }
-    if (r.settled) return "bg-[hsl(var(--net-green)/0.22)] hover:bg-[hsl(var(--net-green)/0.28)]";
     if (r.overdue) return "bg-[hsl(var(--cost-red)/0.12)] hover:bg-[hsl(var(--cost-red)/0.18)]";
     return "bg-[hsl(var(--net-green)/0.06)] hover:bg-[hsl(var(--net-green)/0.10)]";
   };
