@@ -29,6 +29,7 @@ import {
 } from "recharts";
 
 type Period = "hoje" | "semana" | "mes" | "total" | "periodo";
+type StatusFilter = "todas" | "abertas" | "vencidas" | "liquidadas";
 
 type SettledEntry = string | { id: string; date: string };
 type InvoiceRow = {
