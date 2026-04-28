@@ -125,6 +125,7 @@ const Historico = () => {
       factoringCost: number;
       parcelLabel: string;
       settled: boolean;
+      settledDate: string | null;
       overdue: boolean;
       createdBy: string;
       createdAt: string;
@@ -134,9 +135,11 @@ const Historico = () => {
     const out: Row[] = [];
     for (const inv of invoices) {
       const installments = Array.isArray(inv.installments) ? inv.installments : [];
-      const settledIds: string[] = Array.isArray(inv.settled_installments)
+      const settledEntries: SettledEntry[] = Array.isArray(inv.settled_installments)
         ? (inv.settled_installments as any)
         : [];
+      const settledMap = new Map<string, string | null>();
+      settledEntries.forEach((e) => settledMap.set(settledIdOf(e), settledDateOf(e)));
       const factoringRate = Number(inv.factoring_monthly_rate ?? FACTORING_MONTHLY_RATE_PCT);
       const result = calculate({
         invoiceValue: Number(inv.invoice_value) || 0,
@@ -154,7 +157,8 @@ const Historico = () => {
       result.installmentCalcs.forEach((i, idx) => {
         const cost = i.value - i.presentValue;
         const effectivePct = i.value > 0 ? (cost / i.value) * 100 : 0;
-        const settled = settledIds.includes(i.id);
+        const settled = settledMap.has(i.id);
+        const settledDate = settled ? settledMap.get(i.id) ?? null : null;
         const overdue = !settled && i.dueDate < todayStr;
         const factoringCost = i.value * (factoringRate / 100) * (i.days / 30);
         out.push({
@@ -174,6 +178,7 @@ const Historico = () => {
           factoringCost,
           parcelLabel: showIdx ? String(idx + 1).padStart(2, "0") : "ÚNICA",
           settled,
+          settledDate,
           overdue,
           createdBy,
           createdAt: inv.created_at,
