@@ -83,6 +83,7 @@ const formatBRLNum = (n: number) =>
 const Historico = () => {
   const { user, isAdmin } = useAuth();
   const [period, setPeriod] = useState<Period>("total");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("todas");
   const [from, setFrom] = useState<string>(todayISO());
   const [to, setTo] = useState<string>(todayISO());
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
