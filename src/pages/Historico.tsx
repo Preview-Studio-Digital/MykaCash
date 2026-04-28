@@ -281,8 +281,14 @@ const Historico = () => {
     { id: "periodo", label: "PERÍODO" },
   ];
 
-  // Row coloring
+  // Hover state to preview liquidation in orange
+  const [hoverKey, setHoverKey] = useState<string | null>(null);
+
+  // Row coloring — when hovering the status pill of an open/overdue row, show orange preview
   const rowClass = (r: (typeof rows)[number]) => {
+    if (!r.settled && hoverKey === r.key) {
+      return "bg-[hsl(var(--factoring-amber)/0.22)]";
+    }
     if (r.settled) return "bg-[hsl(var(--net-green)/0.22)] hover:bg-[hsl(var(--net-green)/0.28)]";
     if (r.overdue) return "bg-[hsl(var(--cost-red)/0.12)] hover:bg-[hsl(var(--cost-red)/0.18)]";
     return "bg-[hsl(var(--net-green)/0.06)] hover:bg-[hsl(var(--net-green)/0.10)]";
