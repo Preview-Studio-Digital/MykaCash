@@ -59,7 +59,7 @@ const fmtDate = (iso: string) =>
 
 const Historico = () => {
   const { user, isAdmin } = useAuth();
-  const [period, setPeriod] = useState<Period>("mes");
+  const [period, setPeriod] = useState<Period>("total");
   const [from, setFrom] = useState<string>(todayISO());
   const [to, setTo] = useState<string>(todayISO());
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
