@@ -580,7 +580,7 @@ const Historico = () => {
                       </div>
                       <div>
                         <div className="text-[9px] tracking-widest text-muted-foreground">ECONOMIA</div>
-                        <div className="text-factoring-amber">{formatBRL(r.factoringCost)}</div>
+                        <div className="text-factoring-amber">{formatBRL(r.savings)}</div>
                       </div>
                     </div>
                     <div className="flex items-center justify-between gap-2 pt-2">
@@ -718,7 +718,7 @@ const Historico = () => {
                         <td className="px-2 py-2">{formatBRL(r.value)}</td>
                         <td className="px-2 py-2 text-net-green">{formatBRL(r.presentValue)}</td>
                         <td className="px-2 py-2 text-cost-red">{formatBRL(r.cost)}</td>
-                        <td className="px-2 py-2 text-factoring-amber">{formatBRL(r.factoringCost)}</td>
+                        <td className="px-2 py-2 text-factoring-amber">{formatBRL(r.savings)}</td>
                         <td className="px-2 py-2 text-left max-w-[120px] truncate" title={r.createdBy}>
                           {r.createdBy}
                         </td>
