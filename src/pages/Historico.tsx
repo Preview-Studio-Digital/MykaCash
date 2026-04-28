@@ -302,6 +302,55 @@ const Historico = () => {
       <main className="container mx-auto max-w-6xl px-4 py-10 md:py-14 space-y-8">
         <PageNav />
 
+        {/* Period filter — controls panels, chart, and table */}
+        <section className="flex flex-wrap items-center gap-3 animate-fade-up">
+          <div className="inline-flex rounded-full border border-border/60 bg-background/40 p-1">
+            {periodOptions.map((opt) => {
+              const active = period === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => setPeriod(opt.id)}
+                  className={
+                    "inline-flex items-center rounded-full px-4 py-1.5 font-mono text-[10px] tracking-[0.3em] transition-all " +
+                    (active
+                      ? "bg-primary text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.4)]"
+                      : "text-muted-foreground hover:text-foreground")
+                  }
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {period === "periodo" && (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">DE</span>
+                <DateField value={from} onChange={setFrom} />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">ATÉ</span>
+                <DateField value={to} onChange={setTo} />
+              </div>
+            </div>
+          )}
+
+          {period !== "periodo" && period !== "total" && (
+            <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
+              {range.from === range.to
+                ? fmtDate(range.from)
+                : `${fmtDate(range.from)} → ${fmtDate(range.to)}`}
+            </span>
+          )}
+          {period === "total" && (
+            <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
+              TODAS AS OPERAÇÕES
+            </span>
+          )}
+        </section>
+
         {/* Summary panels — reflect selected period */}
         <section className="grid gap-4 md:grid-cols-3 animate-fade-up">
           <div className="relative overflow-hidden rounded-xl bg-gradient-net p-4 text-net-green-foreground panel-glow-net">
