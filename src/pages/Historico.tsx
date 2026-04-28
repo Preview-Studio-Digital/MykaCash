@@ -843,15 +843,25 @@ const Historico = () => {
                                 {r.settled ? "DESFAZER" : "LIQUIDAR"}
                               </span>
                             </button>
-                            {canDelete && (
-                              <button
-                                onClick={() => handleDeleteOperation(r.invoiceId)}
-                                className="rounded p-1 text-muted-foreground transition-colors hover:bg-cost-red/15 hover:text-cost-red"
-                                title="Remover operação"
-                                aria-label="Remover"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </button>
+                            {canManage && (
+                              <>
+                                <button
+                                  onClick={() => openEdit(r.invoiceId)}
+                                  className="rounded p-1 text-muted-foreground transition-colors hover:bg-primary/15 hover:text-primary"
+                                  title="Editar operação"
+                                  aria-label="Editar"
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteOperation(r.invoiceId)}
+                                  className="rounded p-1 text-muted-foreground transition-colors hover:bg-cost-red/15 hover:text-cost-red"
+                                  title="Remover operação"
+                                  aria-label="Remover"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </>
                             )}
                           </div>
                         </td>
