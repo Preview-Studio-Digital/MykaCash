@@ -58,11 +58,6 @@ export const AppHeader = () => {
         <h1 className="font-title title-gradient font-extrabold leading-[0.9] tracking-tighter animate-fade-up text-6xl">
           MYKA MONEY
         </h1>
-
-        <p className="mt-4 font-mono text-[10px] md:text-xs font-medium tracking-[0.4em] text-muted-foreground animate-fade-up">
-          {"MYKA COMPRESSORES DO BRASIL · PREVIEW STUDIO DIGITAL"}
-        </p>
-
         <p className="mt-2 font-mono text-xs tracking-[0.4em] text-muted-foreground animate-fade-up">VERSÃO 2.0</p>
       </div>
 
