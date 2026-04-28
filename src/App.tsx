@@ -25,7 +25,7 @@ const App = () => (
               path="/"
               element={
                 <ProtectedRoute>
-                  <Index />
+                  <Cadastro />
                 </ProtectedRoute>
               }
             />
