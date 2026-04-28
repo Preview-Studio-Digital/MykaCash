@@ -6,7 +6,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, Shield } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type ProfileRow = {
   id: string;
@@ -15,25 +33,53 @@ type ProfileRow = {
   created_at: string;
 };
 
+type RoleRow = { user_id: string; role: string };
+
 const Admin = () => {
-  const { isAdmin, loading, session } = useAuth();
+  const { isAdmin, loading, session, user } = useAuth();
   const [users, setUsers] = useState<ProfileRow[]>([]);
+  const [adminIds, setAdminIds] = useState<Set<string>>(new Set());
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [makeAdmin, setMakeAdmin] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  // Edit dialog state
+  const [editing, setEditing] = useState<ProfileRow | null>(null);
+  const [editUsername, setEditUsername] = useState("");
+  const [editDisplay, setEditDisplay] = useState("");
+  const [editPassword, setEditPassword] = useState("");
+  const [editIsAdmin, setEditIsAdmin] = useState(false);
+  const [editBusy, setEditBusy] = useState(false);
+
+  // Delete confirm state
+  const [deleting, setDeleting] = useState<ProfileRow | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+
   const loadUsers = async () => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, username, display_name, created_at")
-      .order("created_at", { ascending: false });
-    if (error) {
-      toast.error(error.message);
+    const [{ data: profilesData, error: profilesErr }, { data: rolesData, error: rolesErr }] =
+      await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, username, display_name, created_at")
+          .order("created_at", { ascending: false }),
+        supabase.from("user_roles").select("user_id, role"),
+      ]);
+    if (profilesErr) {
+      toast.error(profilesErr.message);
       return;
     }
-    setUsers(data ?? []);
+    if (rolesErr) {
+      toast.error(rolesErr.message);
+      return;
+    }
+    setUsers(profilesData ?? []);
+    const adminSet = new Set<string>();
+    (rolesData as RoleRow[] | null)?.forEach((r) => {
+      if (r.role === "admin") adminSet.add(r.user_id);
+    });
+    setAdminIds(adminSet);
   };
 
   useEffect(() => {
@@ -68,6 +114,58 @@ const Admin = () => {
       toast.error(err.message ?? "Falha ao criar usuário");
     } finally {
       setBusy(false);
+    }
+  };
+
+  const openEdit = (u: ProfileRow) => {
+    setEditing(u);
+    setEditUsername(u.username ?? "");
+    setEditDisplay(u.display_name ?? "");
+    setEditPassword("");
+    setEditIsAdmin(adminIds.has(u.id));
+  };
+
+  const onSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editing) return;
+    setEditBusy(true);
+    try {
+      const body: Record<string, unknown> = { user_id: editing.id };
+      const newU = editUsername.trim().toLowerCase();
+      if (newU && newU !== (editing.username ?? "")) body.username = newU;
+      if (editDisplay.trim() !== (editing.display_name ?? "")) body.display_name = editDisplay.trim();
+      if (editPassword.length > 0) body.password = editPassword;
+      if (editIsAdmin !== adminIds.has(editing.id)) body.is_admin = editIsAdmin;
+
+      const { data, error } = await supabase.functions.invoke("admin-update-user", { body });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast.success("Usuário atualizado");
+      setEditing(null);
+      await loadUsers();
+    } catch (err: any) {
+      toast.error(err.message ?? "Falha ao atualizar usuário");
+    } finally {
+      setEditBusy(false);
+    }
+  };
+
+  const onConfirmDelete = async () => {
+    if (!deleting) return;
+    setDeleteBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-delete-user", {
+        body: { user_id: deleting.id },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast.success("Usuário excluído");
+      setDeleting(null);
+      await loadUsers();
+    } catch (err: any) {
+      toast.error(err.message ?? "Falha ao excluir usuário");
+    } finally {
+      setDeleteBusy(false);
     }
   };
 
@@ -134,23 +232,136 @@ const Admin = () => {
         <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 shadow-panel">
           <h2 className="font-display text-lg mb-4">Usuários ({users.length})</h2>
           <div className="divide-y divide-border/40">
-            {users.map((u) => (
-              <div key={u.id} className="py-3 flex items-center justify-between">
-                <div>
-                  <p className="font-mono text-sm">{u.username ?? "—"}</p>
-                  <p className="text-xs text-muted-foreground">{u.display_name}</p>
+            {users.map((u) => {
+              const isUserAdmin = adminIds.has(u.id);
+              const isSelf = user?.id === u.id;
+              return (
+                <div key={u.id} className="py-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-mono text-sm flex items-center gap-2">
+                      <span className="truncate">{u.username ?? "—"}</span>
+                      {isUserAdmin && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 font-mono text-[9px] tracking-widest text-primary">
+                          <Shield className="h-3 w-3" /> ADMIN
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">{u.display_name}</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="hidden sm:inline font-mono text-[10px] tracking-widest text-muted-foreground">
+                      {new Date(u.created_at).toLocaleDateString("pt-BR")}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => openEdit(u)}
+                      aria-label="Editar"
+                      title="Editar usuário"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setDeleting(u)}
+                      disabled={isSelf}
+                      aria-label="Excluir"
+                      title={isSelf ? "Você não pode excluir seu próprio usuário" : "Excluir usuário"}
+                      className="text-muted-foreground hover:text-cost-red disabled:opacity-40"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <span className="font-mono text-[10px] tracking-widest text-muted-foreground">
-                  {new Date(u.created_at).toLocaleDateString("pt-BR")}
-                </span>
-              </div>
-            ))}
+              );
+            })}
             {users.length === 0 && (
               <p className="text-sm text-muted-foreground py-6 text-center">Nenhum usuário ainda.</p>
             )}
           </div>
         </section>
       </main>
+
+      {/* Edit dialog */}
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar usuário</DialogTitle>
+            <DialogDescription>
+              Atualize os dados de acesso. Deixe a senha em branco para mantê-la.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={onSaveEdit} className="grid gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-username">Usuário</Label>
+              <Input
+                id="edit-username"
+                value={editUsername}
+                onChange={(e) => setEditUsername(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-display">Nome de exibição</Label>
+              <Input
+                id="edit-display"
+                value={editDisplay}
+                onChange={(e) => setEditDisplay(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-password">Nova senha (opcional)</Label>
+              <Input
+                id="edit-password"
+                type="text"
+                value={editPassword}
+                onChange={(e) => setEditPassword(e.target.value)}
+                placeholder="Deixe em branco para manter"
+              />
+            </div>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={editIsAdmin}
+                disabled={editing?.id === user?.id}
+                onChange={(e) => setEditIsAdmin(e.target.checked)}
+              />
+              Administrador
+              {editing?.id === user?.id && (
+                <span className="text-xs text-muted-foreground">(não é possível alterar para si mesmo)</span>
+              )}
+            </label>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditing(null)} disabled={editBusy}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={editBusy}>
+                {editBusy ? "Salvando..." : "Salvar"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirm */}
+      <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir usuário?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja realmente excluir o usuário{" "}
+              <strong>{deleting?.username ?? deleting?.display_name}</strong>? Essa ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteBusy}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={onConfirmDelete} disabled={deleteBusy}>
+              {deleteBusy ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
