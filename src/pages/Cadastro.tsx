@@ -1,7 +1,7 @@
 import { AppHeader } from "@/components/AppHeader";
 import { RegistrationSection } from "@/components/RegistrationSection";
 
-const Index = () => {
+const Cadastro = () => {
   return (
     <div className="min-h-screen">
       <AppHeader />
@@ -15,4 +15,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Cadastro;
