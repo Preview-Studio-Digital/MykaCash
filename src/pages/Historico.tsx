@@ -749,7 +749,7 @@ const Historico = () => {
             </table>
           </div>
 
-          <p className="mt-4 font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
+          <p className="mt-4 font-mono text-[10px] tracking-[0.25em] text-muted-foreground text-justify">
             * EDIÇÃO E REMOÇÃO LIBERADAS POR 5 MIN APÓS O CADASTRO. APÓS ESSE PRAZO, SOMENTE O ADMINISTRADOR.
           </p>
         </section>
