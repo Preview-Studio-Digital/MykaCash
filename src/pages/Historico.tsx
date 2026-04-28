@@ -404,7 +404,7 @@ const Historico = () => {
                 {formatBRL(openPresent)}
               </div>
               <div className="mt-3 h-px bg-white/25" />
-              <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-90">LIQUIDADO NO PERÍODO</div>
+              <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-90">VALOR LIQUIDADO</div>
               <div className="mt-1 font-display text-base md:text-lg font-semibold tabular-nums">
                 {formatBRL(settledPresent)}
               </div>
