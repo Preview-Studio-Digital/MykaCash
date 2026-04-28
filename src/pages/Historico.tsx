@@ -4,8 +4,19 @@ import { PageNav } from "@/components/PageNav";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/DateField";
 import { supabase } from "@/integrations/supabase/client";
-import { calculate, formatBRL, formatPct, type Installment } from "@/lib/calc";
+import { calculate, formatBRL, formatPct, FACTORING_MONTHLY_RATE_PCT, type Installment } from "@/lib/calc";
 import { toast } from "sonner";
+import { CheckCircle2, Circle, Pencil, Trash2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 
 type Period = "hoje" | "semana" | "mes" | "periodo";
 
@@ -15,21 +26,21 @@ type InvoiceRow = {
   invoice_value: number;
   operation_date: string;
   monthly_rate: number;
+  factoring_monthly_rate: number | null;
   installments: Installment[];
+  settled_installments: string[];
   client_id: string;
+  created_at: string;
+  created_by: string | null;
   clients?: { name: string } | null;
+  profiles?: { display_name: string | null; username: string | null } | null;
 };
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
-const addDaysISO = (baseISO: string, days: number) => {
-  const d = new Date(baseISO + "T00:00:00");
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
-};
 const startOfWeekISO = () => {
   const d = new Date();
-  const day = d.getDay(); // 0 sun
-  const diff = day === 0 ? -6 : 1 - day; // Monday as start
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
   d.setDate(d.getDate() + diff);
   return d.toISOString().slice(0, 10);
 };
@@ -42,11 +53,19 @@ const fmtDate = (iso: string) =>
   iso ? new Date(iso + "T00:00:00").toLocaleDateString("pt-BR") : "-";
 
 const Historico = () => {
-  const [period, setPeriod] = useState<Period>("hoje");
+  const { user, isAdmin } = useAuth();
+  const [period, setPeriod] = useState<Period>("mes");
   const [from, setFrom] = useState<string>(todayISO());
   const [to, setTo] = useState<string>(todayISO());
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState<number>(Date.now());
+
+  // tick every 30s so the 5-minute edit window updates
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(t);
+  }, []);
 
   const range = useMemo(() => {
     const today = todayISO();
@@ -56,30 +75,38 @@ const Historico = () => {
     return { from, to };
   }, [period, from, to]);
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("invoices")
-        .select("id, invoice_number, invoice_value, operation_date, monthly_rate, installments, client_id, clients(name)")
-        .gte("operation_date", range.from)
-        .lte("operation_date", range.to)
-        .order("operation_date", { ascending: false });
-      if (error) {
-        toast.error("Erro ao carregar histórico");
-        setLoading(false);
-        return;
-      }
-      setInvoices((data ?? []) as any);
+  const load = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("invoices")
+      .select(
+        "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, created_by, clients(name), profiles:created_by(display_name, username)"
+      )
+      .gte("operation_date", range.from)
+      .lte("operation_date", range.to)
+      .order("operation_date", { ascending: false });
+    if (error) {
+      toast.error("Erro ao carregar histórico");
       setLoading(false);
-    };
+      return;
+    }
+    setInvoices((data ?? []) as any);
+    setLoading(false);
+  };
+
+  useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [range.from, range.to]);
 
-  // Build flat rows (one per installment) using the same calc as the main page
+  const todayStr = todayISO();
+
+  // Build flat rows (one per installment)
   const rows = useMemo(() => {
-    const out: Array<{
+    type Row = {
       key: string;
+      invoiceId: string;
+      installmentId: string;
       clientName: string;
       invoiceNumber: string;
       operationDate: string;
@@ -90,10 +117,22 @@ const Historico = () => {
       value: number;
       presentValue: number;
       cost: number;
+      factoringCost: number;
       parcelLabel: string;
-    }> = [];
+      settled: boolean;
+      overdue: boolean;
+      createdBy: string;
+      createdAt: string;
+      isAuthor: boolean;
+      withinEditWindow: boolean;
+    };
+    const out: Row[] = [];
     for (const inv of invoices) {
       const installments = Array.isArray(inv.installments) ? inv.installments : [];
+      const settledIds: string[] = Array.isArray(inv.settled_installments)
+        ? (inv.settled_installments as any)
+        : [];
+      const factoringRate = Number(inv.factoring_monthly_rate ?? FACTORING_MONTHLY_RATE_PCT);
       const result = calculate({
         invoiceValue: Number(inv.invoice_value) || 0,
         operationDate: inv.operation_date,
@@ -101,11 +140,22 @@ const Historico = () => {
         installments: installments as Installment[],
       });
       const showIdx = result.installmentCalcs.length > 1;
+      const createdAtMs = new Date(inv.created_at).getTime();
+      const withinEditWindow = now - createdAtMs < 5 * 60 * 1000;
+      const isAuthor = !!user && inv.created_by === user.id;
+      const createdBy =
+        inv.profiles?.display_name || inv.profiles?.username || "—";
+
       result.installmentCalcs.forEach((i, idx) => {
         const cost = i.value - i.presentValue;
         const effectivePct = i.value > 0 ? (cost / i.value) * 100 : 0;
+        const settled = settledIds.includes(i.id);
+        const overdue = !settled && i.dueDate < todayStr;
+        const factoringCost = i.value * (factoringRate / 100) * (i.days / 30);
         out.push({
           key: `${inv.id}-${i.id}`,
+          invoiceId: inv.id,
+          installmentId: i.id,
           clientName: inv.clients?.name ?? "—",
           invoiceNumber: inv.invoice_number,
           operationDate: inv.operation_date,
@@ -116,22 +166,76 @@ const Historico = () => {
           value: i.value,
           presentValue: i.presentValue,
           cost,
+          factoringCost,
           parcelLabel: showIdx ? String(idx + 1).padStart(2, "0") : "ÚNICA",
+          settled,
+          overdue,
+          createdBy,
+          createdAt: inv.created_at,
+          isAuthor,
+          withinEditWindow,
         });
       });
     }
     return out;
-  }, [invoices]);
+  }, [invoices, todayStr, now, user]);
 
   const totals = rows.reduce(
     (a, r) => ({
       value: a.value + r.value,
       presentValue: a.presentValue + r.presentValue,
       cost: a.cost + r.cost,
+      factoring: a.factoring + r.factoringCost,
     }),
-    { value: 0, presentValue: 0, cost: 0 }
+    { value: 0, presentValue: 0, cost: 0, factoring: 0 }
   );
   const totalEffective = totals.value > 0 ? (totals.cost / totals.value) * 100 : 0;
+
+  // Chart: net value evolution per operation date (sum of presentValue grouped by operationDate)
+  const chartData = useMemo(() => {
+    const byDate = new Map<string, number>();
+    for (const r of rows) {
+      byDate.set(r.operationDate, (byDate.get(r.operationDate) ?? 0) + r.presentValue);
+    }
+    return Array.from(byDate.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([date, net]) => ({ date, label: fmtDate(date), net: Math.round(net * 100) / 100 }));
+  }, [rows]);
+
+  const toggleSettlement = async (row: (typeof rows)[number]) => {
+    const inv = invoices.find((i) => i.id === row.invoiceId);
+    if (!inv) return;
+    const current: string[] = Array.isArray(inv.settled_installments)
+      ? (inv.settled_installments as any)
+      : [];
+    const next = current.includes(row.installmentId)
+      ? current.filter((id) => id !== row.installmentId)
+      : [...current, row.installmentId];
+    // optimistic
+    setInvoices((prev) =>
+      prev.map((i) => (i.id === inv.id ? { ...i, settled_installments: next } : i))
+    );
+    const { error } = await supabase.rpc("toggle_invoice_settlement", {
+      _invoice_id: inv.id,
+      _settled_ids: next as any,
+    });
+    if (error) {
+      toast.error("Erro ao atualizar liquidação");
+      load();
+    } else {
+      toast.success(
+        next.includes(row.installmentId) ? "Parcela marcada como liquidada" : "Liquidação removida"
+      );
+    }
+  };
+
+  const handleDeleteOperation = async (invoiceId: string) => {
+    if (!confirm("Remover esta operação? Esta ação não pode ser desfeita.")) return;
+    const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
+    if (error) return toast.error(error.message);
+    toast.success("Operação removida");
+    load();
+  };
 
   const periodOptions: { id: Period; label: string }[] = [
     { id: "hoje", label: "HOJE" },
@@ -140,12 +244,82 @@ const Historico = () => {
     { id: "periodo", label: "PERÍODO" },
   ];
 
+  // Row coloring
+  const rowClass = (r: (typeof rows)[number]) => {
+    if (r.settled) return "bg-[hsl(var(--net-green)/0.12)] hover:bg-[hsl(var(--net-green)/0.18)]";
+    if (r.overdue) return "bg-[hsl(var(--cost-red)/0.12)] hover:bg-[hsl(var(--cost-red)/0.18)]";
+    return "";
+  };
+
   return (
     <div className="min-h-screen">
       <AppHeader />
-      <main className="container mx-auto max-w-6xl px-4 py-10 md:py-14">
+      <main className="container mx-auto max-w-6xl px-4 py-10 md:py-14 space-y-8">
         <PageNav />
 
+        {/* Chart */}
+        <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="h-2 w-2 rounded-full bg-net-green animate-pulse-glow" />
+              <h2 className="font-display text-xl font-semibold tracking-tight">
+                Evolução do líquido recebido
+              </h2>
+            </div>
+            <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
+              {chartData.length} {chartData.length === 1 ? "DATA" : "DATAS"}
+            </span>
+          </div>
+          <div className="h-64 w-full">
+            {chartData.length === 0 ? (
+              <div className="flex h-full items-center justify-center font-mono text-xs tracking-widest text-muted-foreground">
+                SEM DADOS NO PERÍODO
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="netGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--net-green))" stopOpacity={0.55} />
+                      <stop offset="100%" stopColor="hsl(var(--net-green))" stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                    stroke="hsl(var(--border))"
+                  />
+                  <YAxis
+                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                    stroke="hsl(var(--border))"
+                    tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: "hsl(var(--popover))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: 8,
+                      fontFamily: "JetBrains Mono, monospace",
+                      fontSize: 12,
+                    }}
+                    labelStyle={{ color: "hsl(var(--foreground))" }}
+                    formatter={(v: number) => [formatBRL(v), "Líquido"]}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="net"
+                    stroke="hsl(var(--net-green))"
+                    strokeWidth={2}
+                    fill="url(#netGrad)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </section>
+
+        {/* Table */}
         <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -153,7 +327,8 @@ const Historico = () => {
               <h2 className="font-display text-xl font-semibold tracking-tight">Histórico de operações</h2>
             </div>
             <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
-              {rows.length} {rows.length === 1 ? "PARCELA" : "PARCELAS"} · {invoices.length} {invoices.length === 1 ? "OPERAÇÃO" : "OPERAÇÕES"}
+              {rows.length} {rows.length === 1 ? "PARCELA" : "PARCELAS"} · {invoices.length}{" "}
+              {invoices.length === 1 ? "OPERAÇÃO" : "OPERAÇÕES"}
             </span>
           </div>
 
@@ -210,97 +385,207 @@ const Historico = () => {
                 NENHUMA OPERAÇÃO NO PERÍODO
               </div>
             ) : (
-              rows.map((r) => (
-                <div
-                  key={r.key}
-                  className="rounded-lg border border-border/40 bg-muted/20 p-3 space-y-1"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="font-mono text-[10px] tracking-widest text-primary-glow">
-                      NF {r.invoiceNumber} · P {r.parcelLabel}
+              rows.map((r) => {
+                const canDelete = isAdmin || (r.isAuthor && r.withinEditWindow);
+                return (
+                  <div
+                    key={r.key}
+                    className={
+                      "rounded-lg border border-border/40 p-3 space-y-1 " +
+                      (r.settled
+                        ? "bg-[hsl(var(--net-green)/0.12)]"
+                        : r.overdue
+                        ? "bg-[hsl(var(--cost-red)/0.12)]"
+                        : "bg-muted/20")
+                    }
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="font-mono text-[10px] tracking-widest text-primary-glow">
+                        NF {r.invoiceNumber} · P {r.parcelLabel}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {r.settled && (
+                          <span className="rounded-full bg-net-green/20 px-2 py-0.5 font-mono text-[9px] tracking-widest text-net-green">
+                            LIQUIDADA
+                          </span>
+                        )}
+                        {r.overdue && (
+                          <span className="rounded-full bg-cost-red/20 px-2 py-0.5 font-mono text-[9px] tracking-widest text-cost-red">
+                            VENCIDA
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="font-mono text-[10px] tracking-widest text-muted-foreground">
-                      {r.days} DIAS
+                    <div className="text-sm font-semibold truncate">{r.clientName}</div>
+                    <div className="font-mono text-[10px] text-muted-foreground">
+                      OP {fmtDate(r.operationDate)} · VENC {fmtDate(r.dueDate)} · {r.days} DIAS
+                    </div>
+                    <div className="font-mono text-[10px] text-muted-foreground">
+                      POR {r.createdBy}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 pt-2 font-mono text-xs tabular-nums">
+                      <div>
+                        <div className="text-[9px] tracking-widest text-muted-foreground">VALOR BRUTO</div>
+                        <div>{formatBRL(r.value)}</div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] tracking-widest text-muted-foreground">VALOR LÍQUIDO</div>
+                        <div className="text-net-green">{formatBRL(r.presentValue)}</div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] tracking-widest text-muted-foreground">CUSTO</div>
+                        <div className="text-cost-red">{formatBRL(r.cost)}</div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] tracking-widest text-muted-foreground">FACTORING</div>
+                        <div className="text-factoring-amber">{formatBRL(r.factoringCost)}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 pt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => toggleSettlement(r)}
+                        className="font-mono text-[10px] tracking-widest"
+                      >
+                        {r.settled ? (
+                          <>
+                            <CheckCircle2 className="mr-1 h-3 w-3" /> DESFAZER
+                          </>
+                        ) : (
+                          <>
+                            <Circle className="mr-1 h-3 w-3" /> LIQUIDAR
+                          </>
+                        )}
+                      </Button>
+                      {canDelete && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteOperation(r.invoiceId)}
+                          className="text-muted-foreground hover:text-cost-red"
+                          aria-label="Remover"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
-                  <div className="text-sm font-semibold truncate">{r.clientName}</div>
-                  <div className="font-mono text-[10px] text-muted-foreground">
-                    OP {fmtDate(r.operationDate)} · VENC {fmtDate(r.dueDate)}
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 pt-2 font-mono text-xs tabular-nums">
-                    <div>
-                      <div className="text-[9px] tracking-widest text-muted-foreground">VALOR BRUTO</div>
-                      <div>{formatBRL(r.value)}</div>
-                    </div>
-                    <div>
-                      <div className="text-[9px] tracking-widest text-muted-foreground">VALOR LÍQUIDO</div>
-                      <div className="text-net-green">{formatBRL(r.presentValue)}</div>
-                    </div>
-                    <div>
-                      <div className="text-[9px] tracking-widest text-muted-foreground">CUSTO</div>
-                      <div className="text-cost-red">{formatBRL(r.cost)}</div>
-                    </div>
-                    <div>
-                      <div className="text-[9px] tracking-widest text-muted-foreground">TAXA EF.</div>
-                      <div>{formatPct(r.effectivePct)}</div>
-                    </div>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 
-          {/* Desktop table — same style as CalcMemory */}
+          {/* Desktop table */}
           <div className="hidden md:block rounded-lg border border-border/50 overflow-hidden">
             <table className="w-full text-[11px]">
               <thead className="bg-muted/40 font-mono tracking-widest">
                 <tr className="text-muted-foreground">
+                  <th className="px-2 py-2 text-center font-medium">STATUS</th>
                   <th className="px-2 py-2 text-center font-medium">CLIENTE</th>
                   <th className="px-2 py-2 text-center font-medium">NF</th>
-                  <th className="px-2 py-2 text-center font-medium">PARCELA</th>
+                  <th className="px-2 py-2 text-center font-medium">PARC.</th>
                   <th className="px-2 py-2 text-center font-medium">OPERAÇÃO</th>
-                  <th className="px-2 py-2 text-center font-medium">VENCIMENTO</th>
+                  <th className="px-2 py-2 text-center font-medium">VENC.</th>
                   <th className="px-2 py-2 text-center font-medium">DIAS</th>
-                  <th className="px-2 py-2 text-center font-medium">TAXA MENSAL</th>
-                  <th className="px-2 py-2 text-center font-medium">TAXA EFETIVA</th>
-                  <th className="px-2 py-2 text-center font-medium">VALOR BRUTO</th>
-                  <th className="px-2 py-2 text-center font-medium">VALOR LÍQUIDO</th>
+                  <th className="px-2 py-2 text-center font-medium">TX MÊS</th>
+                  <th className="px-2 py-2 text-center font-medium">TX EFET.</th>
+                  <th className="px-2 py-2 text-center font-medium">BRUTO</th>
+                  <th className="px-2 py-2 text-center font-medium">LÍQUIDO</th>
                   <th className="px-2 py-2 text-center font-medium">CUSTO</th>
+                  <th className="px-2 py-2 text-center font-medium text-factoring-amber">FACTORING</th>
+                  <th className="px-2 py-2 text-center font-medium">RESPONSÁVEL</th>
+                  <th className="px-2 py-2 text-center font-medium">AÇÕES</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={11} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
+                    <td colSpan={15} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                       CARREGANDO...
                     </td>
                   </tr>
                 ) : rows.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
+                    <td colSpan={15} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                       NENHUMA OPERAÇÃO NO PERÍODO
                     </td>
                   </tr>
                 ) : (
-                  rows.map((r) => (
-                    <tr key={r.key} className="border-t border-border/40 font-mono tabular-nums text-center">
-                      <td className="px-2 py-2 text-left max-w-[180px] truncate" title={r.clientName}>{r.clientName}</td>
-                      <td className="px-2 py-2">{r.invoiceNumber}</td>
-                      <td className="px-2 py-2">{r.parcelLabel}</td>
-                      <td className="px-2 py-2">{fmtDate(r.operationDate)}</td>
-                      <td className="px-2 py-2">{fmtDate(r.dueDate)}</td>
-                      <td className="px-2 py-2">{r.days}</td>
-                      <td className="px-2 py-2">{formatPct(r.monthlyRate)}</td>
-                      <td className="px-2 py-2">{formatPct(r.effectivePct)}</td>
-                      <td className="px-2 py-2">{formatBRL(r.value)}</td>
-                      <td className="px-2 py-2 text-net-green">{formatBRL(r.presentValue)}</td>
-                      <td className="px-2 py-2 text-cost-red">{formatBRL(r.cost)}</td>
-                    </tr>
-                  ))
+                  rows.map((r) => {
+                    const canDelete = isAdmin || (r.isAuthor && r.withinEditWindow);
+                    return (
+                      <tr
+                        key={r.key}
+                        className={
+                          "border-t border-border/40 font-mono tabular-nums text-center transition-colors " +
+                          rowClass(r)
+                        }
+                      >
+                        <td className="px-2 py-2">
+                          {r.settled ? (
+                            <span className="inline-block rounded-full bg-net-green/20 px-2 py-0.5 text-[9px] tracking-widest text-net-green">
+                              LIQUIDADA
+                            </span>
+                          ) : r.overdue ? (
+                            <span className="inline-block rounded-full bg-cost-red/20 px-2 py-0.5 text-[9px] tracking-widest text-cost-red">
+                              VENCIDA
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground/60">—</span>
+                          )}
+                        </td>
+                        <td className="px-2 py-2 text-left max-w-[160px] truncate" title={r.clientName}>
+                          {r.clientName}
+                        </td>
+                        <td className="px-2 py-2">{r.invoiceNumber}</td>
+                        <td className="px-2 py-2">{r.parcelLabel}</td>
+                        <td className="px-2 py-2">{fmtDate(r.operationDate)}</td>
+                        <td className="px-2 py-2">{fmtDate(r.dueDate)}</td>
+                        <td className="px-2 py-2">{r.days}</td>
+                        <td className="px-2 py-2">{formatPct(r.monthlyRate)}</td>
+                        <td className="px-2 py-2">{formatPct(r.effectivePct)}</td>
+                        <td className="px-2 py-2">{formatBRL(r.value)}</td>
+                        <td className="px-2 py-2 text-net-green">{formatBRL(r.presentValue)}</td>
+                        <td className="px-2 py-2 text-cost-red">{formatBRL(r.cost)}</td>
+                        <td className="px-2 py-2 text-factoring-amber">{formatBRL(r.factoringCost)}</td>
+                        <td className="px-2 py-2 text-left max-w-[120px] truncate" title={r.createdBy}>
+                          {r.createdBy}
+                        </td>
+                        <td className="px-2 py-2">
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              onClick={() => toggleSettlement(r)}
+                              className="rounded p-1 text-muted-foreground transition-colors hover:bg-net-green/15 hover:text-net-green"
+                              title={r.settled ? "Desfazer liquidação" : "Marcar como liquidada"}
+                              aria-label="Liquidar"
+                            >
+                              {r.settled ? (
+                                <CheckCircle2 className="h-4 w-4 text-net-green" />
+                              ) : (
+                                <Circle className="h-4 w-4" />
+                              )}
+                            </button>
+                            {canDelete && (
+                              <button
+                                onClick={() => handleDeleteOperation(r.invoiceId)}
+                                className="rounded p-1 text-muted-foreground transition-colors hover:bg-cost-red/15 hover:text-cost-red"
+                                title="Remover operação"
+                                aria-label="Remover"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
 
                 {!loading && rows.length > 0 && (
                   <tr className="border-t-2 border-primary-glow/40 bg-primary-glow/[0.07] font-mono tabular-nums text-center font-semibold">
+                    <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2 tracking-widest text-primary-glow text-left">TOTAL</td>
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2">—</td>
@@ -312,11 +597,18 @@ const Historico = () => {
                     <td className="px-2 py-2">{formatBRL(totals.value)}</td>
                     <td className="px-2 py-2 text-net-green">{formatBRL(totals.presentValue)}</td>
                     <td className="px-2 py-2 text-cost-red">{formatBRL(totals.cost)}</td>
+                    <td className="px-2 py-2 text-factoring-amber">{formatBRL(totals.factoring)}</td>
+                    <td className="px-2 py-2">—</td>
+                    <td className="px-2 py-2">—</td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
+
+          <p className="mt-4 font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
+            * EDIÇÃO E REMOÇÃO LIBERADAS POR 5 MIN APÓS O CADASTRO. APÓS ESSE PRAZO, SOMENTE O ADMINISTRADOR.
+          </p>
         </section>
       </main>
       <footer className="border-t border-border/40 py-6 text-center">
