@@ -367,45 +367,84 @@ const Historico = () => {
                 SEM DADOS NO PERÍODO
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="netGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--net-green))" stopOpacity={0.55} />
-                      <stop offset="100%" stopColor="hsl(var(--net-green))" stopOpacity={0.05} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
-                  <XAxis
-                    dataKey="label"
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                    stroke="hsl(var(--border))"
-                  />
-                  <YAxis
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                    stroke="hsl(var(--border))"
-                    tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: "hsl(var(--popover))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: 8,
-                      fontFamily: "JetBrains Mono, monospace",
-                      fontSize: 12,
-                    }}
-                    labelStyle={{ color: "hsl(var(--foreground))" }}
-                    formatter={(v: number) => [formatBRL(v), "Em aberto"]}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="saldo"
-                    stroke="hsl(var(--net-green))"
-                    strokeWidth={2}
-                    fill="url(#netGrad)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              (() => {
+                const n = chartData.length;
+                const slopeColor = (s: number, maxAbs: number) => {
+                  // s normalized in [-1, 1]; -1 falling => green, 0 flat => yellow, +1 rising => red
+                  const t = maxAbs === 0 ? 0 : Math.max(-1, Math.min(1, s / maxAbs));
+                  // Hue: red 0, yellow 50, green 145
+                  const hue = t >= 0 ? 50 + (0 - 50) * t : 50 + (145 - 50) * -t;
+                  const sat = 80;
+                  const light = 55;
+                  return `hsl(${hue.toFixed(1)} ${sat}% ${light}%)`;
+                };
+                const slopes: number[] = [];
+                for (let i = 0; i < n; i++) {
+                  const prev = chartData[Math.max(0, i - 1)].saldo;
+                  const next = chartData[Math.min(n - 1, i + 1)].saldo;
+                  slopes.push(next - prev);
+                }
+                const maxAbs = Math.max(1, ...slopes.map((s) => Math.abs(s)));
+                const stops = chartData.map((_, i) => ({
+                  offset: n === 1 ? 0 : (i / (n - 1)) * 100,
+                  color: slopeColor(slopes[i], maxAbs),
+                }));
+                return (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                          {stops.map((s, i) => (
+                            <stop key={i} offset={`${s.offset}%`} stopColor={s.color} stopOpacity={1} />
+                          ))}
+                        </linearGradient>
+                        <linearGradient id="areaGradH" x1="0" y1="0" x2="1" y2="0">
+                          {stops.map((s, i) => (
+                            <stop key={i} offset={`${s.offset}%`} stopColor={s.color} stopOpacity={0.35} />
+                          ))}
+                        </linearGradient>
+                        <linearGradient id="areaFade" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#ffffff" stopOpacity={1} />
+                          <stop offset="100%" stopColor="#ffffff" stopOpacity={0.05} />
+                        </linearGradient>
+                        <mask id="areaFadeMask">
+                          <rect x="0" y="0" width="100%" height="100%" fill="url(#areaFade)" />
+                        </mask>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
+                      <XAxis
+                        dataKey="label"
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                        stroke="hsl(var(--border))"
+                      />
+                      <YAxis
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                        stroke="hsl(var(--border))"
+                        tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          background: "hsl(var(--popover))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: 8,
+                          fontFamily: "JetBrains Mono, monospace",
+                          fontSize: 12,
+                        }}
+                        labelStyle={{ color: "hsl(var(--foreground))" }}
+                        formatter={(v: number) => [formatBRL(v), "Em aberto"]}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="saldo"
+                        stroke="url(#lineGrad)"
+                        strokeWidth={2.5}
+                        fill="url(#areaGradH)"
+                        mask="url(#areaFadeMask)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                );
+              })()
             )}
           </div>
         </section>
