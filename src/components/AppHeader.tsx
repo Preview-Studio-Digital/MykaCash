@@ -17,7 +17,7 @@ export const AppHeader = () => {
       <div className="relative z-10 flex items-center justify-between px-6 pt-5 text-xs font-mono tracking-widest text-muted-foreground">
         <span className="flex items-center gap-2 whitespace-nowrap">
           <span className="h-2 w-2 rounded-full bg-net-green shadow-[0_0_10px_hsl(var(--net-green))] animate-pulse-glow shrink-0" />
-          SISTEMA ONLINE
+          ONLINE
         </span>
         <div className="flex items-center gap-4">
           <span className="hidden sm:inline">{usernameMeta ?? user?.email}</span>
