@@ -590,14 +590,22 @@ const Historico = () => {
                           <div className="flex items-center justify-center gap-1">
                             <button
                               onClick={() => toggleSettlement(r)}
-                              className="rounded p-1 text-muted-foreground transition-colors hover:bg-net-green/15 hover:text-net-green"
+                              className={
+                                "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[9px] tracking-widest transition-colors " +
+                                (r.settled
+                                  ? "border-net-green/40 bg-net-green/15 text-net-green hover:bg-net-green/25"
+                                  : "border-border/60 text-muted-foreground hover:border-net-green/40 hover:bg-net-green/10 hover:text-net-green")
+                              }
                               title={r.settled ? "Desfazer liquidação" : "Marcar como liquidada"}
-                              aria-label="Liquidar"
                             >
                               {r.settled ? (
-                                <CheckCircle2 className="h-4 w-4 text-net-green" />
+                                <>
+                                  <CheckCircle2 className="h-3 w-3" /> DESFAZER
+                                </>
                               ) : (
-                                <Circle className="h-4 w-4" />
+                                <>
+                                  <Circle className="h-3 w-3" /> LIQUIDAR
+                                </>
                               )}
                             </button>
                             {canDelete && (
