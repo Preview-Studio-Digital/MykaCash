@@ -699,12 +699,12 @@ const Historico = () => {
               <div className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                 CARREGANDO...
               </div>
-            ) : rows.length === 0 ? (
+            ) : filteredRows.length === 0 ? (
               <div className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                 NENHUMA OPERAÇÃO NO PERÍODO
               </div>
             ) : (
-              rows.map((r) => {
+              filteredRows.map((r) => {
                 const canManage = isAdmin;
                 return (
                   <div
