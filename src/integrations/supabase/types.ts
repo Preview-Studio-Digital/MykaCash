@@ -46,36 +46,42 @@ export type Database = {
           client_id: string
           created_at: string
           created_by: string | null
+          factoring_monthly_rate: number
           id: string
           installments: Json
           invoice_number: string
           invoice_value: number
           monthly_rate: number
           operation_date: string
+          settled_installments: Json
           updated_at: string
         }
         Insert: {
           client_id: string
           created_at?: string
           created_by?: string | null
+          factoring_monthly_rate?: number
           id?: string
           installments?: Json
           invoice_number: string
           invoice_value: number
           monthly_rate: number
           operation_date: string
+          settled_installments?: Json
           updated_at?: string
         }
         Update: {
           client_id?: string
           created_at?: string
           created_by?: string | null
+          factoring_monthly_rate?: number
           id?: string
           installments?: Json
           invoice_number?: string
           invoice_value?: number
           monthly_rate?: number
           operation_date?: string
+          settled_installments?: Json
           updated_at?: string
         }
         Relationships: [
@@ -84,6 +90,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_created_by_profiles_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -144,6 +157,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      toggle_invoice_settlement: {
+        Args: { _invoice_id: string; _settled_ids: Json }
+        Returns: undefined
       }
     }
     Enums: {

@@ -19,6 +19,9 @@ import { DateField } from "@/components/DateField";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { FACTORING_MONTHLY_RATE_PCT } from "@/lib/calc";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const formatCNPJ = (value: string) => {
@@ -39,6 +42,8 @@ const addDaysISO = (baseISO: string, days: number) => {
 
 export const RegistrationSection = () => {
   const { clients, addClient, removeClient } = useClients();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [clientId, setClientId] = useState<string>("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
@@ -198,6 +203,8 @@ export const RegistrationSection = () => {
       operation_date: operationDate,
       monthly_rate: monthlyRate,
       installments: installments as any,
+      factoring_monthly_rate: FACTORING_MONTHLY_RATE_PCT,
+      created_by: user?.id ?? null,
     });
     if (error) {
       setSaving(false);
@@ -212,6 +219,7 @@ export const RegistrationSection = () => {
     }
     setSaving(false);
     setInvoiceNumber("");
+    navigate("/historico");
   };
 
   return (
