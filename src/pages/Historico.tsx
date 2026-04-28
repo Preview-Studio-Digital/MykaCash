@@ -20,6 +20,7 @@ import {
 
 type Period = "hoje" | "semana" | "mes" | "periodo";
 
+type SettledEntry = string | { id: string; date: string };
 type InvoiceRow = {
   id: string;
   invoice_number: string;
@@ -28,13 +29,17 @@ type InvoiceRow = {
   monthly_rate: number;
   factoring_monthly_rate: number | null;
   installments: Installment[];
-  settled_installments: string[];
+  settled_installments: SettledEntry[];
   client_id: string;
   created_at: string;
   created_by: string | null;
   clients?: { name: string } | null;
   profiles?: { display_name: string | null; username: string | null } | null;
 };
+
+const settledIdOf = (e: SettledEntry): string => (typeof e === "string" ? e : e.id);
+const settledDateOf = (e: SettledEntry): string | null =>
+  typeof e === "string" ? null : e.date;
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 const startOfWeekISO = () => {
@@ -120,6 +125,7 @@ const Historico = () => {
       factoringCost: number;
       parcelLabel: string;
       settled: boolean;
+      settledDate: string | null;
       overdue: boolean;
       createdBy: string;
       createdAt: string;
@@ -129,9 +135,11 @@ const Historico = () => {
     const out: Row[] = [];
     for (const inv of invoices) {
       const installments = Array.isArray(inv.installments) ? inv.installments : [];
-      const settledIds: string[] = Array.isArray(inv.settled_installments)
+      const settledEntries: SettledEntry[] = Array.isArray(inv.settled_installments)
         ? (inv.settled_installments as any)
         : [];
+      const settledMap = new Map<string, string | null>();
+      settledEntries.forEach((e) => settledMap.set(settledIdOf(e), settledDateOf(e)));
       const factoringRate = Number(inv.factoring_monthly_rate ?? FACTORING_MONTHLY_RATE_PCT);
       const result = calculate({
         invoiceValue: Number(inv.invoice_value) || 0,
@@ -149,7 +157,8 @@ const Historico = () => {
       result.installmentCalcs.forEach((i, idx) => {
         const cost = i.value - i.presentValue;
         const effectivePct = i.value > 0 ? (cost / i.value) * 100 : 0;
-        const settled = settledIds.includes(i.id);
+        const settled = settledMap.has(i.id);
+        const settledDate = settled ? settledMap.get(i.id) ?? null : null;
         const overdue = !settled && i.dueDate < todayStr;
         const factoringCost = i.value * (factoringRate / 100) * (i.days / 30);
         out.push({
@@ -169,6 +178,7 @@ const Historico = () => {
           factoringCost,
           parcelLabel: showIdx ? String(idx + 1).padStart(2, "0") : "ÚNICA",
           settled,
+          settledDate,
           overdue,
           createdBy,
           createdAt: inv.created_at,
@@ -191,26 +201,50 @@ const Historico = () => {
   );
   const totalEffective = totals.value > 0 ? (totals.cost / totals.value) * 100 : 0;
 
-  // Chart: net value evolution per operation date (sum of presentValue grouped by operationDate)
+  // Chart: "Operações em Transação" — running outstanding balance over time.
+  // +netValue on operation date; -presentValue on settlement date.
   const chartData = useMemo(() => {
-    const byDate = new Map<string, number>();
+    type Ev = { date: string; delta: number };
+    const events: Ev[] = [];
     for (const r of rows) {
-      byDate.set(r.operationDate, (byDate.get(r.operationDate) ?? 0) + r.presentValue);
+      events.push({ date: r.operationDate, delta: r.presentValue });
+      if (r.settled && r.settledDate) {
+        events.push({ date: r.settledDate, delta: -r.presentValue });
+      }
     }
-    return Array.from(byDate.entries())
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([date, net]) => ({ date, label: fmtDate(date), net: Math.round(net * 100) / 100 }));
+    if (events.length === 0) return [] as { date: string; label: string; saldo: number }[];
+
+    // Group by date
+    const byDate = new Map<string, number>();
+    events.forEach((e) => byDate.set(e.date, (byDate.get(e.date) ?? 0) + e.delta));
+    const sortedDates = Array.from(byDate.keys()).sort();
+
+    // Add zero baseline one week before first date
+    const first = new Date(sortedDates[0] + "T00:00:00");
+    first.setDate(first.getDate() - 7);
+    const baseline = first.toISOString().slice(0, 10);
+
+    const series: { date: string; label: string; saldo: number }[] = [
+      { date: baseline, label: fmtDate(baseline), saldo: 0 },
+    ];
+    let acc = 0;
+    for (const d of sortedDates) {
+      acc += byDate.get(d) ?? 0;
+      series.push({ date: d, label: fmtDate(d), saldo: Math.round(acc * 100) / 100 });
+    }
+    return series;
   }, [rows]);
 
   const toggleSettlement = async (row: (typeof rows)[number]) => {
     const inv = invoices.find((i) => i.id === row.invoiceId);
     if (!inv) return;
-    const current: string[] = Array.isArray(inv.settled_installments)
+    const current: SettledEntry[] = Array.isArray(inv.settled_installments)
       ? (inv.settled_installments as any)
       : [];
-    const next = current.includes(row.installmentId)
-      ? current.filter((id) => id !== row.installmentId)
-      : [...current, row.installmentId];
+    const isSettled = current.some((e) => settledIdOf(e) === row.installmentId);
+    const next: SettledEntry[] = isSettled
+      ? current.filter((e) => settledIdOf(e) !== row.installmentId)
+      : [...current, { id: row.installmentId, date: todayISO() }];
     // optimistic
     setInvoices((prev) =>
       prev.map((i) => (i.id === inv.id ? { ...i, settled_installments: next } : i))
@@ -224,7 +258,7 @@ const Historico = () => {
       load();
     } else {
       toast.success(
-        next.includes(row.installmentId) ? "Parcela marcada como liquidada" : "Liquidação removida"
+        !isSettled ? "Parcela marcada como liquidada" : "Liquidação removida"
       );
     }
   };
@@ -263,7 +297,7 @@ const Historico = () => {
             <div className="flex items-center gap-3">
               <span className="h-2 w-2 rounded-full bg-net-green animate-pulse-glow" />
               <h2 className="font-display text-xl font-semibold tracking-tight">
-                Evolução do líquido recebido
+                Operações em Transação
               </h2>
             </div>
             <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
@@ -304,11 +338,11 @@ const Historico = () => {
                       fontSize: 12,
                     }}
                     labelStyle={{ color: "hsl(var(--foreground))" }}
-                    formatter={(v: number) => [formatBRL(v), "Líquido"]}
+                    formatter={(v: number) => [formatBRL(v), "Em aberto"]}
                   />
                   <Area
                     type="monotone"
-                    dataKey="net"
+                    dataKey="saldo"
                     stroke="hsl(var(--net-green))"
                     strokeWidth={2}
                     fill="url(#netGrad)"
@@ -556,14 +590,22 @@ const Historico = () => {
                           <div className="flex items-center justify-center gap-1">
                             <button
                               onClick={() => toggleSettlement(r)}
-                              className="rounded p-1 text-muted-foreground transition-colors hover:bg-net-green/15 hover:text-net-green"
+                              className={
+                                "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[9px] tracking-widest transition-colors " +
+                                (r.settled
+                                  ? "border-net-green/40 bg-net-green/15 text-net-green hover:bg-net-green/25"
+                                  : "border-border/60 text-muted-foreground hover:border-net-green/40 hover:bg-net-green/10 hover:text-net-green")
+                              }
                               title={r.settled ? "Desfazer liquidação" : "Marcar como liquidada"}
-                              aria-label="Liquidar"
                             >
                               {r.settled ? (
-                                <CheckCircle2 className="h-4 w-4 text-net-green" />
+                                <>
+                                  <CheckCircle2 className="h-3 w-3" /> DESFAZER
+                                </>
                               ) : (
-                                <Circle className="h-4 w-4" />
+                                <>
+                                  <Circle className="h-3 w-3" /> LIQUIDAR
+                                </>
                               )}
                             </button>
                             {canDelete && (
