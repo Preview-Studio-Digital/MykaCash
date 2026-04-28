@@ -910,10 +910,134 @@ const Historico = () => {
           </div>
 
           <p className="mt-4 font-mono text-[10px] tracking-[0.25em] text-muted-foreground text-justify">
-            * EDIÇÃO E REMOÇÃO LIBERADAS POR 5 MIN APÓS O CADASTRO. APÓS ESSE PRAZO, SOMENTE O ADMINISTRADOR.
+            * EDIÇÃO E REMOÇÃO DE OPERAÇÕES PERMITIDAS APENAS AO ADMINISTRADOR.
           </p>
         </section>
       </main>
+
+      {/* Edit operation dialog (admin only) */}
+      <Dialog open={!!editingId} onOpenChange={(o) => !o && closeEdit()}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display">Editar operação</DialogTitle>
+            <DialogDescription className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">
+              ALTERAÇÕES APLICADAS IMEDIATAMENTE AO HISTÓRICO
+            </DialogDescription>
+          </DialogHeader>
+
+          {editForm && (
+            <div className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">NF</Label>
+                  <Input
+                    value={editForm.invoice_number}
+                    onChange={(e) => setEditForm((f) => f && { ...f, invoice_number: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">VALOR DA NF</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={editForm.invoice_value}
+                    onChange={(e) => setEditForm((f) => f && { ...f, invoice_value: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">DATA DA OPERAÇÃO</Label>
+                  <DateField
+                    value={editForm.operation_date}
+                    onChange={(v) => setEditForm((f) => f && { ...f, operation_date: v })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">TAXA MENSAL (%)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={editForm.monthly_rate}
+                    onChange={(e) => setEditForm((f) => f && { ...f, monthly_rate: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">
+                    TAXA FACTORING MENSAL (%)
+                  </Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={editForm.factoring_monthly_rate}
+                    onChange={(e) =>
+                      setEditForm((f) => f && { ...f, factoring_monthly_rate: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
+                    PARCELAS
+                  </Label>
+                  <Button type="button" size="sm" variant="outline" onClick={addInstallment}>
+                    <Plus className="mr-1 h-3 w-3" /> Adicionar
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  {editForm.installments.map((it, idx) => (
+                    <div
+                      key={it.id}
+                      className="grid grid-cols-[1fr_1fr_auto] items-end gap-2 rounded-lg border border-border/50 p-2"
+                    >
+                      <div className="space-y-1">
+                        <Label className="font-mono text-[9px] tracking-widest text-muted-foreground">
+                          VALOR #{idx + 1}
+                        </Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={it.value}
+                          onChange={(e) => updateInstallment(idx, { value: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="font-mono text-[9px] tracking-widest text-muted-foreground">
+                          VENCIMENTO
+                        </Label>
+                        <DateField
+                          value={it.dueDate}
+                          onChange={(v) => updateInstallment(idx, { dueDate: v })}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => removeInstallment(idx)}
+                        aria-label="Remover parcela"
+                        className="text-muted-foreground hover:text-cost-red"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={closeEdit} disabled={saving}>
+              Cancelar
+            </Button>
+            <Button onClick={saveEdit} disabled={saving}>
+              {saving ? "Salvando..." : "Salvar alterações"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <footer className="border-t border-border/40 py-6 text-center">
         <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">MYKA MONEY · VERSÃO 2.0</p>
       </footer>
