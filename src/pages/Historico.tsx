@@ -217,11 +217,17 @@ const Historico = () => {
   }, [invoices, todayStr, now, user]);
 
   const filteredRows = useMemo(() => {
-    if (statusFilter === "todas") return rows;
-    if (statusFilter === "liquidadas") return rows.filter((r) => r.settled);
-    if (statusFilter === "vencidas") return rows.filter((r) => !r.settled && r.overdue);
-    return rows.filter((r) => !r.settled && !r.overdue); // abertas
-  }, [rows, statusFilter]);
+    // Para "liquidadas": filtrar por dueDate (data de vencimento) dentro do período.
+    // Para os demais: filtrar por operationDate (data de abertura).
+    const inRange = (d: string) => d >= range.from && d <= range.to;
+    if (statusFilter === "liquidadas") {
+      return rows.filter((r) => r.settled && inRange(r.dueDate));
+    }
+    const base = rows.filter((r) => inRange(r.operationDate));
+    if (statusFilter === "todas") return base;
+    if (statusFilter === "vencidas") return base.filter((r) => !r.settled && r.overdue);
+    return base.filter((r) => !r.settled && !r.overdue); // abertas
+  }, [rows, statusFilter, range.from, range.to]);
 
   const totals = filteredRows.reduce(
     (a, r) => ({
