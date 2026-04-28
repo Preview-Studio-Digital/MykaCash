@@ -208,7 +208,8 @@ export const RegistrationSection = () => {
     });
     if (error) {
       setSaving(false);
-      return toast.error(error.message);
+      const { friendlyDbError } = await import("@/lib/dbErrors");
+      return toast.error(friendlyDbError(error, "Erro ao salvar operação"));
     }
     const clientName = clients.find((c) => c.id === clientId)?.name ?? "cliente";
     try {

@@ -273,7 +273,10 @@ const Historico = () => {
   const handleDeleteOperation = async (invoiceId: string) => {
     if (!confirm("Deseja realmente excluir a operação? Essa ação não pode ser desfeita.")) return;
     const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
-    if (error) return toast.error(error.message);
+    if (error) {
+      const { friendlyDbError } = await import("@/lib/dbErrors");
+      return toast.error(friendlyDbError(error, "Erro ao excluir operação"));
+    }
     toast.success("Operação removida");
     load();
   };

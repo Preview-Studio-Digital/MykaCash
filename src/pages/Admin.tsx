@@ -67,11 +67,11 @@ const Admin = () => {
         supabase.from("user_roles").select("user_id, role"),
       ]);
     if (profilesErr) {
-      toast.error(profilesErr.message);
+      toast.error("Erro ao carregar usuários");
       return;
     }
     if (rolesErr) {
-      toast.error(rolesErr.message);
+      toast.error("Erro ao carregar permissões");
       return;
     }
     setUsers(profilesData ?? []);
@@ -209,7 +209,8 @@ const Admin = () => {
               <Label htmlFor="password">Senha (mín. 6)</Label>
               <Input
                 id="password"
-                type="text"
+                type="password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -314,7 +315,8 @@ const Admin = () => {
               <Label htmlFor="edit-password">Nova senha (opcional)</Label>
               <Input
                 id="edit-password"
-                type="text"
+                type="password"
+                autoComplete="new-password"
                 value={editPassword}
                 onChange={(e) => setEditPassword(e.target.value)}
                 placeholder="Deixe em branco para manter"
