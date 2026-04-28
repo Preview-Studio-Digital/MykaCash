@@ -67,6 +67,15 @@ const startOfMonthISO = () => {
 const fmtDate = (iso: string) =>
   iso ? new Date(iso + "T00:00:00").toLocaleDateString("pt-BR") : "-";
 
+const fmtDateShort = (iso: string) =>
+  iso
+    ? new Date(iso + "T00:00:00").toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "2-digit",
+      })
+    : "-";
+
 const Historico = () => {
   const { user, isAdmin } = useAuth();
   const [period, setPeriod] = useState<Period>("total");
