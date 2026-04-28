@@ -50,7 +50,7 @@ export const AppHeader = () => {
           </span>
         </div>
 
-        <h1 className="font-title title-gradient font-extrabold leading-[0.9] tracking-tighter animate-fade-up text-6xl">
+        <h1 className="font-title title-gradient font-extrabold leading-[0.9] tracking-tighter animate-fade-up text-5xl">
           MYKA MONEY
         </h1>
 
