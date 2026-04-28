@@ -76,6 +76,9 @@ const fmtDateShort = (iso: string) =>
       })
     : "-";
 
+const formatBRLNum = (n: number) =>
+  n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 const Historico = () => {
   const { user, isAdmin } = useAuth();
   const [period, setPeriod] = useState<Period>("total");
