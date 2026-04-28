@@ -29,6 +29,7 @@ import {
 } from "recharts";
 
 type Period = "hoje" | "semana" | "mes" | "total" | "periodo";
+type StatusFilter = "todas" | "abertas" | "vencidas" | "liquidadas";
 
 type SettledEntry = string | { id: string; date: string };
 type InvoiceRow = {
@@ -82,6 +83,7 @@ const formatBRLNum = (n: number) =>
 const Historico = () => {
   const { user, isAdmin } = useAuth();
   const [period, setPeriod] = useState<Period>("total");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("todas");
   const [from, setFrom] = useState<string>(todayISO());
   const [to, setTo] = useState<string>(todayISO());
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
@@ -216,7 +218,14 @@ const Historico = () => {
     return out;
   }, [invoices, todayStr, now, user]);
 
-  const totals = rows.reduce(
+  const filteredRows = useMemo(() => {
+    if (statusFilter === "todas") return rows;
+    if (statusFilter === "liquidadas") return rows.filter((r) => r.settled);
+    if (statusFilter === "vencidas") return rows.filter((r) => !r.settled && r.overdue);
+    return rows.filter((r) => !r.settled && !r.overdue); // abertas
+  }, [rows, statusFilter]);
+
+  const totals = filteredRows.reduce(
     (a, r) => ({
       value: a.value + r.value,
       presentValue: a.presentValue + r.presentValue,
@@ -228,7 +237,7 @@ const Historico = () => {
   );
   const totalEffective = totals.value > 0 ? (totals.cost / totals.value) * 100 : 0;
   const factoringSavings = Math.max(0, totals.factoring - totals.cost);
-  const settledPresent = rows.reduce((s, r) => s + (r.settled ? r.presentValue : 0), 0);
+  const settledPresent = filteredRows.reduce((s, r) => s + (r.settled ? r.presentValue : 0), 0);
   const openPresent = Math.max(0, totals.presentValue - settledPresent);
 
   // Chart: "Operações em Transação" — running outstanding balance over time.
@@ -236,7 +245,7 @@ const Historico = () => {
   const chartData = useMemo(() => {
     type Ev = { date: string; delta: number };
     const events: Ev[] = [];
-    for (const r of rows) {
+    for (const r of filteredRows) {
       events.push({ date: r.operationDate, delta: r.presentValue });
       if (r.settled) {
         events.push({ date: r.dueDate, delta: -r.presentValue });
@@ -282,7 +291,7 @@ const Historico = () => {
       }
     }
     return series;
-  }, [rows, period, todayStr]);
+  }, [filteredRows, period, todayStr]);
 
   const toggleSettlement = async (row: (typeof rows)[number]) => {
     const inv = invoices.find((i) => i.id === row.invoiceId);
@@ -673,15 +682,47 @@ const Historico = () => {
 
         {/* Table */}
         <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up">
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
               <h2 className="font-display text-xl font-semibold tracking-tight">Histórico de Operações</h2>
             </div>
             <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
-              {rows.length} {rows.length === 1 ? "PARCELA" : "PARCELAS"} · {invoices.length}{" "}
+              {filteredRows.length} {filteredRows.length === 1 ? "PARCELA" : "PARCELAS"} · {invoices.length}{" "}
               {invoices.length === 1 ? "OPERAÇÃO" : "OPERAÇÕES"}
             </span>
+          </div>
+
+          {/* Status filter */}
+          <div className="mb-4 flex flex-wrap items-center gap-1 rounded-full border border-border/60 bg-background/40 p-1 w-fit">
+            {([
+              { id: "todas", label: "TODAS" },
+              { id: "abertas", label: "ABERTAS" },
+              { id: "vencidas", label: "VENCIDAS" },
+              { id: "liquidadas", label: "LIQUIDADAS" },
+            ] as { id: StatusFilter; label: string }[]).map((opt) => {
+              const active = statusFilter === opt.id;
+              const activeCls =
+                opt.id === "abertas"
+                  ? "bg-net-green/20 text-net-green shadow-[0_0_12px_hsl(var(--net-green)/0.35)]"
+                  : opt.id === "vencidas"
+                  ? "bg-cost-red/20 text-cost-red shadow-[0_0_12px_hsl(var(--cost-red)/0.35)]"
+                  : opt.id === "liquidadas"
+                  ? "bg-factoring-amber/20 text-factoring-amber shadow-[0_0_12px_hsl(var(--factoring-amber)/0.35)]"
+                  : "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.4)]";
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => setStatusFilter(opt.id)}
+                  className={
+                    "inline-flex items-center rounded-full px-3 py-1 font-mono text-[9px] tracking-[0.25em] transition-all whitespace-nowrap " +
+                    (active ? activeCls : "text-muted-foreground hover:text-foreground")
+                  }
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
           </div>
 
           {/* Mobile cards */}
@@ -690,12 +731,12 @@ const Historico = () => {
               <div className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                 CARREGANDO...
               </div>
-            ) : rows.length === 0 ? (
+            ) : filteredRows.length === 0 ? (
               <div className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                 NENHUMA OPERAÇÃO NO PERÍODO
               </div>
             ) : (
-              rows.map((r) => {
+              filteredRows.map((r) => {
                 const canManage = isAdmin;
                 return (
                   <div
@@ -828,14 +869,14 @@ const Historico = () => {
                       CARREGANDO...
                     </td>
                   </tr>
-                ) : rows.length === 0 ? (
+                ) : filteredRows.length === 0 ? (
                   <tr>
                     <td colSpan={14} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                       NENHUMA OPERAÇÃO NO PERÍODO
                     </td>
                   </tr>
                 ) : (
-                  rows.map((r) => {
+                  filteredRows.map((r) => {
                     const canManage = isAdmin;
                     return (
                       <tr
@@ -919,7 +960,7 @@ const Historico = () => {
                   })
                 )}
 
-                {!loading && rows.length > 0 && (
+                {!loading && filteredRows.length > 0 && (
                   <tr className="border-t-2 border-primary-glow/40 bg-primary-glow/[0.07] font-mono tabular-nums text-center font-semibold">
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2 tracking-widest text-primary-glow text-left">TOTAL</td>
