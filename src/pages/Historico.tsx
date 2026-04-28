@@ -201,6 +201,7 @@ const Historico = () => {
     { value: 0, presentValue: 0, cost: 0, factoring: 0 }
   );
   const totalEffective = totals.value > 0 ? (totals.cost / totals.value) * 100 : 0;
+  const factoringSavings = Math.max(0, totals.factoring - totals.cost);
 
   // Chart: "Operações em Transação" — running outstanding balance over time.
   // +netValue on operation date; -presentValue on settlement date.
@@ -282,9 +283,9 @@ const Historico = () => {
 
   // Row coloring
   const rowClass = (r: (typeof rows)[number]) => {
-    if (r.settled) return "bg-[hsl(var(--net-green)/0.12)] hover:bg-[hsl(var(--net-green)/0.18)]";
+    if (r.settled) return "bg-[hsl(var(--net-green)/0.22)] hover:bg-[hsl(var(--net-green)/0.28)]";
     if (r.overdue) return "bg-[hsl(var(--cost-red)/0.12)] hover:bg-[hsl(var(--cost-red)/0.18)]";
-    return "";
+    return "bg-[hsl(var(--net-green)/0.06)] hover:bg-[hsl(var(--net-green)/0.10)]";
   };
 
   return (
@@ -292,6 +293,54 @@ const Historico = () => {
       <AppHeader />
       <main className="container mx-auto max-w-6xl px-4 py-10 md:py-14 space-y-8">
         <PageNav />
+
+        {/* Summary panels — reflect selected period */}
+        <section className="grid gap-4 md:grid-cols-3 animate-fade-up">
+          <div className="relative overflow-hidden rounded-xl bg-gradient-net p-4 text-net-green-foreground panel-glow-net">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
+            <div className="relative">
+              <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
+              <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums break-words">
+                {formatBRL(totals.presentValue)}
+              </div>
+              <div className="mt-3 h-px bg-white/20" />
+              <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR BRUTO DAS NF</div>
+              <div className="mt-1 font-display text-base md:text-lg font-semibold tabular-nums">
+                {formatBRL(totals.value)}
+              </div>
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden rounded-xl bg-gradient-cost p-4 text-cost-red-foreground panel-glow-cost">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
+            <div className="relative">
+              <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">CUSTO</div>
+              <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums">
+                {formatBRL(totals.cost)}
+              </div>
+              <div className="mt-3 h-px bg-white/20" />
+              <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-80">TAXA EFETIVA MÉDIA</div>
+              <div className="mt-1 font-display text-base md:text-lg font-semibold tabular-nums">
+                {formatPct(totalEffective)}
+              </div>
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden rounded-xl bg-gradient-factoring p-4 text-white panel-glow-factoring">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
+            <div className="relative">
+              <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">ECONOMIA</div>
+              <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums">
+                {formatBRL(factoringSavings)}
+              </div>
+              <div className="mt-3 h-px bg-white/25" />
+              <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-90">CUSTO FACTORING ({formatPct(FACTORING_MONTHLY_RATE_PCT)} a.m.)</div>
+              <div className="mt-1 font-display text-base md:text-lg font-semibold tabular-nums">
+                {formatBRL(totals.factoring)}
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Chart */}
         <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up">
@@ -575,7 +624,9 @@ const Historico = () => {
                               VENCIDA
                             </span>
                           ) : (
-                            <span className="text-muted-foreground/60">—</span>
+                            <span className="inline-block rounded-full bg-net-green/15 px-2 py-0.5 text-[9px] tracking-widest text-net-green">
+                              ABERTA
+                            </span>
                           )}
                         </td>
                         <td className="px-2 py-2 text-left max-w-[160px] truncate" title={r.clientName}>
@@ -600,10 +651,10 @@ const Historico = () => {
                             <button
                               onClick={() => toggleSettlement(r)}
                               className={
-                                "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[9px] tracking-widest transition-colors " +
+                                "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[10px] font-semibold tracking-widest transition-colors shadow-sm " +
                                 (r.settled
-                                  ? "border-net-green/40 bg-net-green/15 text-net-green hover:bg-net-green/25"
-                                  : "border-border/60 text-muted-foreground hover:border-net-green/40 hover:bg-net-green/10 hover:text-net-green")
+                                  ? "border-net-green/50 bg-net-green/25 text-net-green hover:bg-net-green/35"
+                                  : "border-net-green/60 bg-net-green text-net-green-foreground hover:bg-net-green/90")
                               }
                               title={r.settled ? "Desfazer liquidação" : "Marcar como liquidada"}
                             >
