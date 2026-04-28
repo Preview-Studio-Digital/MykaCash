@@ -399,7 +399,7 @@ export const RegistrationSection = () => {
             <div className="flex items-center gap-3">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
               <Label className="text-xl font-display font-semibold tracking-tight">
-                Parcelamento
+                Pagamento
               </Label>
             </div>
             <span className="font-mono text-[11px] tracking-widest text-muted-foreground invisible">
