@@ -1,9 +1,11 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, Shield } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const AppHeader = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
+  const usernameMeta = (user?.user_metadata as any)?.username as string | undefined;
 
   return (
     <header className="relative overflow-hidden border-b border-border/60">
@@ -18,7 +20,15 @@ export const AppHeader = () => {
           SISTEMA ONLINE
         </span>
         <div className="flex items-center gap-4">
-          <span className="hidden sm:inline">{user?.email}</span>
+          <span className="hidden sm:inline">{usernameMeta ?? user?.email}</span>
+          {isAdmin && (
+            <Button asChild variant="ghost" size="sm" className="h-8 px-3 text-xs font-mono tracking-wider hover:text-primary">
+              <Link to="/admin">
+                <Shield className="mr-1.5 h-3.5 w-3.5" />
+                ADMIN
+              </Link>
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="sm"
