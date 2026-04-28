@@ -283,9 +283,9 @@ const Historico = () => {
 
   // Row coloring
   const rowClass = (r: (typeof rows)[number]) => {
-    if (r.settled) return "bg-[hsl(var(--net-green)/0.12)] hover:bg-[hsl(var(--net-green)/0.18)]";
+    if (r.settled) return "bg-[hsl(var(--net-green)/0.22)] hover:bg-[hsl(var(--net-green)/0.28)]";
     if (r.overdue) return "bg-[hsl(var(--cost-red)/0.12)] hover:bg-[hsl(var(--cost-red)/0.18)]";
-    return "";
+    return "bg-[hsl(var(--net-green)/0.06)] hover:bg-[hsl(var(--net-green)/0.10)]";
   };
 
   return (
@@ -293,6 +293,54 @@ const Historico = () => {
       <AppHeader />
       <main className="container mx-auto max-w-6xl px-4 py-10 md:py-14 space-y-8">
         <PageNav />
+
+        {/* Summary panels — reflect selected period */}
+        <section className="grid gap-4 md:grid-cols-3 animate-fade-up">
+          <div className="relative overflow-hidden rounded-xl bg-gradient-net p-4 text-net-green-foreground panel-glow-net">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
+            <div className="relative">
+              <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
+              <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums break-words">
+                {formatBRL(totals.presentValue)}
+              </div>
+              <div className="mt-3 h-px bg-white/20" />
+              <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR BRUTO DAS NF</div>
+              <div className="mt-1 font-display text-base md:text-lg font-semibold tabular-nums">
+                {formatBRL(totals.value)}
+              </div>
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden rounded-xl bg-gradient-cost p-4 text-cost-red-foreground panel-glow-cost">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
+            <div className="relative">
+              <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">CUSTO</div>
+              <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums">
+                {formatBRL(totals.cost)}
+              </div>
+              <div className="mt-3 h-px bg-white/20" />
+              <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-80">TAXA EFETIVA MÉDIA</div>
+              <div className="mt-1 font-display text-base md:text-lg font-semibold tabular-nums">
+                {formatPct(totalEffective)}
+              </div>
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden rounded-xl bg-gradient-factoring p-4 text-white panel-glow-factoring">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
+            <div className="relative">
+              <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">ECONOMIA</div>
+              <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums">
+                {formatBRL(factoringSavings)}
+              </div>
+              <div className="mt-3 h-px bg-white/25" />
+              <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-90">CUSTO FACTORING ({formatPct(FACTORING_MONTHLY_RATE_PCT)} a.m.)</div>
+              <div className="mt-1 font-display text-base md:text-lg font-semibold tabular-nums">
+                {formatBRL(totals.factoring)}
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Chart */}
         <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up">
