@@ -303,7 +303,7 @@ const Historico = () => {
         <PageNav />
 
         {/* Period filter — controls panels, chart, and table */}
-        <section className="flex flex-wrap items-center gap-3 animate-fade-up">
+        <section className="flex flex-wrap items-center gap-3 animate-fade-up text-center">
           <div className="inline-flex rounded-full border border-border/60 bg-background/40 p-1">
             {periodOptions.map((opt) => {
               const active = period === opt.id;
