@@ -1,11 +1,30 @@
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { LogOut, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export const AppHeader = () => {
   const { user, signOut, isAdmin } = useAuth();
-  const usernameMeta = (user?.user_metadata as any)?.username as string | undefined;
+  const [displayName, setDisplayName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setDisplayName(null);
+      return;
+    }
+    supabase
+      .from("profiles")
+      .select("display_name, username")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setDisplayName(data?.display_name || data?.username || null);
+      });
+  }, [user?.id]);
+
+  const headerName = displayName ?? (user?.user_metadata as any)?.display_name ?? user?.email;
 
   return (
     <header className="relative overflow-hidden border-b border-border/60">
