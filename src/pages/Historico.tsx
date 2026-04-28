@@ -248,7 +248,7 @@ const Historico = () => {
     for (const r of filteredRows) {
       events.push({ date: r.operationDate, delta: r.presentValue });
       if (r.settled) {
-        events.push({ date: r.settledDate ?? r.dueDate, delta: -r.value });
+        events.push({ date: r.dueDate, delta: -r.value });
       }
     }
     if (events.length === 0) return [] as { date: string; label: string; saldo: number }[];
