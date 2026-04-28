@@ -576,7 +576,7 @@ const Historico = () => {
                         <div className="text-cost-red">{formatBRL(r.cost)}</div>
                       </div>
                       <div>
-                        <div className="text-[9px] tracking-widest text-muted-foreground">FACTORING</div>
+                        <div className="text-[9px] tracking-widest text-muted-foreground">ECONOMIA</div>
                         <div className="text-factoring-amber">{formatBRL(r.factoringCost)}</div>
                       </div>
                     </div>
