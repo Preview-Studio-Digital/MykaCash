@@ -1,4 +1,5 @@
 import { AppHeader } from "@/components/AppHeader";
+import { PageNav } from "@/components/PageNav";
 import { RegistrationSection } from "@/components/RegistrationSection";
 
 const Index = () => {
@@ -6,6 +7,7 @@ const Index = () => {
     <div className="min-h-screen">
       <AppHeader />
       <main className="container mx-auto max-w-6xl px-4 py-10 md:py-14">
+        <PageNav />
         <RegistrationSection />
       </main>
       <footer className="border-t border-border/40 py-6 text-center">
