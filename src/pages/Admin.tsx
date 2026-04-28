@@ -178,7 +178,7 @@ const Admin = () => {
         >
           <ArrowLeft className="h-4 w-4" /> VOLTAR
         </Link>
-        <h1 className="font-title title-gradient text-xl font-bold">PAINEL ADMIN</h1>
+        <h1 className="font-title title-gradient text-xl font-bold">PAINEL ADMINISTRADOR</h1>
         <span />
       </header>
 
