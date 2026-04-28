@@ -92,7 +92,7 @@ const Login = () => {
         </form>
 
         <p className="mt-6 text-center text-xs font-mono tracking-widest text-muted-foreground whitespace-pre-line">
-          {"ACESSO RESTRITO \ncontacte o administrador"}
+          ACESSO RESTRITO
         </p>
       </div>
     </main>
