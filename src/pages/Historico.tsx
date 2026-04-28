@@ -616,8 +616,8 @@ const Historico = () => {
           </div>
 
           {/* Desktop table */}
-          <div className="hidden md:block rounded-lg border border-border/50 overflow-hidden">
-            <table className="w-full text-[11px]">
+          <div className="hidden md:block rounded-lg border border-border/50 overflow-x-auto">
+            <table className="w-full min-w-[1024px] text-[10px] lg:text-[11px]">
               <thead className="bg-muted/40 font-mono tracking-widest">
                 <tr className="text-muted-foreground">
                   <th className="px-2 py-2 text-center font-medium">STATUS</th>
