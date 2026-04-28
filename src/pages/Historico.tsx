@@ -593,7 +593,6 @@ const Historico = () => {
                   <th className="px-2 py-2 text-center font-medium">CUSTO</th>
                   <th className="px-2 py-2 text-center font-medium text-factoring-amber">FACTORING</th>
                   <th className="px-2 py-2 text-center font-medium">RESPONSÁVEL</th>
-                  <th className="px-2 py-2 text-center font-medium">AÇÕES</th>
                 </tr>
               </thead>
               <tbody>
