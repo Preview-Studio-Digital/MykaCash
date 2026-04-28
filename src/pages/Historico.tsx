@@ -503,7 +503,7 @@ const Historico = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         {r.settled && (
-                          <span className="rounded-full bg-net-green/20 px-2 py-0.5 font-mono text-[9px] tracking-widest text-net-green">
+                          <span className="rounded-full bg-factoring-amber/20 px-2 py-0.5 font-mono text-[9px] tracking-widest text-factoring-amber">
                             LIQUIDADA
                           </span>
                         )}
