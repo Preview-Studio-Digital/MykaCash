@@ -219,8 +219,9 @@ const Historico = () => {
       presentValue: a.presentValue + r.presentValue,
       cost: a.cost + r.cost,
       factoring: a.factoring + r.factoringCost,
+      savings: a.savings + r.savings,
     }),
-    { value: 0, presentValue: 0, cost: 0, factoring: 0 }
+    { value: 0, presentValue: 0, cost: 0, factoring: 0, savings: 0 }
   );
   const totalEffective = totals.value > 0 ? (totals.cost / totals.value) * 100 : 0;
   const factoringSavings = Math.max(0, totals.factoring - totals.cost);
