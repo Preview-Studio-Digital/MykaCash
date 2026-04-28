@@ -46,15 +46,8 @@ export const AppHeader = () => {
         </div>
       </div>
 
-      {/* Hero title block — three lines centered and vertically aligned */}
-      <div className="relative z-10 flex flex-col items-center justify-center px-6 py-14 md:py-20 text-center">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-1.5 backdrop-blur-sm">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary-glow animate-pulse-glow" />
-          <span className="font-mono text-[10px] tracking-[0.35em] text-primary-foreground/90">
-            ADIANTAMENTO DE RECEBÍVEIS
-          </span>
-        </div>
-
+      {/* Hero title block */}
+      <div className="relative z-10 flex flex-col items-center justify-center px-6 pt-4 pb-6 text-center">
         <h1 className="font-title title-gradient font-extrabold leading-[0.9] tracking-tighter animate-fade-up text-3xl">
           MYKA MONEY
         </h1>
