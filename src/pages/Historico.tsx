@@ -162,6 +162,7 @@ const Historico = () => {
         const settledDate = settled ? settledMap.get(i.id) ?? null : null;
         const overdue = !settled && i.dueDate < todayStr;
         const factoringCost = i.value * (factoringRate / 100) * (i.days / 30);
+        const savings = factoringCost - cost;
         out.push({
           key: `${inv.id}-${i.id}`,
           invoiceId: inv.id,
@@ -177,6 +178,7 @@ const Historico = () => {
           presentValue: i.presentValue,
           cost,
           factoringCost,
+          savings,
           parcelLabel: showIdx ? String(idx + 1).padStart(2, "0") : "ÚNICA",
           settled,
           settledDate,
