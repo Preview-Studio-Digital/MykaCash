@@ -576,7 +576,7 @@ const Historico = () => {
                         <div className="text-cost-red">{formatBRL(r.cost)}</div>
                       </div>
                       <div>
-                        <div className="text-[9px] tracking-widest text-muted-foreground">FACTORING</div>
+                        <div className="text-[9px] tracking-widest text-muted-foreground">ECONOMIA</div>
                         <div className="text-factoring-amber">{formatBRL(r.factoringCost)}</div>
                       </div>
                     </div>
@@ -632,7 +632,7 @@ const Historico = () => {
                   <th className="px-2 py-2 text-center font-medium">BRUTO</th>
                   <th className="px-2 py-2 text-center font-medium">LÍQUIDO</th>
                   <th className="px-2 py-2 text-center font-medium">CUSTO</th>
-                  <th className="px-2 py-2 text-center font-medium text-factoring-amber">FACTORING</th>
+                  <th className="px-2 py-2 text-center font-medium text-factoring-amber">ECONOMIA</th>
                   <th className="px-2 py-2 text-center font-medium">RESPONSÁVEL</th>
                 </tr>
               </thead>
