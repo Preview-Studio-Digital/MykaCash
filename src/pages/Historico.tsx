@@ -281,6 +281,7 @@ const Historico = () => {
   };
 
   const handleDeleteOperation = async (invoiceId: string) => {
+    if (!isAdmin) return toast.error("Apenas administradores podem excluir operações");
     if (!confirm("Deseja realmente excluir a operação? Essa ação não pode ser desfeita.")) return;
     const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
     if (error) {
@@ -290,6 +291,118 @@ const Historico = () => {
     toast.success("Operação removida");
     load();
   };
+
+  // ---- Edit operation (admin only) ----
+  type EditForm = {
+    invoice_number: string;
+    invoice_value: string;
+    operation_date: string;
+    monthly_rate: string;
+    factoring_monthly_rate: string;
+    installments: { id: string; value: string; dueDate: string }[];
+  };
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<EditForm | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const openEdit = (invoiceId: string) => {
+    if (!isAdmin) return toast.error("Apenas administradores podem editar operações");
+    const inv = invoices.find((i) => i.id === invoiceId);
+    if (!inv) return;
+    const insts = (Array.isArray(inv.installments) ? inv.installments : []) as Installment[];
+    setEditForm({
+      invoice_number: inv.invoice_number,
+      invoice_value: String(inv.invoice_value),
+      operation_date: inv.operation_date,
+      monthly_rate: String(inv.monthly_rate),
+      factoring_monthly_rate: String(inv.factoring_monthly_rate ?? FACTORING_MONTHLY_RATE_PCT),
+      installments: insts.map((i) => ({
+        id: i.id,
+        value: String(i.value),
+        dueDate: i.dueDate,
+      })),
+    });
+    setEditingId(invoiceId);
+  };
+
+  const closeEdit = () => {
+    setEditingId(null);
+    setEditForm(null);
+  };
+
+  const updateInstallment = (idx: number, patch: Partial<{ value: string; dueDate: string }>) => {
+    setEditForm((f) =>
+      f
+        ? {
+            ...f,
+            installments: f.installments.map((it, i) => (i === idx ? { ...it, ...patch } : it)),
+          }
+        : f
+    );
+  };
+
+  const addInstallment = () => {
+    setEditForm((f) =>
+      f
+        ? {
+            ...f,
+            installments: [
+              ...f.installments,
+              { id: crypto.randomUUID(), value: "", dueDate: f.operation_date },
+            ],
+          }
+        : f
+    );
+  };
+
+  const removeInstallment = (idx: number) => {
+    setEditForm((f) =>
+      f ? { ...f, installments: f.installments.filter((_, i) => i !== idx) } : f
+    );
+  };
+
+  const saveEdit = async () => {
+    if (!editingId || !editForm) return;
+    const invoiceValue = Number(editForm.invoice_value);
+    const monthlyRate = Number(editForm.monthly_rate);
+    const factoringRate = Number(editForm.factoring_monthly_rate);
+    if (!editForm.invoice_number.trim()) return toast.error("Informe o número da NF");
+    if (!Number.isFinite(invoiceValue) || invoiceValue <= 0)
+      return toast.error("Valor da NF inválido");
+    if (!editForm.operation_date) return toast.error("Informe a data de operação");
+    if (!Number.isFinite(monthlyRate) || monthlyRate < 0)
+      return toast.error("Taxa mensal inválida");
+    if (editForm.installments.length === 0)
+      return toast.error("Adicione ao menos uma parcela");
+    const installments: Installment[] = [];
+    for (const it of editForm.installments) {
+      const v = Number(it.value);
+      if (!Number.isFinite(v) || v <= 0) return toast.error("Valor de parcela inválido");
+      if (!it.dueDate) return toast.error("Informe o vencimento de todas as parcelas");
+      installments.push({ id: it.id, value: v, dueDate: it.dueDate });
+    }
+    setSaving(true);
+    const { error } = await supabase
+      .from("invoices")
+      .update({
+        invoice_number: editForm.invoice_number.trim(),
+        invoice_value: invoiceValue,
+        operation_date: editForm.operation_date,
+        monthly_rate: monthlyRate,
+        factoring_monthly_rate: factoringRate,
+        installments: installments as any,
+      })
+      .eq("id", editingId);
+    setSaving(false);
+    if (error) {
+      const { friendlyDbError } = await import("@/lib/dbErrors");
+      return toast.error(friendlyDbError(error, "Erro ao salvar operação"));
+    }
+    toast.success("Operação atualizada");
+    closeEdit();
+    load();
+  };
+
 
   const periodOptions: { id: Period; label: string }[] = [
     { id: "hoje", label: "HOJE" },
