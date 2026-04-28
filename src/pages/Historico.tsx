@@ -210,8 +210,8 @@ const Historico = () => {
     const events: Ev[] = [];
     for (const r of rows) {
       events.push({ date: r.operationDate, delta: r.presentValue });
-      if (r.settled && r.settledDate) {
-        events.push({ date: r.settledDate, delta: -r.presentValue });
+      if (r.settled) {
+        events.push({ date: r.dueDate, delta: -r.presentValue });
       }
     }
     if (events.length === 0) return [] as { date: string; label: string; saldo: number }[];
