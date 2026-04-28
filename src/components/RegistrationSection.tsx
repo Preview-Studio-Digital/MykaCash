@@ -175,7 +175,7 @@ export const RegistrationSection = () => {
     if (!node) return;
     // Temporarily make it visible for rendering
     const prev = node.style.cssText;
-    node.style.cssText = "position:fixed;left:-10000px;top:0;width:1000px;background:#ffffff;";
+    node.style.cssText = "position:fixed;left:-10000px;top:0;width:1100px;background:#0b0f1a;";
     try {
       const canvas = await html2canvas(node, { backgroundColor: "#ffffff", scale: 2 });
       const link = document.createElement("a");
@@ -504,137 +504,380 @@ export const RegistrationSection = () => {
       {/* Offscreen archive document for PNG export */}
       <div
         ref={archiveRef}
-        style={{ position: "fixed", left: "-10000px", top: 0, width: "1000px", background: "#ffffff" }}
+        style={{ position: "fixed", left: "-10000px", top: 0, width: "1100px", background: "#0b0f1a" }}
         aria-hidden
       >
-        <div style={{ padding: "48px", color: "#0a0a0a", fontFamily: "Arial, sans-serif" }}>
-          <div style={{ borderBottom: "2px solid #0a0a0a", paddingBottom: "16px", marginBottom: "24px" }}>
-            <div style={{ fontSize: "22px", fontWeight: 700, letterSpacing: "0.08em" }}>
-              MYKA COMPRESSORES DO BRASIL
-            </div>
-            <div style={{ fontSize: "12px", color: "#555", marginTop: "4px", letterSpacing: "0.2em" }}>
-              REGISTRO DE OPERAÇÃO · PREVIEW STUDIO DIGITAL
+        <div
+          style={{
+            padding: "56px",
+            color: "#0a0f1c",
+            fontFamily: "'Inter', 'Segoe UI', Arial, sans-serif",
+            background:
+              "linear-gradient(135deg, #f6f9ff 0%, #eef3fb 60%, #e6ecf8 100%)",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {/* decorative neon glows */}
+          <div
+            style={{
+              position: "absolute",
+              top: "-160px",
+              right: "-160px",
+              width: "420px",
+              height: "420px",
+              borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(34,211,238,0.35) 0%, rgba(34,211,238,0) 70%)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              bottom: "-200px",
+              left: "-160px",
+              width: "460px",
+              height: "460px",
+              borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(16,185,129,0.28) 0%, rgba(16,185,129,0) 70%)",
+            }}
+          />
+
+          {/* HEADER */}
+          <div
+            style={{
+              position: "relative",
+              borderRadius: "20px",
+              padding: "28px 32px",
+              background: "linear-gradient(135deg, #0a0f1c 0%, #111a30 100%)",
+              color: "#ffffff",
+              boxShadow: "0 18px 40px -20px rgba(10, 15, 28, 0.6)",
+              marginBottom: "32px",
+              border: "1px solid rgba(34,211,238,0.25)",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: "32px",
+                right: "32px",
+                height: "2px",
+                background: "linear-gradient(90deg, transparent, #22d3ee, #10b981, transparent)",
+              }}
+            />
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    letterSpacing: "0.45em",
+                    color: "#22d3ee",
+                    fontWeight: 600,
+                    marginBottom: "8px",
+                  }}
+                >
+                  ◆ MYKA MONEY · REGISTRO DE OPERAÇÃO
+                </div>
+                <div style={{ fontSize: "30px", fontWeight: 800, letterSpacing: "0.04em", lineHeight: 1 }}>
+                  MYKA COMPRESSORES <span style={{ color: "#22d3ee" }}>DO BRASIL</span>
+                </div>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "#94a3b8",
+                    marginTop: "10px",
+                    letterSpacing: "0.25em",
+                  }}
+                >
+                  PREVIEW STUDIO DIGITAL · ADIANTAMENTO DE RECEBÍVEIS
+                </div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div
+                  style={{
+                    display: "inline-block",
+                    padding: "8px 14px",
+                    borderRadius: "999px",
+                    background: "rgba(34,211,238,0.12)",
+                    border: "1px solid rgba(34,211,238,0.45)",
+                    color: "#67e8f9",
+                    fontSize: "11px",
+                    letterSpacing: "0.3em",
+                    fontWeight: 600,
+                  }}
+                >
+                  NF · {invoiceNumber || "—"}
+                </div>
+                <div style={{ marginTop: "10px", fontSize: "11px", color: "#94a3b8", letterSpacing: "0.2em" }}>
+                  {new Date(operationDate + "T00:00:00").toLocaleDateString("pt-BR")}
+                </div>
+              </div>
             </div>
           </div>
 
-          <table style={{ width: "100%", fontSize: "13px", marginBottom: "24px", borderCollapse: "collapse" }}>
-            <tbody>
-              <tr>
-                <td style={{ padding: "6px 0", color: "#555", width: "30%" }}>Cliente</td>
-                <td style={{ padding: "6px 0", fontWeight: 600 }}>
-                  {clients.find((c) => c.id === clientId)?.name ?? "-"}
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "6px 0", color: "#555" }}>Nota Fiscal</td>
-                <td style={{ padding: "6px 0", fontWeight: 600 }}>{invoiceNumber || "-"}</td>
-              </tr>
-              <tr>
-                <td style={{ padding: "6px 0", color: "#555" }}>Data da operação</td>
-                <td style={{ padding: "6px 0", fontWeight: 600 }}>
-                  {new Date(operationDate + "T00:00:00").toLocaleDateString("pt-BR")}
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "6px 0", color: "#555" }}>Taxa mensal</td>
-                <td style={{ padding: "6px 0", fontWeight: 600 }}>{formatPct(monthlyRate)}</td>
-              </tr>
-            </tbody>
-          </table>
+          {/* INFO CARDS */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "16px",
+              marginBottom: "28px",
+              position: "relative",
+            }}
+          >
+            {[
+              { label: "CLIENTE", value: clients.find((c) => c.id === clientId)?.name ?? "—" },
+              { label: "NOTA FISCAL", value: invoiceNumber || "—" },
+              { label: "DATA DA OPERAÇÃO", value: new Date(operationDate + "T00:00:00").toLocaleDateString("pt-BR") },
+              { label: "TAXA MENSAL", value: formatPct(monthlyRate) },
+            ].map((item) => (
+              <div
+                key={item.label}
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "14px",
+                  padding: "16px 20px",
+                  boxShadow: "0 6px 16px -10px rgba(15, 23, 42, 0.15)",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "10px",
+                    letterSpacing: "0.3em",
+                    color: "#64748b",
+                    fontWeight: 600,
+                    marginBottom: "6px",
+                  }}
+                >
+                  {item.label}
+                </div>
+                <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>{item.value}</div>
+              </div>
+            ))}
+          </div>
 
-          <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse", marginBottom: "20px" }}>
-            <thead>
-              <tr style={{ background: "#f1f1f1" }}>
-                <th style={{ padding: "8px", textAlign: "left", borderBottom: "1px solid #ddd" }}>#</th>
-                <th style={{ padding: "8px", textAlign: "left", borderBottom: "1px solid #ddd" }}>VENCIMENTO</th>
-                <th style={{ padding: "8px", textAlign: "right", borderBottom: "1px solid #ddd" }}>DIAS</th>
-                <th style={{ padding: "8px", textAlign: "right", borderBottom: "1px solid #ddd" }}>VALOR</th>
-                <th style={{ padding: "8px", textAlign: "right", borderBottom: "1px solid #ddd" }}>VP</th>
-              </tr>
-            </thead>
-            <tbody>
-              {result.installmentCalcs.map((i, idx) => (
-                <tr key={i.id}>
-                  <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>{idx + 1}</td>
-                  <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>
-                    {i.dueDate ? new Date(i.dueDate + "T00:00:00").toLocaleDateString("pt-BR") : "-"}
-                  </td>
-                  <td style={{ padding: "8px", textAlign: "right", borderBottom: "1px solid #eee" }}>{i.days}</td>
-                  <td style={{ padding: "8px", textAlign: "right", borderBottom: "1px solid #eee" }}>
-                    {formatBRL(i.value)}
-                  </td>
-                  <td style={{ padding: "8px", textAlign: "right", borderBottom: "1px solid #eee" }}>
-                    {formatBRL(i.presentValue)}
-                  </td>
+          {/* INSTALLMENTS TABLE */}
+          <div
+            style={{
+              background: "#ffffff",
+              border: "1px solid #e2e8f0",
+              borderRadius: "16px",
+              padding: "20px 24px",
+              marginBottom: "24px",
+              boxShadow: "0 8px 24px -16px rgba(15, 23, 42, 0.2)",
+              position: "relative",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                marginBottom: "14px",
+              }}
+            >
+              <span
+                style={{
+                  width: "8px",
+                  height: "8px",
+                  borderRadius: "50%",
+                  background: "#22d3ee",
+                  boxShadow: "0 0 10px #22d3ee",
+                }}
+              />
+              <div style={{ fontSize: "11px", letterSpacing: "0.35em", color: "#0f172a", fontWeight: 700 }}>
+                PARCELAS
+              </div>
+            </div>
+            <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ background: "linear-gradient(90deg, #f1f5f9, #e2e8f0)" }}>
+                  <th style={{ padding: "10px 12px", textAlign: "left", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>#</th>
+                  <th style={{ padding: "10px 12px", textAlign: "left", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>VENCIMENTO</th>
+                  <th style={{ padding: "10px 12px", textAlign: "right", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>DIAS</th>
+                  <th style={{ padding: "10px 12px", textAlign: "right", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>VALOR</th>
+                  <th style={{ padding: "10px 12px", textAlign: "right", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>VP</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {result.installmentCalcs.map((i, idx) => (
+                  <tr key={i.id} style={{ background: idx % 2 === 0 ? "#ffffff" : "#f8fafc" }}>
+                    <td style={{ padding: "10px 12px", fontWeight: 700, color: "#0f172a" }}>{String(idx + 1).padStart(2, "0")}</td>
+                    <td style={{ padding: "10px 12px", color: "#0f172a" }}>
+                      {i.dueDate ? new Date(i.dueDate + "T00:00:00").toLocaleDateString("pt-BR") : "-"}
+                    </td>
+                    <td style={{ padding: "10px 12px", textAlign: "right", color: "#475569" }}>{i.days}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "right", fontWeight: 700, color: "#0f172a" }}>
+                      {formatBRL(i.value)}
+                    </td>
+                    <td style={{ padding: "10px 12px", textAlign: "right", color: "#0f766e", fontWeight: 600 }}>
+                      {formatBRL(i.presentValue)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-          <table style={{ width: "100%", fontSize: "13px", borderCollapse: "collapse", marginBottom: "40px" }}>
-            <tbody>
-              <tr>
-                <td style={{ padding: "6px 0", color: "#555" }}>Valor total da nota</td>
-                <td style={{ padding: "6px 0", textAlign: "right", fontWeight: 700 }}>
-                  {formatBRL(result.totalInvoice)}
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "6px 0", color: "#555" }}>Valor líquido a receber</td>
-                <td style={{ padding: "6px 0", textAlign: "right", fontWeight: 700, color: "#0a7a3a" }}>
-                  {formatBRL(result.netValue)}
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "6px 0", color: "#555" }}>Custo da operação</td>
-                <td style={{ padding: "6px 0", textAlign: "right", fontWeight: 700, color: "#b02a2a" }}>
-                  {formatBRL(result.operationCost)}
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "6px 0", color: "#555" }}>Taxa efetiva</td>
-                <td style={{ padding: "6px 0", textAlign: "right", fontWeight: 700 }}>
-                  {formatPct(result.effectiveRatePct)}
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "6px 0", color: "#555" }}>Prazo médio ponderado</td>
-                <td style={{ padding: "6px 0", textAlign: "right", fontWeight: 700 }}>
-                  {result.averageDays.toFixed(1)} dias
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "6px 0", color: "#555" }}>
-                  Custo factoring ({formatPct(result.factoringMonthlyRatePct)}/mês)
-                </td>
-                <td style={{ padding: "6px 0", textAlign: "right", fontWeight: 700 }}>
-                  {formatBRL(result.factoringCost)}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          {/* SUMMARY - HIGHLIGHTS */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+              gap: "16px",
+              marginBottom: "24px",
+              position: "relative",
+            }}
+          >
+            <div
+              style={{
+                background: "linear-gradient(135deg, #0a0f1c 0%, #0f172a 100%)",
+                color: "#ffffff",
+                borderRadius: "14px",
+                padding: "18px 20px",
+                border: "1px solid rgba(148,163,184,0.25)",
+              }}
+            >
+              <div style={{ fontSize: "10px", letterSpacing: "0.3em", color: "#94a3b8", marginBottom: "8px" }}>
+                VALOR TOTAL DA NOTA
+              </div>
+              <div style={{ fontSize: "22px", fontWeight: 800 }}>{formatBRL(result.totalInvoice)}</div>
+            </div>
+            <div
+              style={{
+                background: "linear-gradient(135deg, #064e3b 0%, #0f766e 100%)",
+                color: "#ffffff",
+                borderRadius: "14px",
+                padding: "18px 20px",
+                border: "1px solid rgba(16,185,129,0.45)",
+                boxShadow: "0 10px 24px -14px rgba(16,185,129,0.5)",
+              }}
+            >
+              <div style={{ fontSize: "10px", letterSpacing: "0.3em", color: "#a7f3d0", marginBottom: "8px" }}>
+                LÍQUIDO A RECEBER
+              </div>
+              <div style={{ fontSize: "22px", fontWeight: 800 }}>{formatBRL(result.netValue)}</div>
+            </div>
+            <div
+              style={{
+                background: "linear-gradient(135deg, #7f1d1d 0%, #b91c1c 100%)",
+                color: "#ffffff",
+                borderRadius: "14px",
+                padding: "18px 20px",
+                border: "1px solid rgba(248,113,113,0.45)",
+              }}
+            >
+              <div style={{ fontSize: "10px", letterSpacing: "0.3em", color: "#fecaca", marginBottom: "8px" }}>
+                CUSTO DA OPERAÇÃO
+              </div>
+              <div style={{ fontSize: "22px", fontWeight: 800 }}>{formatBRL(result.operationCost)}</div>
+            </div>
+          </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px", marginTop: "80px" }}>
+          {/* SECONDARY METRICS */}
+          <div
+            style={{
+              background: "#ffffff",
+              border: "1px solid #e2e8f0",
+              borderRadius: "14px",
+              padding: "18px 24px",
+              marginBottom: "32px",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+              gap: "20px",
+              position: "relative",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: "10px", color: "#64748b", letterSpacing: "0.25em", marginBottom: "4px" }}>
+                TAXA EFETIVA
+              </div>
+              <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                {formatPct(result.effectiveRatePct)}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: "10px", color: "#64748b", letterSpacing: "0.25em", marginBottom: "4px" }}>
+                PRAZO MÉDIO PONDERADO
+              </div>
+              <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                {result.averageDays.toFixed(1)} dias
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: "10px", color: "#64748b", letterSpacing: "0.25em", marginBottom: "4px" }}>
+                CUSTO FACTORING ({formatPct(result.factoringMonthlyRatePct)}/mês)
+              </div>
+              <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                {formatBRL(result.factoringCost)}
+              </div>
+            </div>
+          </div>
+
+          {/* SIGNATURES */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "48px",
+              marginTop: "60px",
+              position: "relative",
+            }}
+          >
             <div style={{ textAlign: "center" }}>
-              <div style={{ borderTop: "1px solid #0a0a0a", paddingTop: "8px", fontSize: "12px", fontWeight: 600 }}>
+              <div
+                style={{
+                  borderTop: "2px solid #0f172a",
+                  paddingTop: "10px",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  letterSpacing: "0.1em",
+                  color: "#0f172a",
+                }}
+              >
                 MYKA COMPRESSORES DO BRASIL
               </div>
-              <div style={{ fontSize: "10px", color: "#666", marginTop: "4px", letterSpacing: "0.15em" }}>
+              <div style={{ fontSize: "10px", color: "#64748b", marginTop: "4px", letterSpacing: "0.25em" }}>
                 ASSINATURA · CARIMBO
               </div>
             </div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ borderTop: "1px solid #0a0a0a", paddingTop: "8px", fontSize: "12px", fontWeight: 600 }}>
+              <div
+                style={{
+                  borderTop: "2px solid #0f172a",
+                  paddingTop: "10px",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  letterSpacing: "0.1em",
+                  color: "#0f172a",
+                }}
+              >
                 PREVIEW STUDIO DIGITAL
               </div>
-              <div style={{ fontSize: "10px", color: "#666", marginTop: "4px", letterSpacing: "0.15em" }}>
+              <div style={{ fontSize: "10px", color: "#64748b", marginTop: "4px", letterSpacing: "0.25em" }}>
                 ASSINATURA · CARIMBO
               </div>
             </div>
           </div>
 
-          <div style={{ marginTop: "48px", textAlign: "center", fontSize: "10px", color: "#888", letterSpacing: "0.3em" }}>
-            MYKA MONEY · DOCUMENTO GERADO EM {new Date().toLocaleString("pt-BR")}
+          {/* FOOTER */}
+          <div
+            style={{
+              marginTop: "44px",
+              padding: "14px 18px",
+              borderRadius: "10px",
+              background: "linear-gradient(90deg, rgba(34,211,238,0.08), rgba(16,185,129,0.08))",
+              border: "1px solid rgba(34,211,238,0.25)",
+              textAlign: "center",
+              fontSize: "10px",
+              color: "#0f172a",
+              letterSpacing: "0.35em",
+              fontWeight: 600,
+              position: "relative",
+            }}
+          >
+            ◆ MYKA MONEY · VERSÃO 2.0 · DOCUMENTO GERADO EM {new Date().toLocaleString("pt-BR")} ◆
           </div>
         </div>
       </div>
