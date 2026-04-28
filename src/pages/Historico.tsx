@@ -338,11 +338,11 @@ const Historico = () => {
                       fontSize: 12,
                     }}
                     labelStyle={{ color: "hsl(var(--foreground))" }}
-                    formatter={(v: number) => [formatBRL(v), "Líquido"]}
+                    formatter={(v: number) => [formatBRL(v), "Em aberto"]}
                   />
                   <Area
                     type="monotone"
-                    dataKey="net"
+                    dataKey="saldo"
                     stroke="hsl(var(--net-green))"
                     strokeWidth={2}
                     fill="url(#netGrad)"
