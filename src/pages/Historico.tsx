@@ -124,6 +124,7 @@ const Historico = () => {
       presentValue: number;
       cost: number;
       factoringCost: number;
+      savings: number;
       parcelLabel: string;
       settled: boolean;
       settledDate: string | null;
