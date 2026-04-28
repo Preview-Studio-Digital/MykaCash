@@ -6,8 +6,18 @@ import { DateField } from "@/components/DateField";
 import { supabase } from "@/integrations/supabase/client";
 import { calculate, formatBRL, formatPct, FACTORING_MONTHLY_RATE_PCT, type Installment } from "@/lib/calc";
 import { toast } from "sonner";
-import { CheckCircle2, Circle, Pencil, Trash2 } from "lucide-react";
+import { CheckCircle2, Circle, Pencil, Trash2, Plus, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   ResponsiveContainer,
   AreaChart,
