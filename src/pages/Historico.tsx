@@ -303,8 +303,8 @@ const Historico = () => {
         <PageNav />
 
         {/* Period filter — controls panels, chart, and table */}
-        <section className="flex flex-wrap items-center gap-3 animate-fade-up text-center">
-          <div className="inline-flex rounded-full border border-border/60 bg-background/40 p-1">
+        <section className="flex flex-wrap items-center justify-center gap-3 animate-fade-up text-center">
+          <div className="inline-flex flex-wrap justify-center rounded-2xl sm:rounded-full border border-border/60 bg-background/40 p-1 gap-1 max-w-full">
             {periodOptions.map((opt) => {
               const active = period === opt.id;
               return (
@@ -312,7 +312,7 @@ const Historico = () => {
                   key={opt.id}
                   onClick={() => setPeriod(opt.id)}
                   className={
-                    "inline-flex items-center rounded-full px-4 py-1.5 font-mono text-[10px] tracking-[0.3em] transition-all " +
+                    "inline-flex items-center rounded-full px-3 sm:px-4 py-1.5 font-mono text-[9px] sm:text-[10px] tracking-[0.25em] sm:tracking-[0.3em] transition-all whitespace-nowrap " +
                     (active
                       ? "bg-primary text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.4)]"
                       : "text-muted-foreground hover:text-foreground")
