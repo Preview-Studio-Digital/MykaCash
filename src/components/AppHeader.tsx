@@ -51,7 +51,7 @@ export const AppHeader = () => {
         </div>
 
         <h1 className="font-title title-gradient font-extrabold leading-[0.9] tracking-tighter animate-fade-up text-6xl">
-          SMART MONEY
+          MYKA MONEY
         </h1>
 
         <p className="mt-4 font-mono text-[10px] md:text-xs font-medium tracking-[0.4em] text-muted-foreground animate-fade-up">
