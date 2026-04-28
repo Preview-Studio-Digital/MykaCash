@@ -651,10 +651,10 @@ const Historico = () => {
                             <button
                               onClick={() => toggleSettlement(r)}
                               className={
-                                "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[9px] tracking-widest transition-colors " +
+                                "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[10px] font-semibold tracking-widest transition-colors shadow-sm " +
                                 (r.settled
-                                  ? "border-net-green/40 bg-net-green/15 text-net-green hover:bg-net-green/25"
-                                  : "border-border/60 text-muted-foreground hover:border-net-green/40 hover:bg-net-green/10 hover:text-net-green")
+                                  ? "border-net-green/50 bg-net-green/25 text-net-green hover:bg-net-green/35"
+                                  : "border-net-green/60 bg-net-green text-net-green-foreground hover:bg-net-green/90")
                               }
                               title={r.settled ? "Desfazer liquidação" : "Marcar como liquidada"}
                             >
