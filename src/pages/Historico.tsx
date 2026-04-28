@@ -297,7 +297,7 @@ const Historico = () => {
             <div className="flex items-center gap-3">
               <span className="h-2 w-2 rounded-full bg-net-green animate-pulse-glow" />
               <h2 className="font-display text-xl font-semibold tracking-tight">
-                Evolução do líquido recebido
+                Operações em Transação
               </h2>
             </div>
             <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
