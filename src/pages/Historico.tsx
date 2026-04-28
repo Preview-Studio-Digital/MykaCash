@@ -201,26 +201,50 @@ const Historico = () => {
   );
   const totalEffective = totals.value > 0 ? (totals.cost / totals.value) * 100 : 0;
 
-  // Chart: net value evolution per operation date (sum of presentValue grouped by operationDate)
+  // Chart: "Operações em Transação" — running outstanding balance over time.
+  // +netValue on operation date; -presentValue on settlement date.
   const chartData = useMemo(() => {
-    const byDate = new Map<string, number>();
+    type Ev = { date: string; delta: number };
+    const events: Ev[] = [];
     for (const r of rows) {
-      byDate.set(r.operationDate, (byDate.get(r.operationDate) ?? 0) + r.presentValue);
+      events.push({ date: r.operationDate, delta: r.presentValue });
+      if (r.settled && r.settledDate) {
+        events.push({ date: r.settledDate, delta: -r.presentValue });
+      }
     }
-    return Array.from(byDate.entries())
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([date, net]) => ({ date, label: fmtDate(date), net: Math.round(net * 100) / 100 }));
+    if (events.length === 0) return [] as { date: string; label: string; saldo: number }[];
+
+    // Group by date
+    const byDate = new Map<string, number>();
+    events.forEach((e) => byDate.set(e.date, (byDate.get(e.date) ?? 0) + e.delta));
+    const sortedDates = Array.from(byDate.keys()).sort();
+
+    // Add zero baseline one week before first date
+    const first = new Date(sortedDates[0] + "T00:00:00");
+    first.setDate(first.getDate() - 7);
+    const baseline = first.toISOString().slice(0, 10);
+
+    const series: { date: string; label: string; saldo: number }[] = [
+      { date: baseline, label: fmtDate(baseline), saldo: 0 },
+    ];
+    let acc = 0;
+    for (const d of sortedDates) {
+      acc += byDate.get(d) ?? 0;
+      series.push({ date: d, label: fmtDate(d), saldo: Math.round(acc * 100) / 100 });
+    }
+    return series;
   }, [rows]);
 
   const toggleSettlement = async (row: (typeof rows)[number]) => {
     const inv = invoices.find((i) => i.id === row.invoiceId);
     if (!inv) return;
-    const current: string[] = Array.isArray(inv.settled_installments)
+    const current: SettledEntry[] = Array.isArray(inv.settled_installments)
       ? (inv.settled_installments as any)
       : [];
-    const next = current.includes(row.installmentId)
-      ? current.filter((id) => id !== row.installmentId)
-      : [...current, row.installmentId];
+    const isSettled = current.some((e) => settledIdOf(e) === row.installmentId);
+    const next: SettledEntry[] = isSettled
+      ? current.filter((e) => settledIdOf(e) !== row.installmentId)
+      : [...current, { id: row.installmentId, date: todayISO() }];
     // optimistic
     setInvoices((prev) =>
       prev.map((i) => (i.id === inv.id ? { ...i, settled_installments: next } : i))
@@ -234,7 +258,7 @@ const Historico = () => {
       load();
     } else {
       toast.success(
-        next.includes(row.installmentId) ? "Parcela marcada como liquidada" : "Liquidação removida"
+        !isSettled ? "Parcela marcada como liquidada" : "Liquidação removida"
       );
     }
   };
