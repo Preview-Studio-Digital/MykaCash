@@ -598,13 +598,13 @@ const Historico = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={15} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
+                    <td colSpan={14} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                       CARREGANDO...
                     </td>
                   </tr>
                 ) : rows.length === 0 ? (
                   <tr>
-                    <td colSpan={15} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
+                    <td colSpan={14} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                       NENHUMA OPERAÇÃO NO PERÍODO
                     </td>
                   </tr>
