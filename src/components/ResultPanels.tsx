@@ -57,13 +57,13 @@ export const ResultPanels = ({ result, monthlyRate }: { result: CalcResult; mont
           <div className="mt-3 h-px bg-white/25" />
           <div className="mt-3 grid grid-cols-2 gap-2">
             <div>
-              <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">TAXA FACTORING</div>
+              <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">TAXA ECONOMIA</div>
               <div className="mt-0.5 font-display text-sm font-semibold tabular-nums">
                 {formatPct(FACTORING_MONTHLY_RATE_PCT)} a.m.
               </div>
             </div>
             <div>
-              <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">CUSTO FACTORING</div>
+              <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">CUSTO ECONOMIA</div>
               <div className="mt-0.5 font-display text-sm font-semibold tabular-nums">
                 {formatBRL(result.factoringCost)}
               </div>
