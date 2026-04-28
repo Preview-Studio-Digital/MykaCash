@@ -13,7 +13,7 @@ const schema = z.object({
   password: z.string().min(6, { message: "Mínimo de 6 caracteres" }).max(72),
 });
 
-const Auth = () => {
+const Login = () => {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -104,4 +104,4 @@ const Auth = () => {
   );
 };
 
-export default Auth;
+export default Login;

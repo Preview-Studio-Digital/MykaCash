@@ -11,6 +11,6 @@ export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
       </div>
     );
   }
-  if (!session) return <Navigate to="/auth" replace />;
+  if (!session) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
