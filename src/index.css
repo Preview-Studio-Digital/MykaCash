@@ -156,3 +156,9 @@
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
 }
+
+@keyframes title-shimmer-move {
+  0% { background-position: -150% 0, 0 0; }
+  60%, 100% { background-position: 250% 0, 0 0; }
+}
+
