@@ -620,19 +620,46 @@ const Historico = () => {
                         }
                       >
                         <td className="px-2 py-2">
-                          {r.settled ? (
-                            <span className="inline-block rounded-full bg-net-green/20 px-2 py-0.5 text-[9px] tracking-widest text-net-green">
-                              LIQUIDADA
-                            </span>
-                          ) : r.overdue ? (
-                            <span className="inline-block rounded-full bg-cost-red/20 px-2 py-0.5 text-[9px] tracking-widest text-cost-red">
-                              VENCIDA
-                            </span>
-                          ) : (
-                            <span className="inline-block rounded-full bg-net-green/15 px-2 py-0.5 text-[9px] tracking-widest text-net-green">
-                              ABERTA
-                            </span>
-                          )}
+                          <div className="inline-flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => toggleSettlement(r)}
+                              onMouseEnter={() => !r.settled && setHoverKey(r.key)}
+                              onMouseLeave={() => setHoverKey((k) => (k === r.key ? null : k))}
+                              onFocus={() => !r.settled && setHoverKey(r.key)}
+                              onBlur={() => setHoverKey((k) => (k === r.key ? null : k))}
+                              title={
+                                r.settled
+                                  ? "Clique para desfazer a liquidação"
+                                  : "Clique para marcar como LIQUIDADA"
+                              }
+                              className={
+                                "group relative inline-block rounded-full px-2 py-0.5 text-[9px] tracking-widest transition-all cursor-pointer " +
+                                (r.settled
+                                  ? "bg-net-green/20 text-net-green hover:bg-net-green/30"
+                                  : r.overdue
+                                  ? "bg-cost-red/20 text-cost-red hover:bg-factoring-amber/30 hover:text-factoring-amber"
+                                  : "bg-net-green/15 text-net-green hover:bg-factoring-amber/30 hover:text-factoring-amber")
+                              }
+                            >
+                              <span className="group-hover:hidden">
+                                {r.settled ? "LIQUIDADA" : r.overdue ? "VENCIDA" : "ABERTA"}
+                              </span>
+                              <span className="hidden group-hover:inline">
+                                {r.settled ? "DESFAZER" : "LIQUIDAR"}
+                              </span>
+                            </button>
+                            {canDelete && (
+                              <button
+                                onClick={() => handleDeleteOperation(r.invoiceId)}
+                                className="rounded p-1 text-muted-foreground transition-colors hover:bg-cost-red/15 hover:text-cost-red"
+                                title="Remover operação"
+                                aria-label="Remover"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            )}
+                          </div>
                         </td>
                         <td className="px-2 py-2 text-left max-w-[160px] truncate" title={r.clientName}>
                           {r.clientName}
@@ -650,40 +677,6 @@ const Historico = () => {
                         <td className="px-2 py-2 text-factoring-amber">{formatBRL(r.factoringCost)}</td>
                         <td className="px-2 py-2 text-left max-w-[120px] truncate" title={r.createdBy}>
                           {r.createdBy}
-                        </td>
-                        <td className="px-2 py-2">
-                          <div className="flex items-center justify-center gap-1">
-                            <button
-                              onClick={() => toggleSettlement(r)}
-                              className={
-                                "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[10px] font-semibold tracking-widest transition-colors shadow-sm " +
-                                (r.settled
-                                  ? "border-net-green/50 bg-net-green/25 text-net-green hover:bg-net-green/35"
-                                  : "border-net-green/60 bg-net-green text-net-green-foreground hover:bg-net-green/90")
-                              }
-                              title={r.settled ? "Desfazer liquidação" : "Marcar como liquidada"}
-                            >
-                              {r.settled ? (
-                                <>
-                                  <CheckCircle2 className="h-3 w-3" /> DESFAZER
-                                </>
-                              ) : (
-                                <>
-                                  <Circle className="h-3 w-3" /> LIQUIDAR
-                                </>
-                              )}
-                            </button>
-                            {canDelete && (
-                              <button
-                                onClick={() => handleDeleteOperation(r.invoiceId)}
-                                className="rounded p-1 text-muted-foreground transition-colors hover:bg-cost-red/15 hover:text-cost-red"
-                                title="Remover operação"
-                                aria-label="Remover"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            )}
-                          </div>
                         </td>
                       </tr>
                     );
