@@ -837,14 +837,14 @@ const Historico = () => {
                       CARREGANDO...
                     </td>
                   </tr>
-                ) : rows.length === 0 ? (
+                ) : filteredRows.length === 0 ? (
                   <tr>
                     <td colSpan={14} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                       NENHUMA OPERAÇÃO NO PERÍODO
                     </td>
                   </tr>
                 ) : (
-                  rows.map((r) => {
+                  filteredRows.map((r) => {
                     const canManage = isAdmin;
                     return (
                       <tr
