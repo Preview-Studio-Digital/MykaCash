@@ -636,7 +636,7 @@ const Historico = () => {
                               className={
                                 "group relative inline-block rounded-full px-2 py-0.5 text-[9px] tracking-widest transition-all cursor-pointer " +
                                 (r.settled
-                                  ? "bg-net-green/20 text-net-green hover:bg-net-green/30"
+                                  ? "bg-factoring-amber/20 text-factoring-amber hover:bg-factoring-amber/30"
                                   : r.overdue
                                   ? "bg-cost-red/20 text-cost-red hover:bg-factoring-amber/30 hover:text-factoring-amber"
                                   : "bg-net-green/15 text-net-green hover:bg-factoring-amber/30 hover:text-factoring-amber")
