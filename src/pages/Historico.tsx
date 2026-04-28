@@ -18,7 +18,7 @@ import {
   CartesianGrid,
 } from "recharts";
 
-type Period = "hoje" | "semana" | "mes" | "periodo";
+type Period = "hoje" | "semana" | "mes" | "total" | "periodo";
 
 type SettledEntry = string | { id: string; date: string };
 type InvoiceRow = {
