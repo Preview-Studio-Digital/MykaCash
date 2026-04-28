@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import Index from "./pages/Index.tsx";
+import Cadastro from "./pages/Cadastro.tsx";
 import Login from "./pages/Login.tsx";
 import Admin from "./pages/Admin.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -25,7 +25,7 @@ const App = () => (
               path="/"
               element={
                 <ProtectedRoute>
-                  <Index />
+                  <Cadastro />
                 </ProtectedRoute>
               }
             />
