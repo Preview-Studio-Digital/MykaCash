@@ -77,6 +77,7 @@ const Historico = () => {
     if (period === "hoje") return { from: today, to: today };
     if (period === "semana") return { from: startOfWeekISO(), to: today };
     if (period === "mes") return { from: startOfMonthISO(), to: today };
+    if (period === "total") return { from: "1900-01-01", to: "2999-12-31" };
     return { from, to };
   }, [period, from, to]);
 
