@@ -175,7 +175,7 @@ export const RegistrationSection = () => {
     if (!node) return;
     // Temporarily make it visible for rendering
     const prev = node.style.cssText;
-    node.style.cssText = "position:fixed;left:-10000px;top:0;width:1000px;background:#ffffff;";
+    node.style.cssText = "position:fixed;left:-10000px;top:0;width:1100px;background:#0b0f1a;";
     try {
       const canvas = await html2canvas(node, { backgroundColor: "#ffffff", scale: 2 });
       const link = document.createElement("a");
