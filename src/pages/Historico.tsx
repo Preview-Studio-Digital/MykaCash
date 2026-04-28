@@ -76,6 +76,9 @@ const fmtDateShort = (iso: string) =>
       })
     : "-";
 
+const formatBRLNum = (n: number) =>
+  n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 const Historico = () => {
   const { user, isAdmin } = useAuth();
   const [period, setPeriod] = useState<Period>("total");
@@ -798,24 +801,24 @@ const Historico = () => {
           </div>
 
           {/* Desktop table */}
-          <div className="hidden md:block rounded-lg border border-border/50 overflow-x-auto">
-            <table className="w-full min-w-[1024px] text-[10px] lg:text-[11px]">
+          <div className="hidden md:block rounded-lg border border-border/50 overflow-hidden">
+            <table className="w-full table-auto text-[10px] lg:text-[11px]">
               <thead className="bg-muted/40 font-mono tracking-widest">
                 <tr className="text-muted-foreground">
-                  <th className="px-2 py-2 text-center font-medium">STATUS</th>
-                  <th className="px-2 py-2 text-center font-medium">CLIENTE</th>
-                  <th className="px-2 py-2 text-center font-medium">NF</th>
-                  <th className="px-2 py-2 text-center font-medium">PARC.</th>
-                  <th className="px-2 py-2 text-center font-medium">OPERAÇÃO</th>
-                  <th className="px-2 py-2 text-center font-medium">VENC.</th>
-                  <th className="px-2 py-2 text-center font-medium">DIAS</th>
-                  <th className="px-2 py-2 text-center font-medium">TX MÊS</th>
-                  <th className="px-2 py-2 text-center font-medium">TX EFET.</th>
-                  <th className="px-2 py-2 text-center font-medium">BRUTO</th>
-                  <th className="px-2 py-2 text-center font-medium">LÍQUIDO</th>
-                  <th className="px-2 py-2 text-center font-medium">CUSTO</th>
-                  <th className="px-2 py-2 text-center font-medium text-factoring-amber text-muted-foreground">ECONOMIA</th>
-                  <th className="px-2 py-2 text-center font-medium">RESPONSÁVEL</th>
+                  <th className="px-1.5 py-2 text-center font-medium">STATUS</th>
+                  <th className="px-1.5 py-2 text-center font-medium">CLIENTE</th>
+                  <th className="px-1.5 py-2 text-center font-medium">NF</th>
+                  <th className="px-1.5 py-2 text-center font-medium">PARC.</th>
+                  <th className="px-1.5 py-2 text-center font-medium">OPERAÇÃO</th>
+                  <th className="px-1.5 py-2 text-center font-medium">VENC.</th>
+                  <th className="px-1.5 py-2 text-center font-medium">DIAS</th>
+                  <th className="px-1.5 py-2 text-center font-medium">TX MÊS</th>
+                  <th className="px-1.5 py-2 text-center font-medium">TX EFET.</th>
+                  <th className="px-1.5 py-2 text-center font-medium">BRUTO (R$)</th>
+                  <th className="px-1.5 py-2 text-center font-medium">LÍQUIDO (R$)</th>
+                  <th className="px-1.5 py-2 text-center font-medium">CUSTO (R$)</th>
+                  <th className="px-1.5 py-2 text-center font-medium text-factoring-amber">ECONOMIA (R$)</th>
+                  <th className="px-1.5 py-2 text-center font-medium">RESPONSÁVEL</th>
                 </tr>
               </thead>
               <tbody>
@@ -897,17 +900,17 @@ const Historico = () => {
                         <td className="px-2 py-2 text-left max-w-[160px] truncate" title={r.clientName}>
                           {r.clientName}
                         </td>
-                        <td className="px-2 py-2">{r.invoiceNumber}</td>
-                        <td className="px-2 py-2">{r.parcelLabel}</td>
-                        <td className="px-2 py-2">{fmtDateShort(r.operationDate)}</td>
-                        <td className="px-2 py-2">{fmtDateShort(r.dueDate)}</td>
-                        <td className="px-2 py-2">{r.days}</td>
-                        <td className="px-2 py-2">{formatPct(r.monthlyRate)}</td>
-                        <td className="px-2 py-2">{formatPct(r.effectivePct)}</td>
-                        <td className="px-2 py-2">{formatBRL(r.value)}</td>
-                        <td className="px-2 py-2 text-net-green">{formatBRL(r.presentValue)}</td>
-                        <td className="px-2 py-2 text-cost-red">{formatBRL(r.cost)}</td>
-                        <td className="px-2 py-2 text-factoring-amber">{formatBRL(r.savings)}</td>
+                        <td className="px-1.5 py-2">{r.invoiceNumber}</td>
+                        <td className="px-1.5 py-2">{r.parcelLabel}</td>
+                        <td className="px-1.5 py-2">{fmtDateShort(r.operationDate)}</td>
+                        <td className="px-1.5 py-2">{fmtDateShort(r.dueDate)}</td>
+                        <td className="px-1.5 py-2">{r.days}</td>
+                        <td className="px-1.5 py-2">{formatPct(r.monthlyRate)}</td>
+                        <td className="px-1.5 py-2">{formatPct(r.effectivePct)}</td>
+                        <td className="px-1.5 py-2">{formatBRLNum(r.value)}</td>
+                        <td className="px-1.5 py-2 text-net-green">{formatBRLNum(r.presentValue)}</td>
+                        <td className="px-1.5 py-2 text-cost-red">{formatBRLNum(r.cost)}</td>
+                        <td className="px-1.5 py-2 text-factoring-amber">{formatBRLNum(r.savings)}</td>
                         <td className="px-2 py-2 text-left max-w-[120px] truncate" title={r.createdBy}>
                           {r.createdBy}
                         </td>
@@ -926,11 +929,11 @@ const Historico = () => {
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2">—</td>
-                    <td className="px-2 py-2">{formatPct(totalEffective)}</td>
-                    <td className="px-2 py-2">{formatBRL(totals.value)}</td>
-                    <td className="px-2 py-2 text-net-green">{formatBRL(totals.presentValue)}</td>
-                    <td className="px-2 py-2 text-cost-red">{formatBRL(totals.cost)}</td>
-                    <td className="px-2 py-2 text-factoring-amber">{formatBRL(totals.savings)}</td>
+                    <td className="px-1.5 py-2">{formatPct(totalEffective)}</td>
+                    <td className="px-1.5 py-2">{formatBRLNum(totals.value)}</td>
+                    <td className="px-1.5 py-2 text-net-green">{formatBRLNum(totals.presentValue)}</td>
+                    <td className="px-1.5 py-2 text-cost-red">{formatBRLNum(totals.cost)}</td>
+                    <td className="px-1.5 py-2 text-factoring-amber">{formatBRLNum(totals.savings)}</td>
                     <td className="px-2 py-2">—</td>
                   </tr>
                 )}
