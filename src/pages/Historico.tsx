@@ -202,6 +202,8 @@ const Historico = () => {
   );
   const totalEffective = totals.value > 0 ? (totals.cost / totals.value) * 100 : 0;
   const factoringSavings = Math.max(0, totals.factoring - totals.cost);
+  const settledPresent = rows.reduce((s, r) => s + (r.settled ? r.presentValue : 0), 0);
+  const openPresent = Math.max(0, totals.presentValue - settledPresent);
 
   // Chart: "Operações em Transação" — running outstanding balance over time.
   // +netValue on operation date; -presentValue on settlement date.
@@ -300,6 +302,55 @@ const Historico = () => {
       <main className="container mx-auto max-w-6xl px-4 py-10 md:py-14 space-y-8">
         <PageNav />
 
+        {/* Period filter — controls panels, chart, and table */}
+        <section className="flex flex-wrap items-center gap-3 animate-fade-up">
+          <div className="inline-flex rounded-full border border-border/60 bg-background/40 p-1">
+            {periodOptions.map((opt) => {
+              const active = period === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => setPeriod(opt.id)}
+                  className={
+                    "inline-flex items-center rounded-full px-4 py-1.5 font-mono text-[10px] tracking-[0.3em] transition-all " +
+                    (active
+                      ? "bg-primary text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.4)]"
+                      : "text-muted-foreground hover:text-foreground")
+                  }
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {period === "periodo" && (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">DE</span>
+                <DateField value={from} onChange={setFrom} />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">ATÉ</span>
+                <DateField value={to} onChange={setTo} />
+              </div>
+            </div>
+          )}
+
+          {period !== "periodo" && period !== "total" && (
+            <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
+              {range.from === range.to
+                ? fmtDate(range.from)
+                : `${fmtDate(range.from)} → ${fmtDate(range.to)}`}
+            </span>
+          )}
+          {period === "total" && (
+            <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
+              TODAS AS OPERAÇÕES
+            </span>
+          )}
+        </section>
+
         {/* Summary panels — reflect selected period */}
         <section className="grid gap-4 md:grid-cols-3 animate-fade-up">
           <div className="relative overflow-hidden rounded-xl bg-gradient-net p-4 text-net-green-foreground panel-glow-net">
@@ -335,14 +386,14 @@ const Historico = () => {
           <div className="relative overflow-hidden rounded-xl bg-gradient-factoring p-4 text-white panel-glow-factoring">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
             <div className="relative">
-              <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">ECONOMIA</div>
+              <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">VALOR EM ABERTO</div>
               <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums">
-                {formatBRL(factoringSavings)}
+                {formatBRL(openPresent)}
               </div>
               <div className="mt-3 h-px bg-white/25" />
-              <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-90">CUSTO FACTORING ({formatPct(FACTORING_MONTHLY_RATE_PCT)} a.m.)</div>
+              <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-90">LIQUIDADO NO PERÍODO</div>
               <div className="mt-1 font-display text-base md:text-lg font-semibold tabular-nums">
-                {formatBRL(totals.factoring)}
+                {formatBRL(settledPresent)}
               </div>
             </div>
           </div>
@@ -460,55 +511,6 @@ const Historico = () => {
               {rows.length} {rows.length === 1 ? "PARCELA" : "PARCELAS"} · {invoices.length}{" "}
               {invoices.length === 1 ? "OPERAÇÃO" : "OPERAÇÕES"}
             </span>
-          </div>
-
-          {/* Filters */}
-          <div className="mb-6 flex flex-wrap items-center gap-3">
-            <div className="inline-flex rounded-full border border-border/60 bg-background/40 p-1">
-              {periodOptions.map((opt) => {
-                const active = period === opt.id;
-                return (
-                  <button
-                    key={opt.id}
-                    onClick={() => setPeriod(opt.id)}
-                    className={
-                      "inline-flex items-center rounded-full px-4 py-1.5 font-mono text-[10px] tracking-[0.3em] transition-all " +
-                      (active
-                        ? "bg-primary text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.4)]"
-                        : "text-muted-foreground hover:text-foreground")
-                    }
-                  >
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {period === "periodo" && (
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">DE</span>
-                  <DateField value={from} onChange={setFrom} />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">ATÉ</span>
-                  <DateField value={to} onChange={setTo} />
-                </div>
-              </div>
-            )}
-
-            {period !== "periodo" && period !== "total" && (
-              <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
-                {range.from === range.to
-                  ? fmtDate(range.from)
-                  : `${fmtDate(range.from)} → ${fmtDate(range.to)}`}
-              </span>
-            )}
-            {period === "total" && (
-              <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
-                TODAS AS OPERAÇÕES
-              </span>
-            )}
           </div>
 
           {/* Mobile cards */}
