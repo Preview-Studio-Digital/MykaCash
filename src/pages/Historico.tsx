@@ -664,7 +664,7 @@ const Historico = () => {
               </div>
             ) : (
               rows.map((r) => {
-                const canDelete = isAdmin || (r.isAuthor && r.withinEditWindow);
+                const canManage = isAdmin;
                 return (
                   <div
                     key={r.key}
