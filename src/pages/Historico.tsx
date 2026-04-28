@@ -18,7 +18,7 @@ import {
   CartesianGrid,
 } from "recharts";
 
-type Period = "hoje" | "semana" | "mes" | "periodo";
+type Period = "hoje" | "semana" | "mes" | "total" | "periodo";
 
 type SettledEntry = string | { id: string; date: string };
 type InvoiceRow = {
@@ -59,7 +59,7 @@ const fmtDate = (iso: string) =>
 
 const Historico = () => {
   const { user, isAdmin } = useAuth();
-  const [period, setPeriod] = useState<Period>("mes");
+  const [period, setPeriod] = useState<Period>("total");
   const [from, setFrom] = useState<string>(todayISO());
   const [to, setTo] = useState<string>(todayISO());
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
@@ -77,6 +77,7 @@ const Historico = () => {
     if (period === "hoje") return { from: today, to: today };
     if (period === "semana") return { from: startOfWeekISO(), to: today };
     if (period === "mes") return { from: startOfMonthISO(), to: today };
+    if (period === "total") return { from: "1900-01-01", to: "2999-12-31" };
     return { from, to };
   }, [period, from, to]);
 
@@ -275,6 +276,7 @@ const Historico = () => {
     { id: "hoje", label: "HOJE" },
     { id: "semana", label: "SEMANA" },
     { id: "mes", label: "MÊS" },
+    { id: "total", label: "TOTAL" },
     { id: "periodo", label: "PERÍODO" },
   ];
 
@@ -367,7 +369,7 @@ const Historico = () => {
           </div>
 
           {/* Filters */}
-          <div className="mb-6 flex flex-wrap items-end gap-3">
+          <div className="mb-6 flex flex-wrap items-center gap-3">
             <div className="inline-flex rounded-full border border-border/60 bg-background/40 p-1">
               {periodOptions.map((opt) => {
                 const active = period === opt.id;
@@ -389,21 +391,28 @@ const Historico = () => {
             </div>
 
             {period === "periodo" && (
-              <div className="flex flex-wrap items-end gap-3">
-                <div className="space-y-1">
-                  <span className="block font-mono text-[9px] tracking-[0.25em] text-muted-foreground">DE</span>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">DE</span>
                   <DateField value={from} onChange={setFrom} />
                 </div>
-                <div className="space-y-1">
-                  <span className="block font-mono text-[9px] tracking-[0.25em] text-muted-foreground">ATÉ</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">ATÉ</span>
                   <DateField value={to} onChange={setTo} />
                 </div>
               </div>
             )}
 
-            {period !== "periodo" && (
+            {period !== "periodo" && period !== "total" && (
               <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
-                {fmtDate(range.from)} → {fmtDate(range.to)}
+                {range.from === range.to
+                  ? fmtDate(range.from)
+                  : `${fmtDate(range.from)} → ${fmtDate(range.to)}`}
+              </span>
+            )}
+            {period === "total" && (
+              <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
+                TODAS AS OPERAÇÕES
               </span>
             )}
           </div>
