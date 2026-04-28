@@ -20,6 +20,7 @@ import {
 
 type Period = "hoje" | "semana" | "mes" | "periodo";
 
+type SettledEntry = string | { id: string; date: string };
 type InvoiceRow = {
   id: string;
   invoice_number: string;
@@ -28,13 +29,17 @@ type InvoiceRow = {
   monthly_rate: number;
   factoring_monthly_rate: number | null;
   installments: Installment[];
-  settled_installments: string[];
+  settled_installments: SettledEntry[];
   client_id: string;
   created_at: string;
   created_by: string | null;
   clients?: { name: string } | null;
   profiles?: { display_name: string | null; username: string | null } | null;
 };
+
+const settledIdOf = (e: SettledEntry): string => (typeof e === "string" ? e : e.id);
+const settledDateOf = (e: SettledEntry): string | null =>
+  typeof e === "string" ? null : e.date;
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 const startOfWeekISO = () => {
