@@ -809,7 +809,7 @@ const Historico = () => {
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
                       <XAxis
-                        dataKey="label"
+                        dataKey="labelShort"
                         tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                         stroke="hsl(var(--border))"
                       />
