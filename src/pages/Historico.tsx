@@ -588,6 +588,15 @@ const Historico = () => {
     );
   };
 
+  // Vence em até 7 dias (a partir de hoje, ainda não vencida)?
+  const isDueSoon = (r: (typeof rows)[number]) => {
+    if (r.settled || r.overdue) return false;
+    const today = new Date(todayStr + "T00:00:00").getTime();
+    const due = new Date(r.dueDate + "T00:00:00").getTime();
+    const diffDays = Math.round((due - today) / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 && diffDays <= 7;
+  };
+
   // Row coloring — when hovering the status pill of an open/overdue row, show orange preview
   const rowClass = (r: (typeof rows)[number]) => {
     if (r.settled) return "bg-[hsl(var(--factoring-amber)/0.22)] hover:bg-[hsl(var(--factoring-amber)/0.28)]";
@@ -595,6 +604,7 @@ const Historico = () => {
       return "bg-[hsl(var(--factoring-amber)/0.22)]";
     }
     if (r.overdue) return "bg-[hsl(var(--cost-red)/0.12)] hover:bg-[hsl(var(--cost-red)/0.18)]";
+    if (isDueSoon(r)) return "row-due-soon hover:bg-[hsl(var(--cost-red)/0.32)]";
     return "bg-[hsl(var(--net-green)/0.06)] hover:bg-[hsl(var(--net-green)/0.10)]";
   };
 
