@@ -90,6 +90,16 @@ const fmtDateShort = (iso: string) =>
       })
     : "-";
 
+const fmtDayMonth = (iso: string) =>
+  iso
+    ? new Date(iso + "T00:00:00").toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+      })
+    : "-";
+
+const yearOf = (iso: string) => (iso ? iso.slice(0, 4) : "");
+
 const formatBRLNum = (n: number) =>
   n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
