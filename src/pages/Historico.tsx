@@ -66,6 +66,13 @@ const startOfWeekISO = () => {
   d.setDate(d.getDate() + diff);
   return localISO(d);
 };
+const endOfWeekISO = () => {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = day === 0 ? 0 : 7 - day;
+  d.setDate(d.getDate() + diff);
+  return localISO(d);
+};
 const startOfMonthISO = () => {
   const d = new Date();
   d.setDate(1);
@@ -588,13 +595,12 @@ const Historico = () => {
     );
   };
 
-  // Vence em até 7 dias (a partir de hoje, ainda não vencida)?
+  // Vence dentro da semana vigente (segunda a domingo) e ainda em aberto?
   const isDueSoon = (r: (typeof rows)[number]) => {
     if (r.settled || r.overdue) return false;
-    const today = new Date(todayStr + "T00:00:00").getTime();
-    const due = new Date(r.dueDate + "T00:00:00").getTime();
-    const diffDays = Math.round((due - today) / (1000 * 60 * 60 * 24));
-    return diffDays >= 0 && diffDays <= 7;
+    const ws = startOfWeekISO();
+    const we = endOfWeekISO();
+    return r.dueDate >= ws && r.dueDate <= we;
   };
 
   // Row coloring — when hovering the status pill of an open/overdue row, show orange preview
