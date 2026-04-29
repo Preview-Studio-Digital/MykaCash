@@ -66,6 +66,13 @@ const startOfWeekISO = () => {
   d.setDate(d.getDate() + diff);
   return localISO(d);
 };
+const endOfWeekISO = () => {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = day === 0 ? 0 : 7 - day;
+  d.setDate(d.getDate() + diff);
+  return localISO(d);
+};
 const startOfMonthISO = () => {
   const d = new Date();
   d.setDate(1);
