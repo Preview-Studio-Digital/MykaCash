@@ -90,6 +90,16 @@ const fmtDateShort = (iso: string) =>
       })
     : "-";
 
+const fmtDayMonth = (iso: string) =>
+  iso
+    ? new Date(iso + "T00:00:00").toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+      })
+    : "-";
+
+const yearOf = (iso: string) => (iso ? iso.slice(0, 4) : "");
+
 const formatBRLNum = (n: number) =>
   n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -272,7 +282,7 @@ const Historico = () => {
       }
     }
     if (events.length === 0)
-      return [] as { date: string; label: string; saldo: number }[];
+      return [] as { date: string; label: string; labelShort: string; saldo: number }[];
 
     // Para verificar se o período engloba a primeira operação histórica,
     // olhamos para TODAS as linhas (independente de filtro de status/período).
@@ -298,7 +308,7 @@ const Historico = () => {
     });
     const sortedDates = Array.from(byDate.keys()).sort();
 
-    const series: { date: string; label: string; saldo: number }[] = [];
+    const series: { date: string; label: string; labelShort: string; saldo: number }[] = [];
 
     const includesFirst = firstHistoricalDate >= range.from && firstHistoricalDate <= range.to;
 
@@ -307,7 +317,7 @@ const Historico = () => {
       const first = new Date(sortedDates[0] + "T00:00:00");
       first.setDate(first.getDate() - 7);
       const baseline = localISO(first);
-      series.push({ date: baseline, label: fmtDate(baseline), saldo: 0 });
+      series.push({ date: baseline, label: fmtDate(baseline), labelShort: fmtDayMonth(baseline), saldo: 0 });
     } else {
       // Período NÃO engloba a primeira operação: começa com o saldo acumulado real
       // ancorado no início do intervalo (ou um dia antes do primeiro evento, o que vier antes)
@@ -315,6 +325,7 @@ const Historico = () => {
       series.push({
         date: anchor,
         label: fmtDate(anchor),
+        labelShort: fmtDayMonth(anchor),
         saldo: Math.round(carryOver * 100) / 100,
       });
     }
@@ -329,6 +340,7 @@ const Historico = () => {
         series.push({
           date: d,
           label: fmtDate(d),
+          labelShort: fmtDayMonth(d),
           saldo: Math.round(acc * 100) / 100,
         });
       }
@@ -341,6 +353,7 @@ const Historico = () => {
         series.push({
           date: todayStr,
           label: fmtDate(todayStr),
+          labelShort: fmtDayMonth(todayStr),
           saldo: last.saldo,
         });
       } else if (last.date > todayStr) {
@@ -350,6 +363,7 @@ const Historico = () => {
           series.splice(insertIdx, 0, {
             date: todayStr,
             label: fmtDate(todayStr),
+            labelShort: fmtDayMonth(todayStr),
             saldo: prev.saldo,
           });
         }
@@ -795,7 +809,7 @@ const Historico = () => {
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
                       <XAxis
-                        dataKey="label"
+                        dataKey="labelShort"
                         tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                         stroke="hsl(var(--border))"
                       />
@@ -813,6 +827,9 @@ const Historico = () => {
                           fontSize: 12,
                         }}
                         labelStyle={{ color: "hsl(var(--foreground))" }}
+                        labelFormatter={(_, payload) =>
+                          (payload?.[0]?.payload as { label?: string } | undefined)?.label ?? ""
+                        }
                         formatter={(v: number) => [formatBRL(v), "Em aberto"]}
                       />
 
@@ -832,6 +849,31 @@ const Historico = () => {
               })()
             )}
           </div>
+          {chartData.length > 0 && (() => {
+            // Agrupa anos consecutivos preservando largura proporcional ao nº de pontos
+            const segs: { year: string; count: number }[] = [];
+            for (const p of chartData) {
+              const y = yearOf(p.date);
+              const last = segs[segs.length - 1];
+              if (last && last.year === y) last.count += 1;
+              else segs.push({ year: y, count: 1 });
+            }
+            const total = chartData.length;
+            // Compensa as margens do AreaChart (left: 0 + YAxis ~45px, right: 16)
+            return (
+              <div className="mt-1 flex" style={{ paddingLeft: 45, paddingRight: 16 }}>
+                {segs.map((s, i) => (
+                  <div
+                    key={i}
+                    className="text-center font-mono text-[10px] tracking-[0.25em] text-muted-foreground"
+                    style={{ flex: s.count / total }}
+                  >
+                    {s.year}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </section>
 
         {/* Table */}
