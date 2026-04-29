@@ -920,7 +920,7 @@ const Historico = () => {
                   <th className="px-1.5 py-2 text-center font-medium">LÍQUIDO (R$)</th>
                   <th className="px-1.5 py-2 text-center font-medium">CUSTO (R$)</th>
                   <th className="px-1.5 py-2 text-center font-medium text-factoring-amber">ECONOMIA (R$)</th>
-                  <th className="px-1.5 py-2 text-center font-medium">RESPONSÁVEL</th>
+                  <th className="px-1.5 py-2 text-center font-medium">AUTOR</th>
                 </tr>
               </thead>
               <tbody>
