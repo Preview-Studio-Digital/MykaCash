@@ -849,6 +849,31 @@ const Historico = () => {
               })()
             )}
           </div>
+          {chartData.length > 0 && (() => {
+            // Agrupa anos consecutivos preservando largura proporcional ao nº de pontos
+            const segs: { year: string; count: number }[] = [];
+            for (const p of chartData) {
+              const y = yearOf(p.date);
+              const last = segs[segs.length - 1];
+              if (last && last.year === y) last.count += 1;
+              else segs.push({ year: y, count: 1 });
+            }
+            const total = chartData.length;
+            // Compensa as margens do AreaChart (left: 0 + YAxis ~45px, right: 16)
+            return (
+              <div className="mt-1 flex" style={{ paddingLeft: 45, paddingRight: 16 }}>
+                {segs.map((s, i) => (
+                  <div
+                    key={i}
+                    className="text-center font-mono text-[10px] tracking-[0.25em] text-muted-foreground"
+                    style={{ flex: s.count / total }}
+                  >
+                    {s.year}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </section>
 
         {/* Table */}
