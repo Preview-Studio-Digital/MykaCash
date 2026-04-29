@@ -71,10 +71,26 @@ export const calculate = (input: CalcInput): CalcResult => {
     };
   });
 
-  const netValue = sumPV;
-  const operationCost = totalInvoice - netValue;
+  let netValue = sumPV;
+  let operationCost = totalInvoice - netValue;
+  let effectiveRatePct = totalInvoice > 0 ? (operationCost / totalInvoice) * 100 : 0;
   const averageDays = sumValues > 0 ? sumDaysWeighted / sumValues : 0;
-  const effectiveRatePct = totalInvoice > 0 ? (operationCost / totalInvoice) * 100 : 0;
+
+  // Piso de taxa efetiva: 1,5%. Se a taxa efetiva calculada for menor,
+  // recalcula valor líquido usando 1,5% sobre o total da nota.
+  const MIN_EFFECTIVE_PCT = 1.5;
+  let finalInstallmentCalcs = installmentCalcs;
+  if (totalInvoice > 0 && effectiveRatePct < MIN_EFFECTIVE_PCT) {
+    operationCost = totalInvoice * (MIN_EFFECTIVE_PCT / 100);
+    netValue = totalInvoice - operationCost;
+    effectiveRatePct = MIN_EFFECTIVE_PCT;
+    // Reescalar presentValue de cada parcela proporcionalmente ao novo netValue
+    const scale = sumPV > 0 ? netValue / sumPV : 0;
+    finalInstallmentCalcs = installmentCalcs.map((i) => ({
+      ...i,
+      presentValue: i.presentValue * scale,
+    }));
+  }
 
   return {
     totalInvoice,
@@ -85,7 +101,7 @@ export const calculate = (input: CalcInput): CalcResult => {
     maxDays,
     factoringMonthlyRatePct: FACTORING_MONTHLY_RATE_PCT,
     factoringCost,
-    installmentCalcs,
+    installmentCalcs: finalInstallmentCalcs,
   };
 };
 
