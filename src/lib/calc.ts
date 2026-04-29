@@ -46,6 +46,10 @@ export const calculate = (input: CalcInput): CalcResult => {
 
   const totalInvoice = input.installments.reduce((s, i) => s + (i.value || 0), 0) || input.invoiceValue;
 
+  // Piso de taxa efetiva: 1,5%. Se o cálculo natural ficar abaixo,
+  // usa 1,5% sobre o valor para determinar o valor líquido.
+  const MIN_EFFECTIVE_PCT = 1.5;
+
   let sumPV = 0;
   let sumDaysWeighted = 0;
   let sumValues = 0;
@@ -55,7 +59,15 @@ export const calculate = (input: CalcInput): CalcResult => {
   const installmentCalcs: InstallmentCalc[] = input.installments.map((inst) => {
     const days = inst.dueDate ? diffDays(input.operationDate, inst.dueDate) : 0;
     const factor = Math.pow(1 + r, days / 30);
-    const pv = (inst.value || 0) / factor;
+    let pv = (inst.value || 0) / factor;
+    // Aplica piso de taxa efetiva por parcela
+    const naturalCost = (inst.value || 0) - pv;
+    const naturalPct = (inst.value || 0) > 0 ? (naturalCost / (inst.value || 0)) * 100 : 0;
+    let effectiveFactor = factor;
+    if ((inst.value || 0) > 0 && naturalPct < MIN_EFFECTIVE_PCT) {
+      pv = (inst.value || 0) * (1 - MIN_EFFECTIVE_PCT / 100);
+      effectiveFactor = (inst.value || 0) / pv;
+    }
     sumPV += pv;
     sumDaysWeighted += days * (inst.value || 0);
     sumValues += inst.value || 0;
@@ -66,7 +78,7 @@ export const calculate = (input: CalcInput): CalcResult => {
       value: inst.value || 0,
       dueDate: inst.dueDate,
       days,
-      discountFactor: factor,
+      discountFactor: effectiveFactor,
       presentValue: pv,
     };
   });
@@ -76,15 +88,12 @@ export const calculate = (input: CalcInput): CalcResult => {
   let effectiveRatePct = totalInvoice > 0 ? (operationCost / totalInvoice) * 100 : 0;
   const averageDays = sumValues > 0 ? sumDaysWeighted / sumValues : 0;
 
-  // Piso de taxa efetiva: 1,5%. Se a taxa efetiva calculada for menor,
-  // recalcula valor líquido usando 1,5% sobre o total da nota.
-  const MIN_EFFECTIVE_PCT = 1.5;
+  // Piso adicional no total da operação (caso média ainda fique abaixo)
   let finalInstallmentCalcs = installmentCalcs;
   if (totalInvoice > 0 && effectiveRatePct < MIN_EFFECTIVE_PCT) {
     operationCost = totalInvoice * (MIN_EFFECTIVE_PCT / 100);
     netValue = totalInvoice - operationCost;
     effectiveRatePct = MIN_EFFECTIVE_PCT;
-    // Reescalar presentValue de cada parcela proporcionalmente ao novo netValue
     const scale = sumPV > 0 ? netValue / sumPV : 0;
     finalInstallmentCalcs = installmentCalcs.map((i) => ({
       ...i,
