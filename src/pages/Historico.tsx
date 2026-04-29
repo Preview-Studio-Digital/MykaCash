@@ -282,7 +282,7 @@ const Historico = () => {
       }
     }
     if (events.length === 0)
-      return [] as { date: string; label: string; saldo: number }[];
+      return [] as { date: string; label: string; labelShort: string; saldo: number }[];
 
     // Para verificar se o período engloba a primeira operação histórica,
     // olhamos para TODAS as linhas (independente de filtro de status/período).
@@ -308,7 +308,7 @@ const Historico = () => {
     });
     const sortedDates = Array.from(byDate.keys()).sort();
 
-    const series: { date: string; label: string; saldo: number }[] = [];
+    const series: { date: string; label: string; labelShort: string; saldo: number }[] = [];
 
     const includesFirst = firstHistoricalDate >= range.from && firstHistoricalDate <= range.to;
 
@@ -317,7 +317,7 @@ const Historico = () => {
       const first = new Date(sortedDates[0] + "T00:00:00");
       first.setDate(first.getDate() - 7);
       const baseline = localISO(first);
-      series.push({ date: baseline, label: fmtDate(baseline), saldo: 0 });
+      series.push({ date: baseline, label: fmtDate(baseline), labelShort: fmtDayMonth(baseline), saldo: 0 });
     } else {
       // Período NÃO engloba a primeira operação: começa com o saldo acumulado real
       // ancorado no início do intervalo (ou um dia antes do primeiro evento, o que vier antes)
@@ -325,6 +325,7 @@ const Historico = () => {
       series.push({
         date: anchor,
         label: fmtDate(anchor),
+        labelShort: fmtDayMonth(anchor),
         saldo: Math.round(carryOver * 100) / 100,
       });
     }
@@ -339,6 +340,7 @@ const Historico = () => {
         series.push({
           date: d,
           label: fmtDate(d),
+          labelShort: fmtDayMonth(d),
           saldo: Math.round(acc * 100) / 100,
         });
       }
@@ -351,6 +353,7 @@ const Historico = () => {
         series.push({
           date: todayStr,
           label: fmtDate(todayStr),
+          labelShort: fmtDayMonth(todayStr),
           saldo: last.saldo,
         });
       } else if (last.date > todayStr) {
@@ -360,6 +363,7 @@ const Historico = () => {
           series.splice(insertIdx, 0, {
             date: todayStr,
             label: fmtDate(todayStr),
+            labelShort: fmtDayMonth(todayStr),
             saldo: prev.saldo,
           });
         }
