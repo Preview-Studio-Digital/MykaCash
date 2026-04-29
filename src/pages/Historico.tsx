@@ -52,18 +52,24 @@ const settledIdOf = (e: SettledEntry): string => (typeof e === "string" ? e : e.
 const settledDateOf = (e: SettledEntry): string | null =>
   typeof e === "string" ? null : e.date;
 
-const todayISO = () => new Date().toISOString().slice(0, 10);
+const localISO = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+const todayISO = () => localISO(new Date());
 const startOfWeekISO = () => {
   const d = new Date();
   const day = d.getDay();
   const diff = day === 0 ? -6 : 1 - day;
   d.setDate(d.getDate() + diff);
-  return d.toISOString().slice(0, 10);
+  return localISO(d);
 };
 const startOfMonthISO = () => {
   const d = new Date();
   d.setDate(1);
-  return d.toISOString().slice(0, 10);
+  return localISO(d);
 };
 const fmtDate = (iso: string) =>
   iso ? new Date(iso + "T00:00:00").toLocaleDateString("pt-BR") : "-";
