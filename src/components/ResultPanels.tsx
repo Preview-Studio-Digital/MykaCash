@@ -9,7 +9,7 @@ export const ResultPanels = ({ result, monthlyRate }: { result: CalcResult; mont
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
         <div className="relative">
           <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
-          <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums break-words">
+          <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums break-words text-right">
             {formatBRL(result.netValue)}
           </div>
           <div className="mt-3 h-px bg-white/20" />
@@ -25,7 +25,7 @@ export const ResultPanels = ({ result, monthlyRate }: { result: CalcResult; mont
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
         <div className="relative">
           <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">CUSTO DA OPERAÇÃO</div>
-          <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums">
+          <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums text-right">
             {formatBRL(result.operationCost)}
           </div>
           <div className="mt-3 h-px bg-white/20" />
@@ -51,7 +51,7 @@ export const ResultPanels = ({ result, monthlyRate }: { result: CalcResult; mont
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
         <div className="relative">
           <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">ECONOMIA</div>
-          <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums">
+          <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums text-right">
             {formatBRL(factoringSavings)}
           </div>
           <div className="mt-3 h-px bg-white/25" />
