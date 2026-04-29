@@ -871,7 +871,7 @@ const Historico = () => {
                 NENHUMA OPERAÇÃO NO PERÍODO
               </div>
             ) : (
-              filteredRows.map((r) => {
+              sortedRows.map((r) => {
                 const canManage = isAdmin;
                 return (
                   <div
@@ -1011,7 +1011,7 @@ const Historico = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredRows.map((r) => {
+                  sortedRows.map((r) => {
                     const canManage = isAdmin;
                     return (
                       <tr
