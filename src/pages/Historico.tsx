@@ -827,6 +827,9 @@ const Historico = () => {
                           fontSize: 12,
                         }}
                         labelStyle={{ color: "hsl(var(--foreground))" }}
+                        labelFormatter={(_, payload) =>
+                          (payload?.[0]?.payload as { label?: string } | undefined)?.label ?? ""
+                        }
                         formatter={(v: number) => [formatBRL(v), "Em aberto"]}
                       />
 
