@@ -982,19 +982,19 @@ const Historico = () => {
               <thead className="bg-muted/40 font-mono tracking-widest">
                 <tr className="text-muted-foreground">
                   <th className="px-1.5 py-2 text-center font-medium">STATUS</th>
-                  <th className="px-1.5 py-2 text-center font-medium">CLIENTE</th>
-                  <th className="px-1.5 py-2 text-center font-medium">NF</th>
-                  <th className="px-1.5 py-2 text-center font-medium">PARC.</th>
-                  <th className="px-1.5 py-2 text-center font-medium">OPERAÇÃO</th>
-                  <th className="px-1.5 py-2 text-center font-medium">VENC.</th>
-                  <th className="px-1.5 py-2 text-center font-medium">DIAS</th>
-                  <th className="px-1.5 py-2 text-center font-medium">TX MÊS</th>
-                  <th className="px-1.5 py-2 text-center font-medium">TX EFET.</th>
-                  <th className="px-1.5 py-2 text-center font-medium">BRUTO (R$)</th>
-                  <th className="px-1.5 py-2 text-center font-medium">LÍQUIDO (R$)</th>
-                  <th className="px-1.5 py-2 text-center font-medium">CUSTO (R$)</th>
-                  <th className="px-1.5 py-2 text-center font-medium text-factoring-amber">ECONOMIA (R$)</th>
-                  <th className="px-1.5 py-2 text-center font-medium">AUTOR</th>
+                  <SortableTh label="CLIENTE" sKey="clientName" />
+                  <SortableTh label="NF" sKey="invoiceNumber" />
+                  <SortableTh label="PARC." sKey="parcelLabel" />
+                  <SortableTh label="OPERAÇÃO" sKey="operationDate" />
+                  <SortableTh label="VENC." sKey="dueDate" />
+                  <SortableTh label="DIAS" sKey="days" />
+                  <SortableTh label="TX MÊS" sKey="monthlyRate" />
+                  <SortableTh label="TX EFET." sKey="effectivePct" />
+                  <SortableTh label="BRUTO (R$)" sKey="value" />
+                  <SortableTh label="LÍQUIDO (R$)" sKey="presentValue" />
+                  <SortableTh label="CUSTO (R$)" sKey="cost" />
+                  <SortableTh label="ECONOMIA (R$)" sKey="savings" className="text-factoring-amber" />
+                  <SortableTh label="AUTOR" sKey="createdBy" />
                 </tr>
               </thead>
               <tbody>
