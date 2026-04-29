@@ -247,25 +247,22 @@ const Historico = () => {
   // Chart: "Operações em Transação" — running outstanding balance over time.
   // +netValue on operation date; -presentValue on settlement date.
   const chartData = useMemo(() => {
-    type Ev = { date: string; deltaLiq: number; deltaBruto: number };
+    type Ev = { date: string; delta: number };
     const events: Ev[] = [];
     for (const r of filteredRows) {
-      // Líquido (valor presente) — entra na abertura, sai no vencimento se liquidado
-      events.push({ date: r.operationDate, deltaLiq: r.presentValue, deltaBruto: r.value });
+      // Bruto — entra na data da operação (abertura), sai na data de vencimento se liquidado
+      events.push({ date: r.operationDate, delta: r.value });
       if (r.settled) {
-        events.push({ date: r.dueDate, deltaLiq: -r.value, deltaBruto: -r.value });
+        events.push({ date: r.dueDate, delta: -r.value });
       }
     }
     if (events.length === 0)
-      return [] as { date: string; label: string; saldo: number; bruto: number }[];
+      return [] as { date: string; label: string; saldo: number }[];
 
     // Group by date
-    const byDate = new Map<string, { liq: number; bruto: number }>();
+    const byDate = new Map<string, number>();
     events.forEach((e) => {
-      const cur = byDate.get(e.date) ?? { liq: 0, bruto: 0 };
-      cur.liq += e.deltaLiq;
-      cur.bruto += e.deltaBruto;
-      byDate.set(e.date, cur);
+      byDate.set(e.date, (byDate.get(e.date) ?? 0) + e.delta);
     });
     const sortedDates = Array.from(byDate.keys()).sort();
 
@@ -274,20 +271,16 @@ const Historico = () => {
     first.setDate(first.getDate() - 7);
     const baseline = first.toISOString().slice(0, 10);
 
-    const series: { date: string; label: string; saldo: number; bruto: number }[] = [
-      { date: baseline, label: fmtDate(baseline), saldo: 0, bruto: 0 },
+    const series: { date: string; label: string; saldo: number }[] = [
+      { date: baseline, label: fmtDate(baseline), saldo: 0 },
     ];
-    let accLiq = 0;
-    let accBruto = 0;
+    let acc = 0;
     for (const d of sortedDates) {
-      const v = byDate.get(d)!;
-      accLiq += v.liq;
-      accBruto += v.bruto;
+      acc += byDate.get(d)!;
       series.push({
         date: d,
         label: fmtDate(d),
-        saldo: Math.round(accLiq * 100) / 100,
-        bruto: Math.round(accBruto * 100) / 100,
+        saldo: Math.round(acc * 100) / 100,
       });
     }
 
@@ -299,7 +292,6 @@ const Historico = () => {
           date: todayStr,
           label: fmtDate(todayStr),
           saldo: last.saldo,
-          bruto: last.bruto,
         });
       } else if (last.date > todayStr) {
         const insertIdx = series.findIndex((s) => s.date > todayStr);
@@ -309,7 +301,6 @@ const Historico = () => {
             date: todayStr,
             label: fmtDate(todayStr),
             saldo: prev.saldo,
-            bruto: prev.bruto,
           });
         }
       }
