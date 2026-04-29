@@ -247,19 +247,26 @@ const Historico = () => {
   // Chart: "Operações em Transação" — running outstanding balance over time.
   // +netValue on operation date; -presentValue on settlement date.
   const chartData = useMemo(() => {
-    type Ev = { date: string; delta: number };
+    type Ev = { date: string; deltaLiq: number; deltaBruto: number };
     const events: Ev[] = [];
     for (const r of filteredRows) {
-      events.push({ date: r.operationDate, delta: r.presentValue });
+      // Líquido (valor presente) — entra na abertura, sai no vencimento se liquidado
+      events.push({ date: r.operationDate, deltaLiq: r.presentValue, deltaBruto: r.value });
       if (r.settled) {
-        events.push({ date: r.dueDate, delta: -r.value });
+        events.push({ date: r.dueDate, deltaLiq: -r.value, deltaBruto: -r.value });
       }
     }
-    if (events.length === 0) return [] as { date: string; label: string; saldo: number }[];
+    if (events.length === 0)
+      return [] as { date: string; label: string; saldo: number; bruto: number }[];
 
     // Group by date
-    const byDate = new Map<string, number>();
-    events.forEach((e) => byDate.set(e.date, (byDate.get(e.date) ?? 0) + e.delta));
+    const byDate = new Map<string, { liq: number; bruto: number }>();
+    events.forEach((e) => {
+      const cur = byDate.get(e.date) ?? { liq: 0, bruto: 0 };
+      cur.liq += e.deltaLiq;
+      cur.bruto += e.deltaBruto;
+      byDate.set(e.date, cur);
+    });
     const sortedDates = Array.from(byDate.keys()).sort();
 
     // Add zero baseline one week before first date
@@ -267,29 +274,42 @@ const Historico = () => {
     first.setDate(first.getDate() - 7);
     const baseline = first.toISOString().slice(0, 10);
 
-    const series: { date: string; label: string; saldo: number }[] = [
-      { date: baseline, label: fmtDate(baseline), saldo: 0 },
+    const series: { date: string; label: string; saldo: number; bruto: number }[] = [
+      { date: baseline, label: fmtDate(baseline), saldo: 0, bruto: 0 },
     ];
-    let acc = 0;
+    let accLiq = 0;
+    let accBruto = 0;
     for (const d of sortedDates) {
-      acc += byDate.get(d) ?? 0;
-      series.push({ date: d, label: fmtDate(d), saldo: Math.round(acc * 100) / 100 });
+      const v = byDate.get(d)!;
+      accLiq += v.liq;
+      accBruto += v.bruto;
+      series.push({
+        date: d,
+        label: fmtDate(d),
+        saldo: Math.round(accLiq * 100) / 100,
+        bruto: Math.round(accBruto * 100) / 100,
+      });
     }
 
     // For periods "semana", "mes" and "total", always show today's date on the chart
     if (period === "semana" || period === "mes" || period === "total") {
       const last = series[series.length - 1];
       if (last.date < todayStr) {
-        series.push({ date: todayStr, label: fmtDate(todayStr), saldo: last.saldo });
+        series.push({
+          date: todayStr,
+          label: fmtDate(todayStr),
+          saldo: last.saldo,
+          bruto: last.bruto,
+        });
       } else if (last.date > todayStr) {
-        // Insert today before future settlement dates so it's visible on the axis
         const insertIdx = series.findIndex((s) => s.date > todayStr);
         if (insertIdx > 0) {
-          const prevSaldo = series[insertIdx - 1].saldo;
+          const prev = series[insertIdx - 1];
           series.splice(insertIdx, 0, {
             date: todayStr,
             label: fmtDate(todayStr),
-            saldo: prevSaldo,
+            saldo: prev.saldo,
+            bruto: prev.bruto,
           });
         }
       }
