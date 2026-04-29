@@ -514,6 +514,80 @@ const Historico = () => {
   // Hover state to preview liquidation in orange
   const [hoverKey, setHoverKey] = useState<string | null>(null);
 
+  // Sorting state
+  type SortKey =
+    | "clientName"
+    | "invoiceNumber"
+    | "parcelLabel"
+    | "operationDate"
+    | "dueDate"
+    | "days"
+    | "monthlyRate"
+    | "effectivePct"
+    | "value"
+    | "presentValue"
+    | "cost"
+    | "savings"
+    | "createdBy";
+  type SortDir = "asc" | "desc";
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey !== key) {
+      setSortKey(key);
+      setSortDir("asc");
+    } else if (sortDir === "asc") {
+      setSortDir("desc");
+    } else {
+      setSortKey(null);
+      setSortDir("asc");
+    }
+  };
+
+  const sortedRows = useMemo(() => {
+    if (!sortKey) return filteredRows;
+    const arr = [...filteredRows];
+    const dir = sortDir === "asc" ? 1 : -1;
+    arr.sort((a, b) => {
+      const av = (a as any)[sortKey];
+      const bv = (b as any)[sortKey];
+      if (typeof av === "number" && typeof bv === "number") return (av - bv) * dir;
+      const as = String(av ?? "").toLowerCase();
+      const bs = String(bv ?? "").toLowerCase();
+      return as.localeCompare(bs, "pt-BR", { numeric: true }) * dir;
+    });
+    return arr;
+  }, [filteredRows, sortKey, sortDir]);
+
+  const SortableTh = ({
+    label,
+    sKey,
+    className = "",
+  }: {
+    label: React.ReactNode;
+    sKey: SortKey;
+    className?: string;
+  }) => {
+    const active = sortKey === sKey;
+    const Icon = !active ? ArrowUpDown : sortDir === "asc" ? ArrowUp : ArrowDown;
+    return (
+      <th className={"px-1.5 py-2 text-center font-medium " + className}>
+        <button
+          type="button"
+          onClick={() => toggleSort(sKey)}
+          className={
+            "inline-flex items-center justify-center gap-1 transition-colors " +
+            (active ? "text-foreground" : "hover:text-foreground")
+          }
+        >
+          <span>{label}</span>
+          <Icon className={"h-3 w-3 " + (active ? "opacity-100" : "opacity-40")} />
+        </button>
+      </th>
+    );
+  };
+
   // Row coloring — when hovering the status pill of an open/overdue row, show orange preview
   const rowClass = (r: (typeof rows)[number]) => {
     if (r.settled) return "bg-[hsl(var(--factoring-amber)/0.22)] hover:bg-[hsl(var(--factoring-amber)/0.28)]";
