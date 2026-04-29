@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageNav } from "@/components/PageNav";
 import { Button } from "@/components/ui/button";
@@ -565,7 +565,7 @@ const Historico = () => {
     sKey,
     className = "",
   }: {
-    label: React.ReactNode;
+    label: ReactNode;
     sKey: SortKey;
     className?: string;
   }) => {
