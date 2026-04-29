@@ -677,21 +677,9 @@ const Historico = () => {
                           fontSize: 12,
                         }}
                         labelStyle={{ color: "hsl(var(--foreground))" }}
-                        formatter={(v: number, name: string) => [
-                          formatBRL(v),
-                          name === "bruto" ? "Bruto" : "Em aberto",
-                        ]}
+                        formatter={(v: number) => [formatBRL(v), "Em aberto"]}
                       />
-                      <Area
-                        type="monotone"
-                        dataKey="bruto"
-                        name="bruto"
-                        stroke="hsl(var(--factoring-amber))"
-                        strokeWidth={2}
-                        strokeDasharray="5 4"
-                        fill="hsl(var(--factoring-amber))"
-                        fillOpacity={0.08}
-                      />
+
                       <Area
                         type="monotone"
                         dataKey="saldo"
