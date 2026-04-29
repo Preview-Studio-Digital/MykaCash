@@ -776,7 +776,7 @@ const Historico = () => {
                         </linearGradient>
                         <linearGradient id="areaGradH" x1="0" y1="0" x2="1" y2="0">
                           {stops.map((s, i) => (
-                            <stop key={i} offset={`${s.offset}%`} stopColor={s.color} stopOpacity={0.35} />
+                            <stop key={i} offset={`${s.offset}%`} stopColor={s.color} stopOpacity={0.55} />
                           ))}
                         </linearGradient>
                         <linearGradient id="areaFade" x1="0" y1="0" x2="0" y2="1">
