@@ -1073,7 +1073,7 @@ const Historico = () => {
                             )}
                           </div>
                         </td>
-                        <td className="px-2 py-2 text-left max-w-[160px] truncate" title={r.clientName}>
+                        <td className="px-2 py-2 max-w-[160px] truncate" title={r.clientName}>
                           {r.clientName}
                         </td>
                         <td className="px-1.5 py-2">{r.invoiceNumber}</td>
@@ -1087,7 +1087,7 @@ const Historico = () => {
                         <td className="px-1.5 py-2 text-net-green">{formatBRLNum(r.presentValue)}</td>
                         <td className="px-1.5 py-2 text-cost-red">{formatBRLNum(r.cost)}</td>
                         <td className="px-1.5 py-2 text-factoring-amber">{formatBRLNum(r.savings)}</td>
-                        <td className="px-2 py-2 text-left max-w-[120px] truncate" title={r.createdBy}>
+                        <td className="px-2 py-2 max-w-[120px] truncate" title={r.createdBy}>
                           {r.createdBy}
                         </td>
                       </tr>
@@ -1098,7 +1098,7 @@ const Historico = () => {
                 {!loading && filteredRows.length > 0 && (
                   <tr className="border-t-2 border-primary-glow/40 bg-primary-glow/[0.07] font-mono tabular-nums text-center font-semibold">
                     <td className="px-2 py-2">—</td>
-                    <td className="px-2 py-2 tracking-widest text-primary-glow text-left">TOTAL</td>
+                    <td className="px-2 py-2 tracking-widest text-primary-glow">TOTAL</td>
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2">—</td>
