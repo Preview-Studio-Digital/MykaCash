@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageNav } from "@/components/PageNav";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { DateField } from "@/components/DateField";
 import { supabase } from "@/integrations/supabase/client";
 import { calculate, formatBRL, formatPct, FACTORING_MONTHLY_RATE_PCT, type Installment } from "@/lib/calc";
 import { toast } from "sonner";
-import { CheckCircle2, Circle, Pencil, Trash2, Plus, X } from "lucide-react";
+import { CheckCircle2, Circle, Pencil, Trash2, Plus, X, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Dialog,
@@ -514,6 +514,80 @@ const Historico = () => {
   // Hover state to preview liquidation in orange
   const [hoverKey, setHoverKey] = useState<string | null>(null);
 
+  // Sorting state
+  type SortKey =
+    | "clientName"
+    | "invoiceNumber"
+    | "parcelLabel"
+    | "operationDate"
+    | "dueDate"
+    | "days"
+    | "monthlyRate"
+    | "effectivePct"
+    | "value"
+    | "presentValue"
+    | "cost"
+    | "savings"
+    | "createdBy";
+  type SortDir = "asc" | "desc";
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey !== key) {
+      setSortKey(key);
+      setSortDir("asc");
+    } else if (sortDir === "asc") {
+      setSortDir("desc");
+    } else {
+      setSortKey(null);
+      setSortDir("asc");
+    }
+  };
+
+  const sortedRows = useMemo(() => {
+    if (!sortKey) return filteredRows;
+    const arr = [...filteredRows];
+    const dir = sortDir === "asc" ? 1 : -1;
+    arr.sort((a, b) => {
+      const av = (a as any)[sortKey];
+      const bv = (b as any)[sortKey];
+      if (typeof av === "number" && typeof bv === "number") return (av - bv) * dir;
+      const as = String(av ?? "").toLowerCase();
+      const bs = String(bv ?? "").toLowerCase();
+      return as.localeCompare(bs, "pt-BR", { numeric: true }) * dir;
+    });
+    return arr;
+  }, [filteredRows, sortKey, sortDir]);
+
+  const SortableTh = ({
+    label,
+    sKey,
+    className = "",
+  }: {
+    label: ReactNode;
+    sKey: SortKey;
+    className?: string;
+  }) => {
+    const active = sortKey === sKey;
+    const Icon = !active ? ArrowUpDown : sortDir === "asc" ? ArrowUp : ArrowDown;
+    return (
+      <th className={"px-1.5 py-2 text-center font-medium " + className}>
+        <button
+          type="button"
+          onClick={() => toggleSort(sKey)}
+          className={
+            "inline-flex items-center justify-center gap-1 transition-colors " +
+            (active ? "text-foreground" : "hover:text-foreground")
+          }
+        >
+          <span>{label}</span>
+          <Icon className={"h-3 w-3 " + (active ? "opacity-100" : "opacity-40")} />
+        </button>
+      </th>
+    );
+  };
+
   // Row coloring — when hovering the status pill of an open/overdue row, show orange preview
   const rowClass = (r: (typeof rows)[number]) => {
     if (r.settled) return "bg-[hsl(var(--factoring-amber)/0.22)] hover:bg-[hsl(var(--factoring-amber)/0.28)]";
@@ -797,7 +871,7 @@ const Historico = () => {
                 NENHUMA OPERAÇÃO NO PERÍODO
               </div>
             ) : (
-              filteredRows.map((r) => {
+              sortedRows.map((r) => {
                 const canManage = isAdmin;
                 return (
                   <div
@@ -908,19 +982,19 @@ const Historico = () => {
               <thead className="bg-muted/40 font-mono tracking-widest">
                 <tr className="text-muted-foreground">
                   <th className="px-1.5 py-2 text-center font-medium">STATUS</th>
-                  <th className="px-1.5 py-2 text-center font-medium">CLIENTE</th>
-                  <th className="px-1.5 py-2 text-center font-medium">NF</th>
-                  <th className="px-1.5 py-2 text-center font-medium">PARC.</th>
-                  <th className="px-1.5 py-2 text-center font-medium">OPERAÇÃO</th>
-                  <th className="px-1.5 py-2 text-center font-medium">VENC.</th>
-                  <th className="px-1.5 py-2 text-center font-medium">DIAS</th>
-                  <th className="px-1.5 py-2 text-center font-medium">TX MÊS</th>
-                  <th className="px-1.5 py-2 text-center font-medium">TX EFET.</th>
-                  <th className="px-1.5 py-2 text-center font-medium">BRUTO (R$)</th>
-                  <th className="px-1.5 py-2 text-center font-medium">LÍQUIDO (R$)</th>
-                  <th className="px-1.5 py-2 text-center font-medium">CUSTO (R$)</th>
-                  <th className="px-1.5 py-2 text-center font-medium text-factoring-amber">ECONOMIA (R$)</th>
-                  <th className="px-1.5 py-2 text-center font-medium">AUTOR</th>
+                  <SortableTh label="CLIENTE" sKey="clientName" />
+                  <SortableTh label="NF" sKey="invoiceNumber" />
+                  <SortableTh label="PARC." sKey="parcelLabel" />
+                  <SortableTh label="OPERAÇÃO" sKey="operationDate" />
+                  <SortableTh label="VENC." sKey="dueDate" />
+                  <SortableTh label="DIAS" sKey="days" />
+                  <SortableTh label="TX MÊS" sKey="monthlyRate" />
+                  <SortableTh label="TX EFET." sKey="effectivePct" />
+                  <SortableTh label="BRUTO (R$)" sKey="value" />
+                  <SortableTh label="LÍQUIDO (R$)" sKey="presentValue" />
+                  <SortableTh label="CUSTO (R$)" sKey="cost" />
+                  <SortableTh label="ECONOMIA (R$)" sKey="savings" className="text-factoring-amber" />
+                  <SortableTh label="AUTOR" sKey="createdBy" />
                 </tr>
               </thead>
               <tbody>
@@ -937,7 +1011,7 @@ const Historico = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredRows.map((r) => {
+                  sortedRows.map((r) => {
                     const canManage = isAdmin;
                     return (
                       <tr
@@ -999,7 +1073,7 @@ const Historico = () => {
                             )}
                           </div>
                         </td>
-                        <td className="px-2 py-2 text-left max-w-[160px] truncate" title={r.clientName}>
+                        <td className="px-2 py-2 max-w-[160px] truncate" title={r.clientName}>
                           {r.clientName}
                         </td>
                         <td className="px-1.5 py-2">{r.invoiceNumber}</td>
@@ -1013,7 +1087,7 @@ const Historico = () => {
                         <td className="px-1.5 py-2 text-net-green">{formatBRLNum(r.presentValue)}</td>
                         <td className="px-1.5 py-2 text-cost-red">{formatBRLNum(r.cost)}</td>
                         <td className="px-1.5 py-2 text-factoring-amber">{formatBRLNum(r.savings)}</td>
-                        <td className="px-2 py-2 text-left max-w-[120px] truncate" title={r.createdBy}>
+                        <td className="px-2 py-2 max-w-[120px] truncate" title={r.createdBy}>
                           {r.createdBy}
                         </td>
                       </tr>
@@ -1024,7 +1098,7 @@ const Historico = () => {
                 {!loading && filteredRows.length > 0 && (
                   <tr className="border-t-2 border-primary-glow/40 bg-primary-glow/[0.07] font-mono tabular-nums text-center font-semibold">
                     <td className="px-2 py-2">—</td>
-                    <td className="px-2 py-2 tracking-widest text-primary-glow text-left">TOTAL</td>
+                    <td className="px-2 py-2 tracking-widest text-primary-glow">TOTAL</td>
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2">—</td>
