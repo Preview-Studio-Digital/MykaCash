@@ -1031,7 +1031,7 @@ const Historico = () => {
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2">—</td>
-                    <td className="px-1.5 py-2">{formatPct(totalEffective)}</td>
+                    <td className="px-1.5 py-2 text-center font-medium text-factoring-amber text-muted-foreground">{formatPct(totalEffective)}</td>
                     <td className="px-1.5 py-2">{formatBRLNum(totals.value)}</td>
                     <td className="px-1.5 py-2 text-net-green">{formatBRLNum(totals.presentValue)}</td>
                     <td className="px-1.5 py-2 text-cost-red">{formatBRLNum(totals.cost)}</td>
