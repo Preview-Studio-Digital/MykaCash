@@ -276,7 +276,7 @@ const Historico = () => {
     // Add zero baseline one week before first date
     const first = new Date(sortedDates[0] + "T00:00:00");
     first.setDate(first.getDate() - 7);
-    const baseline = first.toISOString().slice(0, 10);
+    const baseline = localISO(first);
 
     const series: { date: string; label: string; saldo: number }[] = [
       { date: baseline, label: fmtDate(baseline), saldo: 0 },
