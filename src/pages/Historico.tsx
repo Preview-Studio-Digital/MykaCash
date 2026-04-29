@@ -743,12 +743,15 @@ const Historico = () => {
               (() => {
                 const n = chartData.length;
                 const slopeColor = (s: number, maxAbs: number) => {
-                  // s normalized in [-1, 1]; -1 falling => green, 0 flat => yellow, +1 rising => red
-                  const t = maxAbs === 0 ? 0 : Math.max(-1, Math.min(1, s / maxAbs));
-                  // Hue: red 0, yellow 50, green 145
+                  // s normalizado em [-1, 1]; -1 caindo => verde, 0 plano => amarelo, +1 subindo => vermelho.
+                  // Curva agressiva: pequenas variações já saturam em verde/vermelho,
+                  // reduzindo a zona amarela do degradê.
+                  const raw = maxAbs === 0 ? 0 : Math.max(-1, Math.min(1, s / maxAbs));
+                  const t = Math.sign(raw) * Math.pow(Math.abs(raw), 0.35);
+                  // Hue: vermelho 0, amarelo 50, verde 145
                   const hue = t >= 0 ? 50 + (0 - 50) * t : 50 + (145 - 50) * -t;
-                  const sat = 80;
-                  const light = 55;
+                  const sat = 90;
+                  const light = 50;
                   return `hsl(${hue.toFixed(1)} ${sat}% ${light}%)`;
                 };
                 const slopes: number[] = [];
@@ -773,7 +776,7 @@ const Historico = () => {
                         </linearGradient>
                         <linearGradient id="areaGradH" x1="0" y1="0" x2="1" y2="0">
                           {stops.map((s, i) => (
-                            <stop key={i} offset={`${s.offset}%`} stopColor={s.color} stopOpacity={0.35} />
+                            <stop key={i} offset={`${s.offset}%`} stopColor={s.color} stopOpacity={0.55} />
                           ))}
                         </linearGradient>
                         <linearGradient id="areaFade" x1="0" y1="0" x2="0" y2="1">
