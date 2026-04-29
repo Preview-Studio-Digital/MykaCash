@@ -585,7 +585,7 @@ const Historico = () => {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
             <div className="relative">
               <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
-              <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums break-words">
+              <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums break-words text-right">
                 {formatBRL(totals.presentValue)}
               </div>
               <div className="mt-3 h-px bg-white/20" />
@@ -602,13 +602,13 @@ const Historico = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">CUSTO</div>
-                  <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums break-words">
+                  <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums break-words text-right">
                     {formatBRL(totals.cost)}
                   </div>
                 </div>
                 <div>
                   <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">TAXA EFETIVA MÉDIA</div>
-                  <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums">
+                  <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums text-right">
                     {formatPct(totalEffective)}
                   </div>
                 </div>
@@ -625,7 +625,7 @@ const Historico = () => {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
             <div className="relative">
               <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">VALOR EM ABERTO</div>
-              <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums">
+              <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums text-right">
                 {formatBRL(openPresent)}
               </div>
               <div className="mt-3 h-px bg-white/25" />
