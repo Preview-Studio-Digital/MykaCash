@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, useId, type ReactNode } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageNav } from "@/components/PageNav";
 import { Button } from "@/components/ui/button";
@@ -907,7 +907,7 @@ const Historico = () => {
                   }
                 }
 
-                const gradId = React.useId();
+                const gradId = useId();
                 return (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart key={JSON.stringify(chartData)} data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
