@@ -639,7 +639,7 @@ const Historico = () => {
       return "bg-[hsl(var(--factoring-amber)/0.22)]";
     }
     if (r.overdue) return "bg-[hsl(var(--cost-red)/0.12)] hover:bg-[hsl(var(--cost-red)/0.18)]";
-    if (isDueSoon(r)) return "row-due-soon hover:bg-[hsl(var(--cost-red)/0.32)]";
+    if (isDueSoon(r)) return "row-due-soon hover:bg-[hsl(var(--net-green)/0.45)]";
     return "bg-[hsl(var(--net-green)/0.06)] hover:bg-[hsl(var(--net-green)/0.10)]";
   };
 
