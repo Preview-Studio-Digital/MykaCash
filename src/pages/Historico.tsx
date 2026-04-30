@@ -26,6 +26,7 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  ReferenceLine,
 } from "recharts";
 
 type Period = "hoje" | "semana" | "mes" | "total" | "periodo";
@@ -820,6 +821,16 @@ const Historico = () => {
                   offset: n === 1 ? 0 : (i / (n - 1)) * 100,
                   color: slopeColor(slopes[i], maxAbs),
                 }));
+
+                const monthBoundaries: string[] = [];
+                for (let i = 1; i < n; i++) {
+                  const prevM = chartData[i - 1].date.substring(0, 7);
+                  const currM = chartData[i].date.substring(0, 7);
+                  if (prevM !== currM) {
+                    monthBoundaries.push(chartData[i].date);
+                  }
+                }
+
                 return (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
@@ -844,11 +855,17 @@ const Historico = () => {
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
                       <XAxis
-                        dataKey="labelShort"
+                        dataKey="date"
+                        tickFormatter={(val) => {
+                          const parts = val.split("-");
+                          if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
+                          return val;
+                        }}
                         tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                         stroke="hsl(var(--border))"
                       />
                       <YAxis
+                        width={80}
                         tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                         stroke="hsl(var(--border))"
                         tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`}
@@ -881,6 +898,16 @@ const Historico = () => {
                           return null;
                         }}
                       />
+
+                      {monthBoundaries.map((dateKey) => (
+                        <ReferenceLine
+                          key={dateKey}
+                          x={dateKey}
+                          stroke="hsl(var(--muted-foreground))"
+                          strokeDasharray="4 4"
+                          opacity={0.4}
+                        />
+                      ))}
 
                       <Area
                         type="monotone"
