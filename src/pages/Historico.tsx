@@ -577,10 +577,10 @@ const Historico = () => {
 
 
   const periodOptions: { id: Period; label: string }[] = [
+    { id: "total", label: "TOTAL" },
     { id: "hoje", label: "HOJE" },
     { id: "semana", label: "SEMANA" },
     { id: "mes", label: "MÊS" },
-    { id: "total", label: "TOTAL" },
     { id: "periodo", label: "PERÍODO" },
   ];
 
@@ -761,7 +761,7 @@ const Historico = () => {
       )}
       {period === "total" && (
         <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
-          TODAS EM ANDAMENTO
+          TODAS AS OPERAÇÕES
         </span>
       )}
     </section>
