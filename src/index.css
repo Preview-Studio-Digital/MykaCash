@@ -171,3 +171,45 @@
   animation: pulse-due-soon 1.6s ease-in-out infinite;
 }
 
+/* Pill de status piscando em vermelho para vencimentos da semana vigente */
+@keyframes pulse-pill-due-soon {
+  0%, 100% {
+    background-color: hsl(var(--cost-red) / 0.20);
+    color: hsl(var(--cost-red));
+  }
+  50% {
+    background-color: hsl(var(--cost-red) / 0.55);
+    color: hsl(var(--background));
+  }
+}
+.pill-due-soon {
+  animation: pulse-pill-due-soon 1.6s ease-in-out infinite;
+}
+
+/* Alterna a visibilidade entre dois spans (ABERTA <-> dia da semana) */
+@keyframes swap-label-a {
+  0%, 45% { opacity: 1; }
+  50%, 95% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes swap-label-b {
+  0%, 45% { opacity: 0; }
+  50%, 95% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.swap-label {
+  position: relative;
+  display: inline-block;
+}
+.swap-label > .swap-a {
+  animation: swap-label-a 1.6s steps(1, end) infinite;
+}
+.swap-label > .swap-b {
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: swap-label-b 1.6s steps(1, end) infinite;
+}
+
