@@ -853,7 +853,7 @@ const Historico = () => {
                           <rect x="0" y="0" width="100%" height="100%" fill="url(#areaFade)" />
                         </mask>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.8} />
                       <XAxis
                         dataKey="date"
                         tickFormatter={(val) => {
@@ -905,7 +905,7 @@ const Historico = () => {
                           x={dateKey}
                           stroke="hsl(var(--muted-foreground))"
                           strokeDasharray="4 4"
-                          opacity={0.4}
+                          opacity={0.8}
                         />
                       ))}
 
