@@ -549,7 +549,7 @@ const Historico = () => {
 
   const statusOptions: { id: StatusFilter; label: string }[] = [
     { id: "todas", label: "TODAS" },
-    { id: "abertas", label: "ABERTURAS" },
+    { id: "abertas", label: "ABERTAS" },
     { id: "vencidas", label: "VENCIDAS" },
     { id: "liquidadas", label: "LIQUIDADAS" },
   ];
@@ -700,7 +700,7 @@ const Historico = () => {
           )}
           {period === "total" && (
             <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
-              TODAS AS ABERTURAS
+              TODAS AS ABERTAS
             </span>
           )}
         </section>
