@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageNav } from "@/components/PageNav";
+import { RegistrationSection } from "@/components/RegistrationSection";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/DateField";
 import { supabase } from "@/integrations/supabase/client";
@@ -312,7 +313,8 @@ const Historico = () => {
     for (const r of filteredRows) {
       allEvents.push({ date: r.operationDate, delta: r.value });
       if (r.settled) {
-        allEvents.push({ date: r.dueDate, delta: -r.value });
+        const dropDate = r.settledDate ? r.settledDate : r.dueDate;
+        allEvents.push({ date: dropDate, delta: -r.value });
       }
     }
 
@@ -476,7 +478,6 @@ const Historico = () => {
     const canManage = isAdmin || (isAuthor && withinEditWindow);
     if (!canManage) return toast.error("Sem permissão para excluir esta abertura");
     if (!confirm("Deseja realmente excluir a abertura? Essa ação não pode ser desfeita.")) return;
-    const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
     if (error) {
       const { friendlyDbError } = await import("@/lib/dbErrors");
       return toast.error(friendlyDbError(error, "Erro ao excluir abertura"));
@@ -485,18 +486,7 @@ const Historico = () => {
     load();
   };
 
-  // ---- Edit operation (admin only) ----
-  type EditForm = {
-    invoice_number: string;
-    invoice_value: string;
-    operation_date: string;
-    monthly_rate: string;
-    factoring_monthly_rate: string;
-    installments: { id: string; value: string; dueDate: string }[];
-  };
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<EditForm | null>(null);
-  const [saving, setSaving] = useState(false);
 
   const openEdit = (invoiceId: string) => {
     const inv = invoices.find((i) => i.id === invoiceId);
@@ -506,113 +496,28 @@ const Historico = () => {
     const isAuthor = !!user && inv.created_by === user.id;
     const canManage = isAdmin || (isAuthor && withinEditWindow);
     if (!canManage) return toast.error("Sem permissão para editar esta abertura");
-    const insts = (Array.isArray(inv.installments) ? inv.installments : []) as Installment[];
-    setEditForm({
-      invoice_number: inv.invoice_number,
-      invoice_value: String(inv.invoice_value),
-      operation_date: inv.operation_date,
-      monthly_rate: String(inv.monthly_rate),
-      factoring_monthly_rate: String(inv.factoring_monthly_rate ?? FACTORING_MONTHLY_RATE_PCT),
-      installments: insts.map((i) => ({
-        id: i.id,
-        value: String(i.value),
-        dueDate: i.dueDate,
-      })),
-    });
     setEditingId(invoiceId);
   };
 
   const closeEdit = () => {
     setEditingId(null);
-    setEditForm(null);
   };
 
-  const updateInstallment = (idx: number, patch: Partial<{ value: string; dueDate: string }>) => {
-    setEditForm((f) =>
-      f
-        ? {
-            ...f,
-            installments: f.installments.map((it, i) => (i === idx ? { ...it, ...patch } : it)),
-          }
-        : f
-    );
-  };
-
-  const addInstallment = () => {
-    setEditForm((f) =>
-      f
-        ? {
-            ...f,
-            installments: [
-              ...f.installments,
-              { id: crypto.randomUUID(), value: "", dueDate: f.operation_date },
-            ],
-          }
-        : f
-    );
-  };
-
-  const removeInstallment = (idx: number) => {
-    setEditForm((f) =>
-      f ? { ...f, installments: f.installments.filter((_, i) => i !== idx) } : f
-    );
-  };
-
-  const saveEdit = async () => {
-    if (!editingId || !editForm) return;
-    const invoiceValue = Number(editForm.invoice_value);
-    const monthlyRate = Number(editForm.monthly_rate);
-    const factoringRate = Number(editForm.factoring_monthly_rate);
-    if (!editForm.invoice_number.trim()) return toast.error("Informe o número da NF");
-    if (!Number.isFinite(invoiceValue) || invoiceValue <= 0)
-      return toast.error("Valor da NF inválido");
-    if (!editForm.operation_date) return toast.error("Informe a data de abertura");
-    if (!Number.isFinite(monthlyRate) || monthlyRate < 0)
-      return toast.error("Taxa mensal inválida");
-    if (editForm.installments.length === 0)
-      return toast.error("Adicione ao menos uma parcela");
-    const installments: Installment[] = [];
-    for (const it of editForm.installments) {
-      const v = Number(it.value);
-      if (!Number.isFinite(v) || v <= 0) return toast.error("Valor de parcela inválido");
-      if (!it.dueDate) return toast.error("Informe o vencimento de todas as parcelas");
-      installments.push({ id: it.id, value: v, dueDate: it.dueDate });
-    }
-    setSaving(true);
-
-    const updatedInvoice = {
-      ...(invoices.find(i => i.id === editingId) || {}),
-      invoice_number: editForm.invoice_number.trim(),
-      invoice_value: invoiceValue,
-      operation_date: editForm.operation_date,
-      monthly_rate: monthlyRate,
-      factoring_monthly_rate: factoringRate,
-      installments: installments as any,
+  const invoiceToEditProps = useMemo(() => {
+    if (!editingId || !invoices) return undefined;
+    const inv = invoices.find(i => i.id === editingId);
+    if (!inv) return undefined;
+    return {
+      id: inv.id,
+      client_id: inv.client_id,
+      invoice_number: inv.invoice_number,
+      invoice_value: Number(inv.invoice_value),
+      operation_date: inv.operation_date,
+      monthly_rate: Number(inv.monthly_rate),
+      factoring_monthly_rate: inv.factoring_monthly_rate ? Number(inv.factoring_monthly_rate) : null,
+      installments: Array.isArray(inv.installments) ? (inv.installments as Installment[]) : [],
     };
-
-    // Optimistic update
-    setInvoices((prev) => prev.map((i) => (i.id === editingId ? (updatedInvoice as any) : i)));
-
-    const { error } = await supabase
-      .from("invoices")
-      .update({
-        invoice_number: editForm.invoice_number.trim(),
-        invoice_value: invoiceValue,
-        operation_date: editForm.operation_date,
-        monthly_rate: monthlyRate,
-        factoring_monthly_rate: factoringRate,
-        installments: installments as any,
-      })
-      .eq("id", editingId);
-    setSaving(false);
-    if (error) {
-      const { friendlyDbError } = await import("@/lib/dbErrors");
-      return toast.error(friendlyDbError(error, "Erro ao salvar abertura"));
-    }
-    toast.success("Abertura atualizada");
-    closeEdit();
-    load();
-  };
+  }, [editingId, invoices]);
 
 
   const periodOptions: { id: Period; label: string }[] = [
@@ -926,7 +831,7 @@ const Historico = () => {
                 const gradId = chartGradId;
                 return (
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart key={JSON.stringify(chartData)} data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+                    <AreaChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
                       <defs>
                         <linearGradient id={`lineGrad-${gradId}`} x1="0" y1="0" x2="1" y2="0">
                           {stops.map((s, i) => (
@@ -1325,126 +1230,23 @@ const Historico = () => {
         </section>
       </main>
 
-      {/* Edit operation dialog (admin only) */}
+      {/* Edit operation dialog */}
       <Dialog open={!!editingId} onOpenChange={(o) => !o && closeEdit()}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="font-display">Editar abertura</DialogTitle>
-            <DialogDescription className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">
-              ALTERAÇÕES APLICADAS IMEDIATAMENTE AO HISTÓRICO
-            </DialogDescription>
-          </DialogHeader>
-
-          {editForm && (
-            <div className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">NF</Label>
-                  <Input
-                    value={editForm.invoice_number}
-                    onChange={(e) => setEditForm((f) => f && { ...f, invoice_number: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">VALOR DA NF</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={editForm.invoice_value}
-                    onChange={(e) => setEditForm((f) => f && { ...f, invoice_value: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">DATA DA ABERTURA</Label>
-                  <DateField
-                    value={editForm.operation_date}
-                    onChange={(v) => setEditForm((f) => f && { ...f, operation_date: v })}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">TAXA MENSAL (%)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={editForm.monthly_rate}
-                    onChange={(e) => setEditForm((f) => f && { ...f, monthly_rate: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-1.5 sm:col-span-2">
-                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">
-                    TAXA FACTORING MENSAL (%)
-                  </Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={editForm.factoring_monthly_rate}
-                    onChange={(e) =>
-                      setEditForm((f) => f && { ...f, factoring_monthly_rate: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
-                    PARCELAS
-                  </Label>
-                  <Button type="button" size="sm" variant="outline" onClick={addInstallment}>
-                    <Plus className="mr-1 h-3 w-3" /> Adicionar
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  {editForm.installments.map((it, idx) => (
-                    <div
-                      key={it.id}
-                      className="grid grid-cols-[1fr_1fr_auto] items-end gap-2 rounded-lg border border-border/50 p-2"
-                    >
-                      <div className="space-y-1">
-                        <Label className="font-mono text-[9px] tracking-widest text-muted-foreground">
-                          VALOR #{idx + 1}
-                        </Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={it.value}
-                          onChange={(e) => updateInstallment(idx, { value: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="font-mono text-[9px] tracking-widest text-muted-foreground">
-                          VENCIMENTO
-                        </Label>
-                        <DateField
-                          value={it.dueDate}
-                          onChange={(v) => updateInstallment(idx, { dueDate: v })}
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => removeInstallment(idx)}
-                        aria-label="Remover parcela"
-                        className="text-muted-foreground hover:text-cost-red"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-transparent border-none p-0 shadow-none">
+          <DialogTitle className="sr-only">Editar Abertura</DialogTitle>
+          {invoiceToEditProps && (
+            <RegistrationSection
+              invoiceToEdit={invoiceToEditProps}
+              onSaveSuccess={(updated) => {
+                if (updated) {
+                  setInvoices((prev) => prev.map((i) => (i.id === updated.id ? { ...i, ...updated } : i) as any));
+                }
+                closeEdit();
+                load();
+              }}
+              onCancel={closeEdit}
+            />
           )}
-
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={closeEdit} disabled={saving}>
-              Cancelar
-            </Button>
-            <Button onClick={saveEdit} disabled={saving}>
-              {saving ? "Salvando..." : "Salvar alterações"}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 

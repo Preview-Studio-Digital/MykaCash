@@ -40,19 +40,36 @@ const addDaysISO = (baseISO: string, days: number) => {
   return d.toISOString().slice(0, 10);
 };
 
-export const RegistrationSection = () => {
+export const RegistrationSection = ({
+  invoiceToEdit,
+  onSaveSuccess,
+  onCancel,
+}: {
+  invoiceToEdit?: {
+    id: string;
+    client_id: string;
+    invoice_number: string;
+    invoice_value: number;
+    operation_date: string;
+    monthly_rate: number;
+    factoring_monthly_rate: number | null;
+    installments: Installment[];
+  };
+  onSaveSuccess?: (updated?: any) => void;
+  onCancel?: () => void;
+} = {}) => {
   const { clients, addClient, removeClient } = useClients();
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [clientId, setClientId] = useState<string>("");
-  const [invoiceNumber, setInvoiceNumber] = useState("");
-  const [invoiceValue, setInvoiceValue] = useState<number>(0);
-  const [operationDate, setOperationDate] = useState<string>(todayISO());
-  const [monthlyRate, setMonthlyRate] = useState<number>(3.0);
-  const [installments, setInstallments] = useState<Installment[]>([
-    { id: uid(), value: 0, dueDate: addDaysISO(todayISO(), 30) },
-  ]);
+  const [clientId, setClientId] = useState<string>(invoiceToEdit?.client_id || "");
+  const [invoiceNumber, setInvoiceNumber] = useState(invoiceToEdit?.invoice_number || "");
+  const [invoiceValue, setInvoiceValue] = useState<number>(invoiceToEdit?.invoice_value || 0);
+  const [operationDate, setOperationDate] = useState<string>(invoiceToEdit?.operation_date || todayISO());
+  const [monthlyRate, setMonthlyRate] = useState<number>(invoiceToEdit?.monthly_rate || 3.0);
+  const [installments, setInstallments] = useState<Installment[]>(
+    invoiceToEdit?.installments || [{ id: uid(), value: 0, dueDate: addDaysISO(todayISO(), 30) }]
+  );
 
   const [newClientOpen, setNewClientOpen] = useState(false);
   const [newClientName, setNewClientName] = useState("");
@@ -62,7 +79,7 @@ export const RegistrationSection = () => {
 
   // Single installment mirrors the invoice value and operation date + 30 days
   useEffect(() => {
-    if (installments.length === 1) {
+    if (installments.length === 1 && !invoiceToEdit) {
       setInstallments([
         { ...installments[0], value: invoiceValue, dueDate: addDaysISO(operationDate, 30) },
       ]);
@@ -196,31 +213,49 @@ export const RegistrationSection = () => {
       return toast.error("Soma das parcelas deve ser igual ao valor da nota");
 
     setSaving(true);
-    const { error } = await supabase.from("invoices").insert({
+    
+    const invoiceData = {
       client_id: clientId,
       invoice_number: invoiceNumber.trim(),
       invoice_value: invoiceValue,
       operation_date: operationDate,
       monthly_rate: monthlyRate,
       installments: installments as any,
-      factoring_monthly_rate: FACTORING_MONTHLY_RATE_PCT,
-      created_by: user?.id ?? null,
-    });
+      factoring_monthly_rate: invoiceToEdit?.factoring_monthly_rate ?? FACTORING_MONTHLY_RATE_PCT,
+    };
+
+    let error;
+    if (invoiceToEdit) {
+      const res = await supabase.from("invoices").update(invoiceData).eq("id", invoiceToEdit.id);
+      error = res.error;
+    } else {
+      const res = await supabase.from("invoices").insert({
+        ...invoiceData,
+        created_by: user?.id ?? null,
+      });
+      error = res.error;
+    }
+
     if (error) {
       setSaving(false);
       const { friendlyDbError } = await import("@/lib/dbErrors");
-      return toast.error(friendlyDbError(error, "Erro ao salvar abertura"));
+      return toast.error(friendlyDbError(error, invoiceToEdit ? "Erro ao atualizar abertura" : "Erro ao salvar abertura"));
     }
     const clientName = clients.find((c) => c.id === clientId)?.name ?? "cliente";
     try {
       await generateArchivePng(clientName);
-      toast.success("Abertura salva e arquivo PNG gerado");
+      toast.success(invoiceToEdit ? "Abertura atualizada e arquivo PNG gerado" : "Abertura salva e arquivo PNG gerado");
     } catch (e) {
-      toast.success("Abertura salva (falha ao gerar PNG)");
+      toast.success(invoiceToEdit ? "Abertura atualizada (falha ao gerar PNG)" : "Abertura salva (falha ao gerar PNG)");
     }
     setSaving(false);
-    setInvoiceNumber("");
-    navigate("/historico");
+    
+    if (onSaveSuccess) {
+      onSaveSuccess({ ...invoiceData, id: invoiceToEdit?.id });
+    } else {
+      setInvoiceNumber("");
+      navigate("/historico");
+    }
   };
 
   return (
@@ -230,10 +265,10 @@ export const RegistrationSection = () => {
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
-            <h2 className="font-display text-xl font-semibold tracking-tight">Cadastro</h2>
+            <h2 className="font-display text-xl font-semibold tracking-tight">{invoiceToEdit ? "Edição" : "Cadastro"}</h2>
           </div>
           <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
-            ABERTURA
+            {invoiceToEdit ? "EDITAR ABERTURA" : "ABERTURA"}
           </span>
         </div>
 
@@ -489,7 +524,12 @@ export const RegistrationSection = () => {
         operationDate={operationDate}
       />
 
-      <div className="flex justify-center">
+      <div className="flex justify-center gap-4">
+        {onCancel && (
+          <Button onClick={onCancel} variant="outline" disabled={saving} size="lg" className="font-display tracking-wide">
+            CANCELAR
+          </Button>
+        )}
         <Button
           onClick={handleSaveInvoice}
           disabled={saving}
@@ -497,7 +537,7 @@ export const RegistrationSection = () => {
           className="font-display tracking-wide"
         >
           <Save className="mr-2 h-4 w-4" />
-          {saving ? "Salvando..." : "CADASTRAR E EXPORTAR"}
+          {saving ? "Salvando..." : invoiceToEdit ? "SALVAR ALTERAÇÕES" : "CADASTRAR E EXPORTAR"}
         </Button>
       </div>
 
