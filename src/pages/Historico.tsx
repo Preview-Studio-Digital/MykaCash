@@ -710,7 +710,7 @@ const Historico = () => {
           )}
           {period === "total" && (
             <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
-              TODAS AS ABERTAS
+              TODAS EM ANDAMENTO
             </span>
           )}
         </section>
@@ -987,7 +987,7 @@ const Historico = () => {
                           </span>
                         ) : (
                           <span className="rounded-full bg-net-green/15 px-2 py-0.5 font-mono text-[9px] tracking-widest text-net-green">
-                            ABERTA
+                            ANDAMENTO
                           </span>
                         )}
                       </div>
@@ -1133,7 +1133,7 @@ const Historico = () => {
                                   ? "VENCIDA"
                                   : isDueSoon(r)
                                   ? weekdayShortPt(r.dueDate)
-                                  : "ABERTA"}
+                                  : "ANDAMENTO"}
                               </span>
                               <span className="hidden group-hover:inline">
                                 {r.settled ? "DESFAZER" : "LIQUIDAR"}
