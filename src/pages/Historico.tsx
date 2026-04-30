@@ -986,10 +986,6 @@ const Historico = () => {
                         <div className="text-[9px] tracking-widest text-muted-foreground">CUSTO</div>
                         <div className="text-cost-red">{formatBRL(r.cost)}</div>
                       </div>
-                      <div>
-                        <div className="text-[9px] tracking-widest text-muted-foreground">ECONOMIA</div>
-                        <div className="text-factoring-amber">{formatBRL(r.savings)}</div>
-                      </div>
                     </div>
                     <div className="flex items-center justify-between gap-2 pt-2">
                       <Button
@@ -1054,20 +1050,19 @@ const Historico = () => {
                   <SortableTh label="BRUTO (R$)" sKey="value" />
                   <SortableTh label="LÍQUIDO (R$)" sKey="presentValue" />
                   <SortableTh label="CUSTO (R$)" sKey="cost" />
-                  <SortableTh label="ECONOMIA (R$)" sKey="savings" className="text-factoring-amber" />
                   <SortableTh label="AUTOR" sKey="createdBy" />
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={14} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
+                    <td colSpan={13} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                       CARREGANDO...
                     </td>
                   </tr>
                 ) : filteredRows.length === 0 ? (
                   <tr>
-                    <td colSpan={14} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
+                    <td colSpan={13} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                       NENHUMA OPERAÇÃO NO PERÍODO
                     </td>
                   </tr>
@@ -1147,7 +1142,6 @@ const Historico = () => {
                         <td className="px-1.5 py-2">{formatBRLNum(r.value)}</td>
                         <td className="px-1.5 py-2 text-net-green">{formatBRLNum(r.presentValue)}</td>
                         <td className="px-1.5 py-2 text-cost-red">{formatBRLNum(r.cost)}</td>
-                        <td className="px-1.5 py-2 text-factoring-amber">{formatBRLNum(r.savings)}</td>
                         <td className="px-2 py-2 max-w-[120px] truncate" title={r.createdBy}>
                           {r.createdBy}
                         </td>
@@ -1170,7 +1164,6 @@ const Historico = () => {
                     <td className="px-1.5 py-2">{formatBRLNum(totals.value)}</td>
                     <td className="px-1.5 py-2 text-net-green">{formatBRLNum(totals.presentValue)}</td>
                     <td className="px-1.5 py-2 text-cost-red">{formatBRLNum(totals.cost)}</td>
-                    <td className="px-1.5 py-2 text-factoring-amber">{formatBRLNum(totals.savings)}</td>
                     <td className="px-2 py-2">—</td>
                   </tr>
                 )}
