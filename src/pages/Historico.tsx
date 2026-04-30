@@ -696,60 +696,90 @@ const Historico = () => {
     return "bg-[hsl(var(--net-green)/0.06)] hover:bg-[hsl(var(--net-green)/0.10)]";
   };
 
+  const renderFilters = () => (
+    <section className="flex flex-col items-center justify-center gap-4 animate-fade-up text-center w-full">
+      <div className="inline-flex flex-wrap justify-center rounded-2xl sm:rounded-full border border-border/60 bg-background/40 p-1 gap-1 max-w-full">
+        {periodOptions.map((opt) => {
+          const active = period === opt.id;
+          return (
+            <button
+              key={opt.id}
+              onClick={() => setPeriod(opt.id)}
+              className={
+                "inline-flex items-center rounded-full px-3 sm:px-4 py-1.5 font-mono text-[9px] sm:text-[10px] tracking-[0.25em] sm:tracking-[0.3em] transition-all whitespace-nowrap " +
+                (active
+                  ? "bg-primary text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.4)]"
+                  : "text-muted-foreground hover:text-foreground")
+              }
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex flex-wrap justify-center gap-1">
+        {statusOptions.map((opt) => {
+          const active = statusFilter === opt.id;
+          const activeCls =
+            opt.id === "abertas" || opt.id === "andamento"
+              ? "bg-net-green/20 text-net-green shadow-[0_0_12px_hsl(var(--net-green)/0.35)]"
+              : opt.id === "vencidas"
+              ? "bg-cost-red/20 text-cost-red shadow-[0_0_12px_hsl(var(--cost-red)/0.35)]"
+              : opt.id === "liquidadas"
+              ? "bg-factoring-amber/20 text-factoring-amber shadow-[0_0_12px_hsl(var(--factoring-amber)/0.35)]"
+              : "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.4)]";
+          return (
+            <button
+              key={opt.id}
+              onClick={() => setStatusFilter(opt.id)}
+              className={
+                "inline-flex items-center rounded-full px-3 py-1 font-mono text-[9px] tracking-[0.25em] transition-all whitespace-nowrap " +
+                (active ? activeCls : "text-muted-foreground hover:text-foreground")
+              }
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {period === "periodo" && (
+        <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">DE</span>
+            <DateField value={from} onChange={setFrom} />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">ATÉ</span>
+            <DateField value={to} onChange={setTo} />
+          </div>
+        </div>
+      )}
+
+      {period !== "periodo" && period !== "total" && (
+        <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
+          {range.from === range.to
+            ? fmtDate(range.from)
+            : `${fmtDate(range.from)} → ${fmtDate(range.to)}`}
+        </span>
+      )}
+      {period === "total" && (
+        <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
+          TODAS EM ANDAMENTO
+        </span>
+      )}
+    </section>
+  );
+
   return (
     <div className="min-h-screen">
       <AppHeader />
       <main className="container mx-auto max-w-6xl px-4 py-10 md:py-14 space-y-8">
         <PageNav />
 
-        {/* Period filter — controls panels, chart, and table */}
-        <section className="flex flex-col items-center justify-center gap-3 animate-fade-up text-center">
-          <div className="inline-flex flex-wrap justify-center rounded-2xl sm:rounded-full border border-border/60 bg-background/40 p-1 gap-1 max-w-full">
-            {periodOptions.map((opt) => {
-              const active = period === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  onClick={() => setPeriod(opt.id)}
-                  className={
-                    "inline-flex items-center rounded-full px-3 sm:px-4 py-1.5 font-mono text-[9px] sm:text-[10px] tracking-[0.25em] sm:tracking-[0.3em] transition-all whitespace-nowrap " +
-                    (active
-                      ? "bg-primary text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.4)]"
-                      : "text-muted-foreground hover:text-foreground")
-                  }
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {period === "periodo" && (
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">DE</span>
-                <DateField value={from} onChange={setFrom} />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">ATÉ</span>
-                <DateField value={to} onChange={setTo} />
-              </div>
-            </div>
-          )}
-
-          {period !== "periodo" && period !== "total" && (
-            <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
-              {range.from === range.to
-                ? fmtDate(range.from)
-                : `${fmtDate(range.from)} → ${fmtDate(range.to)}`}
-            </span>
-          )}
-          {period === "total" && (
-            <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
-              TODAS EM ANDAMENTO
-            </span>
-          )}
-        </section>
+        {/* Main filters (Top) */}
+        {renderFilters()}
 
         {/* Summary panels — reflect selected period */}
         <section className="grid gap-4 md:grid-cols-3 animate-fade-up">
@@ -988,9 +1018,12 @@ const Historico = () => {
           })()}
         </section>
 
+        {/* Secondary filters (Middle) */}
+        {renderFilters()}
+
         {/* Table */}
         <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
               <h2 className="font-display text-xl font-semibold tracking-tight">Histórico de Operações</h2>
@@ -999,32 +1032,6 @@ const Historico = () => {
               {invoices.length} {invoices.length === 1 ? "OPERAÇÃO" : "OPERAÇÕES"} · {filteredRows.length}{" "}
               {filteredRows.length === 1 ? "PARCELA" : "PARCELAS"}
             </span>
-          </div>
-
-          <div className="mb-6 flex flex-wrap justify-center sm:justify-start gap-1">
-            {statusOptions.map((opt) => {
-              const active = statusFilter === opt.id;
-              const activeCls =
-                opt.id === "abertas" || opt.id === "andamento"
-                  ? "bg-net-green/20 text-net-green shadow-[0_0_12px_hsl(var(--net-green)/0.35)]"
-                  : opt.id === "vencidas"
-                  ? "bg-cost-red/20 text-cost-red shadow-[0_0_12px_hsl(var(--cost-red)/0.35)]"
-                  : opt.id === "liquidadas"
-                  ? "bg-factoring-amber/20 text-factoring-amber shadow-[0_0_12px_hsl(var(--factoring-amber)/0.35)]"
-                  : "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.4)]";
-              return (
-                <button
-                  key={opt.id}
-                  onClick={() => setStatusFilter(opt.id)}
-                  className={
-                    "inline-flex items-center rounded-full px-3 py-1 font-mono text-[9px] tracking-[0.25em] transition-all whitespace-nowrap " +
-                    (active ? activeCls : "text-muted-foreground hover:text-foreground")
-                  }
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
           </div>
 
           {/* Mobile cards */}
