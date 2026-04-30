@@ -623,19 +623,22 @@ const Historico = () => {
     className?: string;
   }) => {
     const active = sortKey === sKey;
-    const Icon = !active ? ArrowUpDown : sortDir === "asc" ? ArrowUp : ArrowDown;
+    const Icon = sortDir === "asc" ? ArrowUp : ArrowDown;
     return (
       <th className={"px-1.5 py-2 text-center font-medium " + className}>
         <button
           type="button"
           onClick={() => toggleSort(sKey)}
+          title="Clique para ordenar"
           className={
-            "inline-flex items-center justify-center gap-1 transition-colors " +
-            (active ? "text-foreground" : "hover:text-foreground")
+            "inline-flex items-center justify-center transition-all px-1.5 py-1 rounded-md " +
+            (active
+              ? "text-foreground bg-foreground/5"
+              : "hover:text-foreground hover:bg-foreground/10")
           }
         >
           <span>{label}</span>
-          <Icon className={"h-3 w-3 " + (active ? "opacity-100" : "opacity-40")} />
+          {active && <Icon className="ml-1 h-3 w-3 text-primary" />}
         </button>
       </th>
     );
