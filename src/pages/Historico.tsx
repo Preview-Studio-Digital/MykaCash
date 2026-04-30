@@ -1112,24 +1112,17 @@ const Historico = () => {
                                   ? "bg-factoring-amber/20 text-factoring-amber hover:bg-factoring-amber/30"
                                   : r.overdue
                                   ? "bg-cost-red/20 text-cost-red hover:bg-factoring-amber/30 hover:text-factoring-amber"
-                                  : isDueSoon(r)
-                                  ? "pill-due-soon hover:!bg-factoring-amber/30 hover:!text-factoring-amber"
                                   : "bg-net-green/15 text-net-green hover:bg-factoring-amber/30 hover:text-factoring-amber")
                               }
                             >
                               <span className="group-hover:hidden">
-                                {r.settled ? (
-                                  "LIQUIDADA"
-                                ) : r.overdue ? (
-                                  "VENCIDA"
-                                ) : isDueSoon(r) ? (
-                                  <span className="swap-label">
-                                    <span className="swap-a">ABERTA</span>
-                                    <span className="swap-b">{weekdayShortPt(r.dueDate)}</span>
-                                  </span>
-                                ) : (
-                                  "ABERTA"
-                                )}
+                                {r.settled
+                                  ? "LIQUIDADA"
+                                  : r.overdue
+                                  ? "VENCIDA"
+                                  : isDueSoon(r)
+                                  ? weekdayShortPt(r.dueDate)
+                                  : "ABERTA"}
                               </span>
                               <span className="hidden group-hover:inline">
                                 {r.settled ? "DESFAZER" : "LIQUIDAR"}
