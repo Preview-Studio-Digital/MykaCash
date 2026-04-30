@@ -925,7 +925,7 @@ const Historico = () => {
             {statusOptions.map((opt) => {
               const active = statusFilter === opt.id;
               const activeCls =
-                opt.id === "abertas"
+                opt.id === "abertas" || opt.id === "andamento"
                   ? "bg-net-green/20 text-net-green shadow-[0_0_12px_hsl(var(--net-green)/0.35)]"
                   : opt.id === "vencidas"
                   ? "bg-cost-red/20 text-cost-red shadow-[0_0_12px_hsl(var(--cost-red)/0.35)]"
