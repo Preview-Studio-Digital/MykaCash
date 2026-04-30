@@ -901,7 +901,41 @@ const Historico = () => {
             <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
               {filteredRows.length} {filteredRows.length === 1 ? "PARCELA" : "PARCELAS"} · {invoices.length}{" "}
               {invoices.length === 1 ? "ABERTURA" : "ABERTURAS"}
-...
+            </span>
+          </div>
+
+          <div className="mb-6 flex flex-wrap justify-center sm:justify-start gap-1">
+            {statusOptions.map((opt) => {
+              const active = statusFilter === opt.id;
+              const activeCls =
+                opt.id === "abertas"
+                  ? "bg-net-green/20 text-net-green shadow-[0_0_12px_hsl(var(--net-green)/0.35)]"
+                  : opt.id === "vencidas"
+                  ? "bg-cost-red/20 text-cost-red shadow-[0_0_12px_hsl(var(--cost-red)/0.35)]"
+                  : opt.id === "liquidadas"
+                  ? "bg-factoring-amber/20 text-factoring-amber shadow-[0_0_12px_hsl(var(--factoring-amber)/0.35)]"
+                  : "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.4)]";
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => setStatusFilter(opt.id)}
+                  className={
+                    "inline-flex items-center rounded-full px-3 py-1 font-mono text-[9px] tracking-[0.25em] transition-all whitespace-nowrap " +
+                    (active ? activeCls : "text-muted-foreground hover:text-foreground")
+                  }
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Mobile cards */}
+          <div className="space-y-2 md:hidden">
+            {loading ? (
+              <div className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
+                CARREGANDO...
+              </div>
             ) : filteredRows.length === 0 ? (
               <div className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                 NENHUMA ABERTURA NO PERÍODO
