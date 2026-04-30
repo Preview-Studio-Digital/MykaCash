@@ -275,8 +275,8 @@ const Historico = () => {
       return rows.filter((r) => {
         // "andamento" (inclui abertas e vencidas até a data limite)
         if (!r.settled && r.operationDate <= range.to) return true;
-        // "liquidadas" que venceram, foram abertas ou foram pagas no período
-        if (r.settled && (inRange(r.dueDate) || inRange(r.operationDate) || (r.settledDate && inRange(r.settledDate)))) return true;
+        // "liquidadas" apenas se a data de liquidação estiver dentro do período
+        if (r.settled && r.settledDate && inRange(r.settledDate)) return true;
         return false;
       });
     }
