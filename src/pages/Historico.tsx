@@ -307,55 +307,49 @@ const Historico = () => {
   const chartData = useMemo(() => {
     type Ev = { date: string; delta: number };
 
-    // Eventos do período filtrado (respeita o filtro de status atual)
-    const events: Ev[] = [];
-    for (const r of filteredRows) {
-      events.push({ date: r.operationDate, delta: r.value });
-      if (r.settled) {
-        events.push({ date: r.dueDate, delta: -r.value });
-      }
-    }
-    if (events.length === 0)
-      return [] as { date: string; label: string; labelShort: string; saldo: number }[];
-
-    // Para verificar se o período engloba a primeira operação histórica,
-    // olhamos para TODAS as linhas (independente de filtro de status/período).
+    // Pegamos todos os eventos das operações filtradas
     const allEvents: Ev[] = [];
-    for (const r of rows) {
+    for (const r of filteredRows) {
       allEvents.push({ date: r.operationDate, delta: r.value });
       if (r.settled) {
         allEvents.push({ date: r.dueDate, delta: -r.value });
       }
     }
-    const allDatesSorted = allEvents.map((e) => e.date).sort();
-    const firstHistoricalDate = allDatesSorted[0];
+
+    if (allEvents.length === 0)
+      return [] as { date: string; label: string; labelShort: string; saldo: number }[];
 
     // Saldo acumulado de todos os eventos com data ESTRITAMENTE anterior a range.from
     const carryOver = allEvents
       .filter((e) => e.date < range.from)
       .reduce((s, e) => s + e.delta, 0);
 
+    // Eventos que ocorreram DENTRO do período
+    const periodEvents = allEvents.filter((e) => e.date >= range.from && e.date <= range.to);
+
     // Agrupa eventos do período por data
     const byDate = new Map<string, number>();
-    events.forEach((e) => {
+    periodEvents.forEach((e) => {
       byDate.set(e.date, (byDate.get(e.date) ?? 0) + e.delta);
     });
     const sortedDates = Array.from(byDate.keys()).sort();
 
     const series: { date: string; label: string; labelShort: string; saldo: number }[] = [];
 
+    const allDatesSorted = allEvents.map((e) => e.date).sort();
+    const firstHistoricalDate = allDatesSorted[0];
     const includesFirst = firstHistoricalDate >= range.from && firstHistoricalDate <= range.to;
 
-    if (includesFirst) {
-      // Período engloba a primeira operação: baseline em zero, uma semana antes
+    if (period === "total" && includesFirst) {
+      // Período total engloba a primeira operação: baseline em zero, uma semana antes
       const first = new Date(sortedDates[0] + "T00:00:00");
       first.setDate(first.getDate() - 7);
       const baseline = localISO(first);
       series.push({ date: baseline, label: fmtDate(baseline), labelShort: fmtDayMonth(baseline), saldo: 0 });
     } else {
-      // Período NÃO engloba a primeira operação: começa com o saldo acumulado real
-      // ancorado no início do intervalo (ou um dia antes do primeiro evento, o que vier antes)
-      const anchor = range.from > "1900-01-01" ? range.from : sortedDates[0];
+      // Período NÃO é total ou não engloba a primeira operação: começa com o saldo acumulado real
+      // ancorado no início do intervalo
+      const anchor = range.from > "1900-01-01" ? range.from : (sortedDates[0] || todayStr);
       series.push({
         date: anchor,
         label: fmtDate(anchor),
@@ -384,7 +378,7 @@ const Historico = () => {
       }
     };
 
-    let acc = includesFirst ? 0 : carryOver;
+    let acc = (period === "total" && includesFirst) ? 0 : carryOver;
     for (const d of sortedDates) {
       fillGaps(d, acc);
 
@@ -402,10 +396,10 @@ const Historico = () => {
       }
     }
 
-    // Para períodos "semana", "mes" e "total", sempre mostrar a data de hoje no gráfico
+    // Para períodos maiores, sempre mostrar a data de hoje se ainda não estiver (pra a linha ir até o fim)
     if (period === "semana" || period === "mes" || period === "total") {
       const last = series[series.length - 1];
-      if (last.date < todayStr) {
+      if (last && last.date < todayStr) {
         fillGaps(todayStr, last.saldo);
         series.push({
           date: todayStr,
@@ -413,7 +407,7 @@ const Historico = () => {
           labelShort: fmtDayMonth(todayStr),
           saldo: last.saldo,
         });
-      } else if (last.date > todayStr) {
+      } else if (last && last.date > todayStr) {
         const insertIdx = series.findIndex((s) => s.date > todayStr);
         if (insertIdx > 0) {
           const prev = series[insertIdx - 1];
@@ -426,8 +420,9 @@ const Historico = () => {
         }
       }
     }
+    
     return series;
-  }, [filteredRows, rows, period, range.from, range.to, todayStr]);
+  }, [filteredRows, period, range.from, range.to, todayStr]);
 
   const toggleSettlement = async (row: (typeof rows)[number]) => {
     const inv = invoices.find((i) => i.id === row.invoiceId);
