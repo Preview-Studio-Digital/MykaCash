@@ -163,8 +163,8 @@
 
 
 @keyframes pulse-due-soon {
-  0%, 100% { background-color: hsl(var(--cost-red) / 0.10); }
-  50% { background-color: hsl(var(--cost-red) / 0.32); }
+  0%, 100% { background-color: hsl(var(--net-green) / 0.12); }
+  50% { background-color: hsl(var(--net-green) / 0.45); }
 }
 
 .row-due-soon {
