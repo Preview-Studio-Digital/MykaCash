@@ -138,7 +138,7 @@ const Historico = () => {
   const range = useMemo(() => {
     const today = todayISO();
     if (period === "hoje") return { from: today, to: today };
-    if (period === "semana") return { from: startOfWeekISO(), to: endOfWeekISO() };
+    if (period === "semana") return { from: startOfWeekISO(), to: today };
     if (period === "mes") return { from: startOfMonthISO(), to: today };
     if (period === "total") return { from: "1900-01-01", to: "2999-12-31" };
     return { from, to };
@@ -924,6 +924,7 @@ const Historico = () => {
                       <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--muted-foreground))" opacity={0.4} vertical={true} horizontal={true} />
                       <XAxis
                         dataKey="date"
+                        interval={period === "semana" ? 0 : "preserveStartEnd"}
                         tickFormatter={(val) => {
                           const parts = val.split("-");
                           if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
