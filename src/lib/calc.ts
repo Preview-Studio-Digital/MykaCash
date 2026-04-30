@@ -29,6 +29,7 @@ export type CalcResult = {
   maxDays: number;
   factoringMonthlyRatePct: number; // 3.74
   factoringCost: number;
+  factoringEffectiveRatePct: number;
   installmentCalcs: InstallmentCalc[];
 };
 
@@ -116,6 +117,7 @@ export const calculate = (input: CalcInput): CalcResult => {
     maxDays,
     factoringMonthlyRatePct: FACTORING_MONTHLY_RATE_PCT,
     factoringCost,
+    factoringEffectiveRatePct: factoringEffectivePct,
     installmentCalcs: finalInstallmentCalcs,
   };
 };

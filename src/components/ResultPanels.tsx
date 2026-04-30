@@ -65,7 +65,7 @@ export const ResultPanels = ({ result, monthlyRate }: { result: CalcResult; mont
             <div>
               <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">TAXA EFETIVA</div>
               <div className="mt-0.5 font-display text-sm font-semibold tabular-nums">
-                {formatPct(result.totalInvoice > 0 ? (result.factoringCost / result.totalInvoice) * 100 : 0)}
+                {formatPct(result.factoringEffectiveRatePct)}
               </div>
             </div>
           </div>
