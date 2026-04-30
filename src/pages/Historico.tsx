@@ -256,15 +256,19 @@ const Historico = () => {
 
   const filteredRows = useMemo(() => {
     // Para "liquidadas": filtrar por dueDate (data de vencimento) dentro do período.
-    // Para "andamento": parcelas em aberto (não liquidadas, não vencidas) cujo vencimento esteja dentro do período,
-    //   independentemente da data de abertura da operação.
+    // Para "andamento": parcelas em aberto (não liquidadas, não vencidas) cujo intervalo
+    //   [abertura, vencimento] intersecta o período selecionado — ou seja, a operação
+    //   está "acontecendo" em algum momento dentro do período.
     // Para os demais: filtrar por operationDate (data de abertura).
     const inRange = (d: string) => d >= range.from && d <= range.to;
     if (statusFilter === "liquidadas") {
       return rows.filter((r) => r.settled && inRange(r.dueDate));
     }
     if (statusFilter === "andamento") {
-      return rows.filter((r) => !r.settled && !r.overdue && inRange(r.dueDate));
+      // Sobreposição de intervalos: operationDate <= range.to && dueDate >= range.from
+      return rows.filter(
+        (r) => !r.settled && !r.overdue && r.operationDate <= range.to && r.dueDate >= range.from
+      );
     }
     const base = rows.filter((r) => inRange(r.operationDate));
     if (statusFilter === "todas") return base;
