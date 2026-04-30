@@ -977,7 +977,7 @@ const Historico = () => {
                           </span>
                         ) : (
                           <span className="rounded-full bg-net-green/15 px-2 py-0.5 font-mono text-[9px] tracking-widest text-net-green">
-                            ABERTURA
+                            ABERTA
                           </span>
                         )}
                       </div>
@@ -1123,7 +1123,7 @@ const Historico = () => {
                                   ? "VENCIDA"
                                   : isDueSoon(r)
                                   ? weekdayShortPt(r.dueDate)
-                                  : "ABERTURA"}
+                                  : "ABERTA"}
                               </span>
                               <span className="hidden group-hover:inline">
                                 {r.settled ? "DESFAZER" : "LIQUIDAR"}
