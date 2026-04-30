@@ -29,7 +29,7 @@ import {
 } from "recharts";
 
 type Period = "hoje" | "semana" | "mes" | "total" | "periodo";
-type StatusFilter = "todas" | "abertas" | "vencidas" | "liquidadas";
+type StatusFilter = "todas" | "abertas" | "andamento" | "vencidas" | "liquidadas";
 
 type SettledEntry = string | { id: string; date: string };
 type InvoiceRow = {
@@ -256,10 +256,15 @@ const Historico = () => {
 
   const filteredRows = useMemo(() => {
     // Para "liquidadas": filtrar por dueDate (data de vencimento) dentro do período.
+    // Para "andamento": parcelas em aberto (não liquidadas, não vencidas) cujo vencimento esteja dentro do período,
+    //   independentemente da data de abertura da operação.
     // Para os demais: filtrar por operationDate (data de abertura).
     const inRange = (d: string) => d >= range.from && d <= range.to;
     if (statusFilter === "liquidadas") {
       return rows.filter((r) => r.settled && inRange(r.dueDate));
+    }
+    if (statusFilter === "andamento") {
+      return rows.filter((r) => !r.settled && !r.overdue && inRange(r.dueDate));
     }
     const base = rows.filter((r) => inRange(r.operationDate));
     if (statusFilter === "todas") return base;
@@ -550,6 +555,7 @@ const Historico = () => {
   const statusOptions: { id: StatusFilter; label: string }[] = [
     { id: "todas", label: "TODAS" },
     { id: "abertas", label: "ABERTAS" },
+    { id: "andamento", label: "ANDAMENTO" },
     { id: "vencidas", label: "VENCIDAS" },
     { id: "liquidadas", label: "LIQUIDADAS" },
   ];
