@@ -417,13 +417,13 @@ const Historico = () => {
 
   const handleDeleteOperation = async (invoiceId: string) => {
     if (!isAdmin) return toast.error("Apenas administradores podem excluir operações");
-    if (!confirm("Deseja realmente excluir a operação? Essa ação não pode ser desfeita.")) return;
+    if (!confirm("Deseja realmente excluir a abertura? Essa ação não pode ser desfeita.")) return;
     const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
     if (error) {
       const { friendlyDbError } = await import("@/lib/dbErrors");
-      return toast.error(friendlyDbError(error, "Erro ao excluir operação"));
+      return toast.error(friendlyDbError(error, "Erro ao excluir abertura"));
     }
-    toast.success("Operação removida");
+    toast.success("Abertura removida");
     load();
   };
 
@@ -504,7 +504,7 @@ const Historico = () => {
     if (!editForm.invoice_number.trim()) return toast.error("Informe o número da NF");
     if (!Number.isFinite(invoiceValue) || invoiceValue <= 0)
       return toast.error("Valor da NF inválido");
-    if (!editForm.operation_date) return toast.error("Informe a data de operação");
+    if (!editForm.operation_date) return toast.error("Informe a data de abertura");
     if (!Number.isFinite(monthlyRate) || monthlyRate < 0)
       return toast.error("Taxa mensal inválida");
     if (editForm.installments.length === 0)
@@ -531,9 +531,9 @@ const Historico = () => {
     setSaving(false);
     if (error) {
       const { friendlyDbError } = await import("@/lib/dbErrors");
-      return toast.error(friendlyDbError(error, "Erro ao salvar operação"));
+      return toast.error(friendlyDbError(error, "Erro ao salvar abertura"));
     }
-    toast.success("Operação atualizada");
+    toast.success("Abertura atualizada");
     closeEdit();
     load();
   };
