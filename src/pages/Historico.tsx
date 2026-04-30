@@ -265,9 +265,9 @@ const Historico = () => {
       return rows.filter((r) => r.settled && inRange(r.dueDate));
     }
     if (statusFilter === "andamento") {
-      // Sobreposição de intervalos: operationDate <= range.to && dueDate >= range.from
+      // Operações em andamento: não foram liquidadas e começaram antes ou durante o período
       return rows.filter(
-        (r) => !r.settled && r.operationDate <= range.to && r.dueDate >= range.from
+        (r) => !r.settled && r.operationDate <= range.to
       );
     }
     const base = rows.filter((r) => inRange(r.operationDate));
