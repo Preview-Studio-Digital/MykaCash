@@ -273,7 +273,11 @@ const Historico = () => {
     }
     if (statusFilter === "todas") {
       return rows.filter((r) => {
-        return inRange(r.operationDate) || inRange(r.dueDate);
+        // "andamento" (inclui abertas e vencidas até a data limite)
+        if (!r.settled && r.operationDate <= range.to) return true;
+        // "liquidadas" que venceram, foram abertas ou foram pagas no período
+        if (r.settled && (inRange(r.dueDate) || inRange(r.operationDate) || (r.settledDate && inRange(r.settledDate)))) return true;
+        return false;
       });
     }
     const base = rows.filter((r) => inRange(r.operationDate));
