@@ -437,6 +437,8 @@ const Historico = () => {
     return series;
   }, [filteredRows, period, range.from, range.to, todayStr]);
 
+  const chartGradId = useMemo(() => Math.random().toString(36).substr(2, 9), [chartData]);
+
   const toggleSettlement = async (row: (typeof rows)[number]) => {
     const inv = invoices.find((i) => i.id === row.invoiceId);
     if (!inv) return;
@@ -921,7 +923,7 @@ const Historico = () => {
                   }
                 }
 
-                const gradId = useMemo(() => Math.random().toString(36).substr(2, 9), [chartData]);
+                const gradId = chartGradId;
                 return (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart key={JSON.stringify(chartData)} data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
