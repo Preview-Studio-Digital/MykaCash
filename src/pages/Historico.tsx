@@ -98,6 +98,21 @@ const fmtDayMonth = (iso: string) =>
       })
     : "-";
 
+const weekdayShortPt = (iso: string) => {
+  if (!iso) return "";
+  const d = new Date(iso + "T00:00:00").getDay();
+  const map: Record<number, string> = {
+    1: "SEGUNDA",
+    2: "TERÇA",
+    3: "QUARTA",
+    4: "QUINTA",
+    5: "SEXTA",
+    6: "SÁBADO",
+    0: "DOMINGO",
+  };
+  return map[d] ?? "";
+};
+
 const yearOf = (iso: string) => (iso ? iso.slice(0, 4) : "");
 
 const formatBRLNum = (n: number) =>
