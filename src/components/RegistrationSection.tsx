@@ -209,14 +209,14 @@ export const RegistrationSection = () => {
     if (error) {
       setSaving(false);
       const { friendlyDbError } = await import("@/lib/dbErrors");
-      return toast.error(friendlyDbError(error, "Erro ao salvar operação"));
+      return toast.error(friendlyDbError(error, "Erro ao salvar abertura"));
     }
     const clientName = clients.find((c) => c.id === clientId)?.name ?? "cliente";
     try {
       await generateArchivePng(clientName);
-      toast.success("Operação salva e arquivo PNG gerado");
+      toast.success("Abertura salva e arquivo PNG gerado");
     } catch (e) {
-      toast.success("Operação salva (falha ao gerar PNG)");
+      toast.success("Abertura salva (falha ao gerar PNG)");
     }
     setSaving(false);
     setInvoiceNumber("");
@@ -233,7 +233,7 @@ export const RegistrationSection = () => {
             <h2 className="font-display text-xl font-semibold tracking-tight">Cadastro</h2>
           </div>
           <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
-            OPERAÇÃO
+            ABERTURA
           </span>
         </div>
 
@@ -371,7 +371,7 @@ export const RegistrationSection = () => {
           </div>
 
           <div className="space-y-2">
-            <Label>Data da operação</Label>
+            <Label>Data da abertura</Label>
             <DateField value={operationDate} onChange={setOperationDate} />
           </div>
 
@@ -576,7 +576,7 @@ export const RegistrationSection = () => {
                     marginBottom: "8px",
                   }}
                 >
-                  ◆ MYKA MONEY · REGISTRO DE OPERAÇÃO
+                  ◆ MYKA MONEY · REGISTRO DE ABERTURA
                 </div>
                 <div style={{ fontSize: "30px", fontWeight: 800, letterSpacing: "0.04em", lineHeight: 1 }}>
                   MYKA COMPRESSORES <span style={{ color: "#22d3ee" }}>DO BRASIL</span>
@@ -628,7 +628,7 @@ export const RegistrationSection = () => {
             {[
               { label: "CLIENTE", value: clients.find((c) => c.id === clientId)?.name ?? "—" },
               { label: "NOTA FISCAL", value: invoiceNumber || "—" },
-              { label: "DATA DA OPERAÇÃO", value: new Date(operationDate + "T00:00:00").toLocaleDateString("pt-BR") },
+              { label: "DATA DA ABERTURA", value: new Date(operationDate + "T00:00:00").toLocaleDateString("pt-BR") },
               { label: "TAXA MENSAL", value: formatPct(monthlyRate) },
             ].map((item) => (
               <div
@@ -769,7 +769,7 @@ export const RegistrationSection = () => {
               }}
             >
               <div style={{ fontSize: "10px", letterSpacing: "0.3em", color: "#fecaca", marginBottom: "8px" }}>
-                CUSTO DA OPERAÇÃO
+                CUSTO DA ABERTURA
               </div>
               <div style={{ fontSize: "22px", fontWeight: 800 }}>{formatBRL(result.operationCost)}</div>
             </div>
