@@ -50,22 +50,22 @@ export const ResultPanels = ({ result, monthlyRate }: { result: CalcResult; mont
       <div className="relative overflow-hidden rounded-xl bg-gradient-factoring p-4 text-white panel-glow-factoring animate-fade-up">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
         <div className="relative">
-          <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">ECONOMIA</div>
+          <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">ECONOMIA FACTORING</div>
           <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums">
             {formatBRL(factoringSavings)}
           </div>
           <div className="mt-3 h-px bg-white/25" />
           <div className="mt-3 grid grid-cols-2 gap-2">
             <div>
-              <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">TAXA ECONOMIA</div>
+              <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">TAXA MENSAL</div>
               <div className="mt-0.5 font-display text-sm font-semibold tabular-nums">
                 {formatPct(FACTORING_MONTHLY_RATE_PCT)} a.m.
               </div>
             </div>
             <div>
-              <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">CUSTO ECONOMIA</div>
+              <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">TAXA EFETIVA</div>
               <div className="mt-0.5 font-display text-sm font-semibold tabular-nums">
-                {formatBRL(result.factoringCost)}
+                {formatPct(result.totalInvoice > 0 ? (result.factoringCost / result.totalInvoice) * 100 : 0)}
               </div>
             </div>
           </div>
