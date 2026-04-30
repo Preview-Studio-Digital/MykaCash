@@ -846,44 +846,14 @@ const Historico = () => {
                 }));
 
                 const monthBoundaries: string[] = [];
-                const monthLabels: { dateKey: string; label: string; position: any }[] = [];
                 
                 if (n > 0) {
-                  const getLabel = (iso: string) => {
-                    const d = new Date(iso + "T00:00:00");
-                    return d.toLocaleDateString("pt-BR", { month: "short" }).replace('.', '').toUpperCase();
-                  };
-                  
-                  monthLabels.push({ 
-                    dateKey: chartData[0].date, 
-                    label: getLabel(chartData[0].date),
-                    position: "insideTopLeft"
-                  });
-                  
                   for (let i = 1; i < n; i++) {
                     const prevM = chartData[i - 1].date.substring(0, 7);
                     const currM = chartData[i].date.substring(0, 7);
                     if (prevM !== currM) {
                       monthBoundaries.push(chartData[i].date);
-                      monthLabels.push({ 
-                        dateKey: chartData[i].date, 
-                        label: getLabel(chartData[i - 1].date),
-                        position: "insideTopRight"
-                      });
-                      monthLabels.push({ 
-                        dateKey: chartData[i].date, 
-                        label: getLabel(chartData[i].date),
-                        position: "insideTopLeft"
-                      });
                     }
-                  }
-
-                  if (n > 1) {
-                    monthLabels.push({
-                      dateKey: chartData[n - 1].date,
-                      label: getLabel(chartData[n - 1].date),
-                      position: "insideTopRight"
-                    });
                   }
                 }
 
@@ -961,24 +931,8 @@ const Historico = () => {
                           x={dateKey}
                           stroke="hsl(var(--muted-foreground))"
                           strokeDasharray="4 4"
-                          opacity={0.8}
-                        />
-                      ))}
-                      
-                      {monthLabels.map((m, idx) => (
-                        <ReferenceLine
-                          key={`lbl-${m.dateKey}-${m.label}-${idx}`}
-                          x={m.dateKey}
-                          stroke="none"
-                          label={{
-                            value: m.label,
-                            position: m.position,
-                            fill: "hsl(var(--foreground))",
-                            opacity: 0.15,
-                            fontSize: 24,
-                            fontWeight: 800,
-                            offset: 12,
-                          }}
+                          strokeWidth={2.5}
+                          opacity={0.9}
                         />
                       ))}
 
