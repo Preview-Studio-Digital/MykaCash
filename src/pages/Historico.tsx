@@ -854,19 +854,32 @@ const Historico = () => {
                         tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`}
                       />
                       <Tooltip
-                        cursor={false}
-                        contentStyle={{
-                          background: "hsl(var(--popover))",
-                          border: "1px solid hsl(var(--border))",
-                          borderRadius: 8,
-                          fontFamily: "JetBrains Mono, monospace",
-                          fontSize: 12,
+                        cursor={{ strokeWidth: 0, stroke: "transparent", fill: "transparent" }}
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div
+                                style={{
+                                  background: "hsl(var(--popover))",
+                                  border: "1px solid hsl(var(--border))",
+                                  borderRadius: 8,
+                                  padding: "8px 12px",
+                                  fontFamily: "JetBrains Mono, monospace",
+                                  fontSize: 12,
+                                }}
+                              >
+                                <div style={{ color: "hsl(var(--foreground))", marginBottom: 4, fontWeight: 500 }}>
+                                  {data.label}
+                                </div>
+                                <div style={{ color: "hsl(var(--foreground))" }}>
+                                  {formatBRL(payload[0].value as number)}
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
                         }}
-                        labelStyle={{ color: "hsl(var(--foreground))" }}
-                        labelFormatter={(_, payload) =>
-                          (payload?.[0]?.payload as { label?: string } | undefined)?.label ?? ""
-                        }
-                        formatter={(v: number) => [formatBRL(v), "Em aberto"]}
                       />
 
                       <Area
