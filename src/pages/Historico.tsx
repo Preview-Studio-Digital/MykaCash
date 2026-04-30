@@ -854,6 +854,7 @@ const Historico = () => {
                         tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`}
                       />
                       <Tooltip
+                        cursor={false}
                         contentStyle={{
                           background: "hsl(var(--popover))",
                           border: "1px solid hsl(var(--border))",
