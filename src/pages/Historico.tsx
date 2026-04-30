@@ -713,32 +713,6 @@ const Historico = () => {
         })}
       </div>
 
-      <div className="flex flex-wrap justify-center gap-1">
-        {statusOptions.map((opt) => {
-          const active = statusFilter === opt.id;
-          const activeCls =
-            opt.id === "abertas" || opt.id === "andamento"
-              ? "bg-net-green/20 text-net-green shadow-[0_0_12px_hsl(var(--net-green)/0.35)]"
-              : opt.id === "vencidas"
-              ? "bg-cost-red/20 text-cost-red shadow-[0_0_12px_hsl(var(--cost-red)/0.35)]"
-              : opt.id === "liquidadas"
-              ? "bg-factoring-amber/20 text-factoring-amber shadow-[0_0_12px_hsl(var(--factoring-amber)/0.35)]"
-              : "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.4)]";
-          return (
-            <button
-              key={opt.id}
-              onClick={() => setStatusFilter(opt.id)}
-              className={
-                "inline-flex items-center rounded-full px-3 py-1 font-mono text-[9px] tracking-[0.25em] transition-all whitespace-nowrap " +
-                (active ? activeCls : "text-muted-foreground hover:text-foreground")
-              }
-            >
-              {opt.label}
-            </button>
-          );
-        })}
-      </div>
-
       {period === "periodo" && (
         <div className="flex items-center justify-center gap-3">
           <div className="flex items-center gap-2">
@@ -764,6 +738,25 @@ const Historico = () => {
           TODAS AS OPERAÇÕES
         </span>
       )}
+
+      <div className="inline-flex flex-wrap justify-center rounded-2xl sm:rounded-full border border-border/60 bg-background/40 p-1 gap-1 max-w-full">
+        {statusOptions.map((opt) => {
+          const active = statusFilter === opt.id;
+          const activeCls = "bg-primary text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.4)]";
+          return (
+            <button
+              key={opt.id}
+              onClick={() => setStatusFilter(opt.id)}
+              className={
+                "inline-flex items-center rounded-full px-3 py-1 font-mono text-[9px] tracking-[0.25em] transition-all whitespace-nowrap " +
+                (active ? activeCls : "text-muted-foreground hover:text-foreground")
+              }
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
     </section>
   );
 
