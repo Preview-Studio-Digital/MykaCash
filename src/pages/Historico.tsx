@@ -547,6 +547,13 @@ const Historico = () => {
     { id: "periodo", label: "PERÍODO" },
   ];
 
+  const statusOptions: { id: StatusFilter; label: string }[] = [
+    { id: "todas", label: "TODAS" },
+    { id: "abertas", label: "ABERTURAS" },
+    { id: "vencidas", label: "VENCIDAS" },
+    { id: "liquidadas", label: "LIQUIDADAS" },
+  ];
+
   // Hover state to preview liquidation in orange
   const [hoverKey, setHoverKey] = useState<string | null>(null);
 
