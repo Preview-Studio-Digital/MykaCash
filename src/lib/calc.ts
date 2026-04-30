@@ -106,6 +106,7 @@ export const calculate = (input: CalcInput): CalcResult => {
   let factoringEffectivePct = totalInvoice > 0 ? (factoringCost / totalInvoice) * 100 : 0;
   if (totalInvoice > 0 && factoringEffectivePct < MIN_EFFECTIVE_PCT) {
     factoringCost = totalInvoice * (MIN_EFFECTIVE_PCT / 100);
+    factoringEffectivePct = MIN_EFFECTIVE_PCT;
   }
 
   return {
