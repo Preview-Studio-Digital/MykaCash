@@ -577,6 +577,20 @@ const Historico = () => {
       installments.push({ id: it.id, value: v, dueDate: it.dueDate });
     }
     setSaving(true);
+
+    const updatedInvoice = {
+      ...(invoices.find(i => i.id === editingId) || {}),
+      invoice_number: editForm.invoice_number.trim(),
+      invoice_value: invoiceValue,
+      operation_date: editForm.operation_date,
+      monthly_rate: monthlyRate,
+      factoring_monthly_rate: factoringRate,
+      installments: installments as any,
+    };
+
+    // Optimistic update
+    setInvoices((prev) => prev.map((i) => (i.id === editingId ? (updatedInvoice as any) : i)));
+
     const { error } = await supabase
       .from("invoices")
       .update({
