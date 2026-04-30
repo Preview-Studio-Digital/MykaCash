@@ -319,10 +319,8 @@ const Historico = () => {
     if (allEvents.length === 0)
       return [] as { date: string; label: string; labelShort: string; saldo: number }[];
 
-    // Saldo acumulado de todos os eventos com data ESTRITAMENTE anterior a range.from
-    const carryOver = allEvents
-      .filter((e) => e.date < range.from)
-      .reduce((s, e) => s + e.delta, 0);
+    // Saldo acumulado anterior foi removido conforme solicitação para sempre partir do zero
+    const carryOver = 0;
 
     // Eventos que ocorreram DENTRO do período
     const periodEvents = allEvents.filter((e) => e.date >= range.from && e.date <= range.to);
