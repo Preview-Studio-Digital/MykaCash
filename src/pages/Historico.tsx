@@ -466,7 +466,13 @@ const Historico = () => {
   };
 
   const handleDeleteOperation = async (invoiceId: string) => {
-    if (!isAdmin) return toast.error("Apenas administradores podem excluir aberturas");
+    const inv = invoices.find((i) => i.id === invoiceId);
+    if (!inv) return;
+    const createdAtMs = new Date(inv.created_at).getTime();
+    const withinEditWindow = Date.now() - createdAtMs < 5 * 60 * 1000;
+    const isAuthor = !!user && inv.created_by === user.id;
+    const canManage = isAdmin || (isAuthor && withinEditWindow);
+    if (!canManage) return toast.error("Sem permissão para excluir esta abertura");
     if (!confirm("Deseja realmente excluir a abertura? Essa ação não pode ser desfeita.")) return;
     const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
     if (error) {
@@ -491,9 +497,13 @@ const Historico = () => {
   const [saving, setSaving] = useState(false);
 
   const openEdit = (invoiceId: string) => {
-    if (!isAdmin) return toast.error("Apenas administradores podem editar aberturas");
     const inv = invoices.find((i) => i.id === invoiceId);
     if (!inv) return;
+    const createdAtMs = new Date(inv.created_at).getTime();
+    const withinEditWindow = Date.now() - createdAtMs < 5 * 60 * 1000;
+    const isAuthor = !!user && inv.created_by === user.id;
+    const canManage = isAdmin || (isAuthor && withinEditWindow);
+    if (!canManage) return toast.error("Sem permissão para editar esta abertura");
     const insts = (Array.isArray(inv.installments) ? inv.installments : []) as Installment[];
     setEditForm({
       invoice_number: inv.invoice_number,
@@ -1048,12 +1058,12 @@ const Historico = () => {
               </div>
             ) : (
               sortedRows.map((r) => {
-                const canManage = isAdmin;
+                const canManage = isAdmin || (r.isAuthor && r.withinEditWindow);
                 return (
                   <div
                     key={r.key}
                     className={
-                      "rounded-lg border border-border/40 p-3 space-y-1 " +
+                      "group/card rounded-lg border border-border/40 p-3 space-y-1 relative " +
                       (r.settled
                         ? "bg-[hsl(var(--factoring-amber)/0.18)]"
                         : r.overdue
@@ -1120,7 +1130,7 @@ const Historico = () => {
                         )}
                       </Button>
                       {canManage && (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
                           <Button
                             size="sm"
                             variant="ghost"
@@ -1183,7 +1193,7 @@ const Historico = () => {
                   </tr>
                 ) : (
                   sortedRows.map((r) => {
-                    const canManage = isAdmin;
+                    const canManage = isAdmin || (r.isAuthor && r.withinEditWindow);
                     return (
                       <tr
                         key={r.key}
