@@ -101,6 +101,12 @@ export const calculate = (input: CalcInput): CalcResult => {
     }));
   }
 
+  // Piso adicional na taxa efetiva de factoring (mínimo 1,5%)
+  let factoringEffectivePct = totalInvoice > 0 ? (factoringCost / totalInvoice) * 100 : 0;
+  if (totalInvoice > 0 && factoringEffectivePct < MIN_EFFECTIVE_PCT) {
+    factoringCost = totalInvoice * (MIN_EFFECTIVE_PCT / 100);
+  }
+
   return {
     totalInvoice,
     netValue,
