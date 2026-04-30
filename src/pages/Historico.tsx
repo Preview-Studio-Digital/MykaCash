@@ -783,7 +783,7 @@ const Historico = () => {
             <div className="flex items-center gap-3">
               <span className="h-2 w-2 rounded-full bg-net-green animate-pulse-glow" />
               <h2 className="font-display text-xl font-semibold tracking-tight">
-                Valores em Aberto
+                Gráfico Evolutivo
               </h2>
             </div>
             <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
@@ -823,11 +823,22 @@ const Historico = () => {
                 }));
 
                 const monthBoundaries: string[] = [];
-                for (let i = 1; i < n; i++) {
-                  const prevM = chartData[i - 1].date.substring(0, 7);
-                  const currM = chartData[i].date.substring(0, 7);
-                  if (prevM !== currM) {
-                    monthBoundaries.push(chartData[i].date);
+                const monthLabels: { dateKey: string; label: string }[] = [];
+                
+                if (n > 0) {
+                  const getLabel = (iso: string) => {
+                    const d = new Date(iso + "T00:00:00");
+                    return d.toLocaleDateString("pt-BR", { month: "short" }).replace('.', '').toUpperCase();
+                  };
+                  monthLabels.push({ dateKey: chartData[0].date, label: getLabel(chartData[0].date) });
+                  
+                  for (let i = 1; i < n; i++) {
+                    const prevM = chartData[i - 1].date.substring(0, 7);
+                    const currM = chartData[i].date.substring(0, 7);
+                    if (prevM !== currM) {
+                      monthBoundaries.push(chartData[i].date);
+                      monthLabels.push({ dateKey: chartData[i].date, label: getLabel(chartData[i].date) });
+                    }
                   }
                 }
 
@@ -853,7 +864,7 @@ const Historico = () => {
                           <rect x="0" y="0" width="100%" height="100%" fill="url(#areaFade)" />
                         </mask>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.8} />
+                      <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--muted-foreground))" opacity={0.4} vertical={true} horizontal={true} />
                       <XAxis
                         dataKey="date"
                         tickFormatter={(val) => {
@@ -906,6 +917,23 @@ const Historico = () => {
                           stroke="hsl(var(--muted-foreground))"
                           strokeDasharray="4 4"
                           opacity={0.8}
+                        />
+                      ))}
+                      
+                      {monthLabels.map((m) => (
+                        <ReferenceLine
+                          key={`lbl-${m.dateKey}`}
+                          x={m.dateKey}
+                          stroke="none"
+                          label={{
+                            value: m.label,
+                            position: "insideTopRight",
+                            fill: "hsl(var(--foreground))",
+                            opacity: 0.15,
+                            fontSize: 24,
+                            fontWeight: 800,
+                            offset: 12,
+                          }}
                         />
                       ))}
 
