@@ -263,7 +263,8 @@ const Historico = () => {
     // Para os demais: filtrar por operationDate (data de abertura).
     const inRange = (d: string) => d >= range.from && d <= range.to;
     if (statusFilter === "liquidadas") {
-      return rows.filter((r) => r.settled && inRange(r.dueDate));
+      // Para "liquidadas": filtrar pela data efetiva de liquidação dentro do período
+      return rows.filter((r) => r.settled && r.settledDate && inRange(r.settledDate));
     }
     if (statusFilter === "andamento") {
       // Operações em andamento: não foram liquidadas e começaram antes ou durante o período
