@@ -138,7 +138,7 @@ const Historico = () => {
   const range = useMemo(() => {
     const today = todayISO();
     if (period === "hoje") return { from: today, to: today };
-    if (period === "semana") return { from: startOfWeekISO(), to: today };
+    if (period === "semana") return { from: startOfWeekISO(), to: endOfWeekISO() };
     if (period === "mes") return { from: startOfMonthISO(), to: today };
     if (period === "total") return { from: "1900-01-01", to: "2999-12-31" };
     return { from, to };
@@ -332,6 +332,18 @@ const Historico = () => {
     periodEvents.forEach((e) => {
       byDate.set(e.date, (byDate.get(e.date) ?? 0) + e.delta);
     });
+
+    if (period === "semana") {
+      // Garante que todos os dias da semana estejam presentes no eixo X
+      const d = new Date(range.from + "T00:00:00");
+      const end = new Date(range.to + "T00:00:00");
+      while (d <= end) {
+        const iso = localISO(d);
+        if (!byDate.has(iso)) byDate.set(iso, 0);
+        d.setDate(d.getDate() + 1);
+      }
+    }
+
     const sortedDates = Array.from(byDate.keys()).sort();
 
     const series: { date: string; label: string; labelShort: string; saldo: number }[] = [];
@@ -397,26 +409,29 @@ const Historico = () => {
     }
 
     // Para períodos maiores, sempre mostrar a data de hoje se ainda não estiver (pra a linha ir até o fim)
-    if (period === "semana" || period === "mes" || period === "total") {
+    if (period === "mes" || period === "total") {
       const last = series[series.length - 1];
-      if (last && last.date < todayStr) {
-        fillGaps(todayStr, last.saldo);
-        series.push({
-          date: todayStr,
-          label: fmtDate(todayStr),
-          labelShort: fmtDayMonth(todayStr),
-          saldo: last.saldo,
-        });
-      } else if (last && last.date > todayStr) {
-        const insertIdx = series.findIndex((s) => s.date > todayStr);
-        if (insertIdx > 0) {
-          const prev = series[insertIdx - 1];
-          series.splice(insertIdx, 0, {
+      const hasToday = series.some((s) => s.date === todayStr);
+      if (!hasToday) {
+        if (last && last.date < todayStr) {
+          fillGaps(todayStr, last.saldo);
+          series.push({
             date: todayStr,
             label: fmtDate(todayStr),
             labelShort: fmtDayMonth(todayStr),
-            saldo: prev.saldo,
+            saldo: last.saldo,
           });
+        } else if (last && last.date > todayStr) {
+          const insertIdx = series.findIndex((s) => s.date > todayStr);
+          if (insertIdx > 0) {
+            const prev = series[insertIdx - 1];
+            series.splice(insertIdx, 0, {
+              date: todayStr,
+              label: fmtDate(todayStr),
+              labelShort: fmtDayMonth(todayStr),
+              saldo: prev.saldo,
+            });
+          }
         }
       }
     }
