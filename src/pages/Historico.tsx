@@ -903,7 +903,7 @@ const Historico = () => {
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
-              <h2 className="font-display text-xl font-semibold tracking-tight">Histórico de Aberturas</h2>
+              <h2 className="font-display text-xl font-semibold tracking-tight">Histórico de Operações</h2>
             </div>
             <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
               {filteredRows.length} {filteredRows.length === 1 ? "PARCELA" : "PARCELAS"} · {invoices.length}{" "}
