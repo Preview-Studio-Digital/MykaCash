@@ -907,26 +907,27 @@ const Historico = () => {
                   }
                 }
 
+                const gradId = React.useId();
                 return (
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+                    <AreaChart key={JSON.stringify(chartData)} data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
                       <defs>
-                        <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                        <linearGradient id={`lineGrad-${gradId}`} x1="0" y1="0" x2="1" y2="0">
                           {stops.map((s, i) => (
                             <stop key={i} offset={`${s.offset}%`} stopColor={s.color} stopOpacity={1} />
                           ))}
                         </linearGradient>
-                        <linearGradient id="areaGradH" x1="0" y1="0" x2="1" y2="0">
+                        <linearGradient id={`areaGradH-${gradId}`} x1="0" y1="0" x2="1" y2="0">
                           {stops.map((s, i) => (
                             <stop key={i} offset={`${s.offset}%`} stopColor={s.color} stopOpacity={0.55} />
                           ))}
                         </linearGradient>
-                        <linearGradient id="areaFade" x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient id={`areaFade-${gradId}`} x1="0" y1="0" x2="0" y2="1">
                           <stop offset="0%" stopColor="#ffffff" stopOpacity={1} />
                           <stop offset="100%" stopColor="#ffffff" stopOpacity={0.05} />
                         </linearGradient>
-                        <mask id="areaFadeMask">
-                          <rect x="0" y="0" width="100%" height="100%" fill="url(#areaFade)" />
+                        <mask id={`areaFadeMask-${gradId}`}>
+                          <rect x="0" y="0" width="100%" height="100%" fill={`url(#areaFade-${gradId})`} />
                         </mask>
                       </defs>
                       <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--muted-foreground))" opacity={0.4} vertical={true} horizontal={true} />
@@ -991,10 +992,10 @@ const Historico = () => {
                         type="monotone"
                         dataKey="saldo"
                         name="saldo"
-                        stroke="url(#lineGrad)"
+                        stroke={`url(#lineGrad-${gradId})`}
                         strokeWidth={2.5}
-                        fill="url(#areaGradH)"
-                        mask="url(#areaFadeMask)"
+                        fill={`url(#areaGradH-${gradId})`}
+                        mask={`url(#areaFadeMask-${gradId})`}
                       />
 
                     </AreaChart>
