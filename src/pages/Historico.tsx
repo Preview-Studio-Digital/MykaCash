@@ -1188,12 +1188,12 @@ const Historico = () => {
                       <tr
                         key={r.key}
                         className={
-                          "border-t border-border/40 font-mono tabular-nums text-center transition-colors " +
+                          "group/row border-t border-border/40 font-mono tabular-nums text-center transition-colors " +
                           rowClass(r)
                         }
                       >
-                        <td className="px-2 py-2">
-                          <div className="inline-flex items-center gap-1">
+                        <td className="relative px-2 py-2">
+                          <div className="inline-flex items-center justify-center">
                             <button
                               type="button"
                               onClick={() => toggleSettlement(r)}
@@ -1229,7 +1229,7 @@ const Historico = () => {
                               </span>
                             </button>
                             {canManage && (
-                              <>
+                              <div className="absolute left-[calc(100%-0.25rem)] top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 pointer-events-none group-hover/row:opacity-100 group-hover/row:pointer-events-auto transition-all bg-background/95 backdrop-blur-sm border border-border/50 rounded-md p-0.5 shadow-sm z-10">
                                 <button
                                   onClick={() => openEdit(r.invoiceId)}
                                   className="rounded p-1 text-muted-foreground transition-colors hover:bg-primary/15 hover:text-primary"
@@ -1246,7 +1246,7 @@ const Historico = () => {
                                 >
                                   <Trash2 className="h-3 w-3" />
                                 </button>
-                              </>
+                              </div>
                             )}
                           </div>
                         </td>
