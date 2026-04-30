@@ -416,14 +416,14 @@ const Historico = () => {
   };
 
   const handleDeleteOperation = async (invoiceId: string) => {
-    if (!isAdmin) return toast.error("Apenas administradores podem excluir operações");
-    if (!confirm("Deseja realmente excluir a operação? Essa ação não pode ser desfeita.")) return;
+    if (!isAdmin) return toast.error("Apenas administradores podem excluir aberturas");
+    if (!confirm("Deseja realmente excluir a abertura? Essa ação não pode ser desfeita.")) return;
     const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
     if (error) {
       const { friendlyDbError } = await import("@/lib/dbErrors");
-      return toast.error(friendlyDbError(error, "Erro ao excluir operação"));
+      return toast.error(friendlyDbError(error, "Erro ao excluir abertura"));
     }
-    toast.success("Operação removida");
+    toast.success("Abertura removida");
     load();
   };
 
@@ -441,7 +441,7 @@ const Historico = () => {
   const [saving, setSaving] = useState(false);
 
   const openEdit = (invoiceId: string) => {
-    if (!isAdmin) return toast.error("Apenas administradores podem editar operações");
+    if (!isAdmin) return toast.error("Apenas administradores podem editar aberturas");
     const inv = invoices.find((i) => i.id === invoiceId);
     if (!inv) return;
     const insts = (Array.isArray(inv.installments) ? inv.installments : []) as Installment[];
@@ -504,7 +504,7 @@ const Historico = () => {
     if (!editForm.invoice_number.trim()) return toast.error("Informe o número da NF");
     if (!Number.isFinite(invoiceValue) || invoiceValue <= 0)
       return toast.error("Valor da NF inválido");
-    if (!editForm.operation_date) return toast.error("Informe a data de operação");
+    if (!editForm.operation_date) return toast.error("Informe a data de abertura");
     if (!Number.isFinite(monthlyRate) || monthlyRate < 0)
       return toast.error("Taxa mensal inválida");
     if (editForm.installments.length === 0)
@@ -531,9 +531,9 @@ const Historico = () => {
     setSaving(false);
     if (error) {
       const { friendlyDbError } = await import("@/lib/dbErrors");
-      return toast.error(friendlyDbError(error, "Erro ao salvar operação"));
+      return toast.error(friendlyDbError(error, "Erro ao salvar abertura"));
     }
-    toast.success("Operação atualizada");
+    toast.success("Abertura atualizada");
     closeEdit();
     load();
   };
@@ -545,6 +545,13 @@ const Historico = () => {
     { id: "mes", label: "MÊS" },
     { id: "total", label: "TOTAL" },
     { id: "periodo", label: "PERÍODO" },
+  ];
+
+  const statusOptions: { id: StatusFilter; label: string }[] = [
+    { id: "todas", label: "TODAS" },
+    { id: "abertas", label: "ABERTURAS" },
+    { id: "vencidas", label: "VENCIDAS" },
+    { id: "liquidadas", label: "LIQUIDADAS" },
   ];
 
   // Hover state to preview liquidation in orange
@@ -693,7 +700,7 @@ const Historico = () => {
           )}
           {period === "total" && (
             <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
-              TODAS AS OPERAÇÕES
+              TODAS AS ABERTURAS
             </span>
           )}
         </section>
@@ -896,22 +903,16 @@ const Historico = () => {
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
-              <h2 className="font-display text-xl font-semibold tracking-tight">Histórico de Operações</h2>
+              <h2 className="font-display text-xl font-semibold tracking-tight">Histórico de Aberturas</h2>
             </div>
             <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
               {filteredRows.length} {filteredRows.length === 1 ? "PARCELA" : "PARCELAS"} · {invoices.length}{" "}
-              {invoices.length === 1 ? "OPERAÇÃO" : "OPERAÇÕES"}
+              {invoices.length === 1 ? "ABERTURA" : "ABERTURAS"}
             </span>
           </div>
 
-          {/* Status filter */}
-          <div className="mb-4 flex flex-wrap items-center gap-1 rounded-full border border-border/60 bg-background/40 p-1 w-fit">
-            {([
-              { id: "todas", label: "TODAS" },
-              { id: "abertas", label: "ABERTAS" },
-              { id: "vencidas", label: "VENCIDAS" },
-              { id: "liquidadas", label: "LIQUIDADAS" },
-            ] as { id: StatusFilter; label: string }[]).map((opt) => {
+          <div className="mb-6 flex flex-wrap justify-center sm:justify-start gap-1">
+            {statusOptions.map((opt) => {
               const active = statusFilter === opt.id;
               const activeCls =
                 opt.id === "abertas"
@@ -944,7 +945,7 @@ const Historico = () => {
               </div>
             ) : filteredRows.length === 0 ? (
               <div className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
-                NENHUMA OPERAÇÃO NO PERÍODO
+                NENHUMA ABERTURA NO PERÍODO
               </div>
             ) : (
               sortedRows.map((r) => {
@@ -1057,7 +1058,7 @@ const Historico = () => {
                   <SortableTh label="CLIENTE" sKey="clientName" />
                   <SortableTh label="NF" sKey="invoiceNumber" />
                   <SortableTh label="PARC." sKey="parcelLabel" />
-                  <SortableTh label="OPERAÇÃO" sKey="operationDate" />
+                  <SortableTh label="ABERTURA" sKey="operationDate" />
                   <SortableTh label="VENC." sKey="dueDate" />
                   <SortableTh label="DIAS" sKey="days" />
                   <SortableTh label="TX MÊS" sKey="monthlyRate" />
@@ -1078,7 +1079,7 @@ const Historico = () => {
                 ) : filteredRows.length === 0 ? (
                   <tr>
                     <td colSpan={13} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
-                      NENHUMA OPERAÇÃO NO PERÍODO
+                      NENHUMA ABERTURA NO PERÍODO
                     </td>
                   </tr>
                 ) : (
@@ -1133,7 +1134,7 @@ const Historico = () => {
                                 <button
                                   onClick={() => openEdit(r.invoiceId)}
                                   className="rounded p-1 text-muted-foreground transition-colors hover:bg-primary/15 hover:text-primary"
-                                  title="Editar operação"
+                                  title="Editar abertura"
                                   aria-label="Editar"
                                 >
                                   <Pencil className="h-3 w-3" />
@@ -1141,7 +1142,7 @@ const Historico = () => {
                                 <button
                                   onClick={() => handleDeleteOperation(r.invoiceId)}
                                   className="rounded p-1 text-muted-foreground transition-colors hover:bg-cost-red/15 hover:text-cost-red"
-                                  title="Remover operação"
+                                  title="Remover abertura"
                                   aria-label="Remover"
                                 >
                                   <Trash2 className="h-3 w-3" />
@@ -1193,7 +1194,7 @@ const Historico = () => {
           </div>
 
           <p className="mt-4 font-mono text-[10px] tracking-[0.25em] text-muted-foreground text-justify">
-            * EDIÇÃO E REMOÇÃO DE OPERAÇÕES PERMITIDAS APENAS AO ADMINISTRADOR.
+            * EDIÇÃO E REMOÇÃO DE ABERTURAS PERMITIDAS APENAS AO ADMINISTRADOR.
           </p>
         </section>
       </main>
@@ -1202,7 +1203,7 @@ const Historico = () => {
       <Dialog open={!!editingId} onOpenChange={(o) => !o && closeEdit()}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-display">Editar operação</DialogTitle>
+            <DialogTitle className="font-display">Editar abertura</DialogTitle>
             <DialogDescription className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">
               ALTERAÇÕES APLICADAS IMEDIATAMENTE AO HISTÓRICO
             </DialogDescription>
@@ -1228,7 +1229,7 @@ const Historico = () => {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">DATA DA OPERAÇÃO</Label>
+                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">DATA DA ABERTURA</Label>
                   <DateField
                     value={editForm.operation_date}
                     onChange={(v) => setEditForm((f) => f && { ...f, operation_date: v })}
