@@ -271,8 +271,16 @@ const Historico = () => {
         (r) => !r.settled && r.operationDate <= range.to
       );
     }
+    if (statusFilter === "todas") {
+      return rows.filter((r) => {
+        // Inclui tudo que está em andamento/vencida até o limite do período
+        if (!r.settled && r.operationDate <= range.to) return true;
+        // Inclui liquidadas se foram abertas ou venceram dentro do período
+        if (r.settled && (inRange(r.operationDate) || inRange(r.dueDate))) return true;
+        return false;
+      });
+    }
     const base = rows.filter((r) => inRange(r.operationDate));
-    if (statusFilter === "todas") return base;
     if (statusFilter === "vencidas") return base.filter((r) => !r.settled && r.overdue);
     return base.filter((r) => !r.settled && !r.overdue); // abertas
   }, [rows, statusFilter, range.from, range.to]);
