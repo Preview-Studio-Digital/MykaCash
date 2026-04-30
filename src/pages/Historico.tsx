@@ -1194,7 +1194,7 @@ const Historico = () => {
           </div>
 
           <p className="mt-4 font-mono text-[10px] tracking-[0.25em] text-muted-foreground text-justify">
-            * EDIÇÃO E REMOÇÃO DE ABERTURAS PERMITIDAS APENAS AO ADMINISTRADOR.
+            * EDIÇÃO E REMOÇÃO DE OPERAÇÕES PERMITIDAS APENAS AO ADMINISTRADOR.
           </p>
         </section>
       </main>
