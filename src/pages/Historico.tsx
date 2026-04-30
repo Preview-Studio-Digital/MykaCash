@@ -906,8 +906,8 @@ const Historico = () => {
               <h2 className="font-display text-xl font-semibold tracking-tight">Histórico de Operações</h2>
             </div>
             <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
-              {filteredRows.length} {filteredRows.length === 1 ? "PARCELA" : "PARCELAS"} · {invoices.length}{" "}
-              {invoices.length === 1 ? "ABERTURA" : "ABERTURAS"}
+              {invoices.length} {invoices.length === 1 ? "OPERAÇÃO" : "OPERAÇÕES"} · {filteredRows.length}{" "}
+              {filteredRows.length === 1 ? "PARCELA" : "PARCELAS"}
             </span>
           </div>
 
