@@ -355,8 +355,30 @@ const Historico = () => {
       });
     }
 
+    const fillGaps = (targetDateStr: string, currentSaldo: number) => {
+      if (series.length === 0) return;
+      const lastDate = series[series.length - 1].date;
+      const lastDateObj = new Date(lastDate + "T00:00:00");
+      const dObj = new Date(targetDateStr + "T00:00:00");
+      let temp = new Date(lastDateObj.getFullYear(), lastDateObj.getMonth() + 1, 1);
+      while (temp < dObj) {
+        const firstStr = localISO(temp);
+        if (firstStr !== targetDateStr && firstStr !== lastDate) {
+          series.push({
+            date: firstStr,
+            label: fmtDate(firstStr),
+            labelShort: fmtDayMonth(firstStr),
+            saldo: Math.round(currentSaldo * 100) / 100,
+          });
+        }
+        temp.setMonth(temp.getMonth() + 1);
+      }
+    };
+
     let acc = includesFirst ? 0 : carryOver;
     for (const d of sortedDates) {
+      fillGaps(d, acc);
+
       acc += byDate.get(d)!;
       // Evita ponto duplicado se o primeiro evento coincide com o anchor
       if (series.length && series[series.length - 1].date === d) {
@@ -375,6 +397,7 @@ const Historico = () => {
     if (period === "semana" || period === "mes" || period === "total") {
       const last = series[series.length - 1];
       if (last.date < todayStr) {
+        fillGaps(todayStr, last.saldo);
         series.push({
           date: todayStr,
           label: fmtDate(todayStr),
