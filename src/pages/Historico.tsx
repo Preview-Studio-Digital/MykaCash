@@ -1052,7 +1052,25 @@ const Historico = () => {
                   <SortableTh label="NF" sKey="invoiceNumber" />
                   <SortableTh label="PARC." sKey="parcelLabel" />
                   <SortableTh label="ABERTURA" sKey="operationDate" />
-...
+                  <SortableTh label="VENC." sKey="dueDate" />
+                  <SortableTh label="DIAS" sKey="days" />
+                  <SortableTh label="TX MÊS" sKey="monthlyRate" />
+                  <SortableTh label="TX EFET." sKey="effectivePct" />
+                  <SortableTh label="BRUTO (R$)" sKey="value" />
+                  <SortableTh label="LÍQUIDO (R$)" sKey="presentValue" />
+                  <SortableTh label="CUSTO (R$)" sKey="cost" />
+                  <SortableTh label="AUTOR" sKey="createdBy" />
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={13} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
+                      CARREGANDO...
+                    </td>
+                  </tr>
+                ) : filteredRows.length === 0 ? (
+                  <tr>
                     <td colSpan={13} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                       NENHUMA ABERTURA NO PERÍODO
                     </td>
