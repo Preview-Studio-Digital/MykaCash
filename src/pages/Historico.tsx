@@ -273,11 +273,7 @@ const Historico = () => {
     }
     if (statusFilter === "todas") {
       return rows.filter((r) => {
-        // Inclui tudo que está em andamento/vencida até o limite do período
-        if (!r.settled && r.operationDate <= range.to) return true;
-        // Inclui liquidadas se foram abertas ou venceram dentro do período
-        if (r.settled && (inRange(r.operationDate) || inRange(r.dueDate))) return true;
-        return false;
+        return inRange(r.operationDate) || inRange(r.dueDate);
       });
     }
     const base = rows.filter((r) => inRange(r.operationDate));
@@ -702,7 +698,7 @@ const Historico = () => {
         <PageNav />
 
         {/* Period filter — controls panels, chart, and table */}
-        <section className="flex flex-wrap items-center justify-center gap-3 animate-fade-up text-center">
+        <section className="flex flex-col items-center justify-center gap-3 animate-fade-up text-center">
           <div className="inline-flex flex-wrap justify-center rounded-2xl sm:rounded-full border border-border/60 bg-background/40 p-1 gap-1 max-w-full">
             {periodOptions.map((opt) => {
               const active = period === opt.id;
