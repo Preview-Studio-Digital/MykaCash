@@ -267,7 +267,7 @@ const Historico = () => {
     if (statusFilter === "andamento") {
       // Sobreposição de intervalos: operationDate <= range.to && dueDate >= range.from
       return rows.filter(
-        (r) => !r.settled && !r.overdue && r.operationDate <= range.to && r.dueDate >= range.from
+        (r) => !r.settled && r.operationDate <= range.to && r.dueDate >= range.from
       );
     }
     const base = rows.filter((r) => inRange(r.operationDate));
