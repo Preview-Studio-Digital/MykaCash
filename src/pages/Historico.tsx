@@ -1134,7 +1134,7 @@ const Historico = () => {
                                 <button
                                   onClick={() => openEdit(r.invoiceId)}
                                   className="rounded p-1 text-muted-foreground transition-colors hover:bg-primary/15 hover:text-primary"
-                                  title="Editar operação"
+                                  title="Editar abertura"
                                   aria-label="Editar"
                                 >
                                   <Pencil className="h-3 w-3" />
@@ -1142,7 +1142,7 @@ const Historico = () => {
                                 <button
                                   onClick={() => handleDeleteOperation(r.invoiceId)}
                                   className="rounded p-1 text-muted-foreground transition-colors hover:bg-cost-red/15 hover:text-cost-red"
-                                  title="Remover operação"
+                                  title="Remover abertura"
                                   aria-label="Remover"
                                 >
                                   <Trash2 className="h-3 w-3" />
@@ -1194,7 +1194,7 @@ const Historico = () => {
           </div>
 
           <p className="mt-4 font-mono text-[10px] tracking-[0.25em] text-muted-foreground text-justify">
-            * EDIÇÃO E REMOÇÃO DE OPERAÇÕES PERMITIDAS APENAS AO ADMINISTRADOR.
+            * EDIÇÃO E REMOÇÃO DE ABERTURAS PERMITIDAS APENAS AO ADMINISTRADOR.
           </p>
         </section>
       </main>
@@ -1203,7 +1203,7 @@ const Historico = () => {
       <Dialog open={!!editingId} onOpenChange={(o) => !o && closeEdit()}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-display">Editar operação</DialogTitle>
+            <DialogTitle className="font-display">Editar abertura</DialogTitle>
             <DialogDescription className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">
               ALTERAÇÕES APLICADAS IMEDIATAMENTE AO HISTÓRICO
             </DialogDescription>
@@ -1229,7 +1229,7 @@ const Historico = () => {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">DATA DA OPERAÇÃO</Label>
+                  <Label className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">DATA DA ABERTURA</Label>
                   <DateField
                     value={editForm.operation_date}
                     onChange={(v) => setEditForm((f) => f && { ...f, operation_date: v })}
