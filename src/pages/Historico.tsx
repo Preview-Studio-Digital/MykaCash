@@ -416,7 +416,7 @@ const Historico = () => {
   };
 
   const handleDeleteOperation = async (invoiceId: string) => {
-    if (!isAdmin) return toast.error("Apenas administradores podem excluir operações");
+    if (!isAdmin) return toast.error("Apenas administradores podem excluir aberturas");
     if (!confirm("Deseja realmente excluir a abertura? Essa ação não pode ser desfeita.")) return;
     const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
     if (error) {
@@ -441,7 +441,7 @@ const Historico = () => {
   const [saving, setSaving] = useState(false);
 
   const openEdit = (invoiceId: string) => {
-    if (!isAdmin) return toast.error("Apenas administradores podem editar operações");
+    if (!isAdmin) return toast.error("Apenas administradores podem editar aberturas");
     const inv = invoices.find((i) => i.id === invoiceId);
     if (!inv) return;
     const insts = (Array.isArray(inv.installments) ? inv.installments : []) as Installment[];
@@ -700,7 +700,7 @@ const Historico = () => {
           )}
           {period === "total" && (
             <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
-              TODAS AS OPERAÇÕES
+              TODAS AS ABERTURAS
             </span>
           )}
         </section>
@@ -903,7 +903,7 @@ const Historico = () => {
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
-              <h2 className="font-display text-xl font-semibold tracking-tight">Histórico de Operações</h2>
+              <h2 className="font-display text-xl font-semibold tracking-tight">Histórico de Aberturas</h2>
             </div>
             <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
               {filteredRows.length} {filteredRows.length === 1 ? "PARCELA" : "PARCELAS"} · {invoices.length}{" "}
