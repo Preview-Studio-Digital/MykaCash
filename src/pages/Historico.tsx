@@ -98,6 +98,21 @@ const fmtDayMonth = (iso: string) =>
       })
     : "-";
 
+const weekdayShortPt = (iso: string) => {
+  if (!iso) return "";
+  const d = new Date(iso + "T00:00:00").getDay();
+  const map: Record<number, string> = {
+    1: "SEGUNDA",
+    2: "TERÇA",
+    3: "QUARTA",
+    4: "QUINTA",
+    5: "SEXTA",
+    6: "SÁBADO",
+    0: "DOMINGO",
+  };
+  return map[d] ?? "";
+};
+
 const yearOf = (iso: string) => (iso ? iso.slice(0, 4) : "");
 
 const formatBRLNum = (n: number) =>
@@ -1097,11 +1112,24 @@ const Historico = () => {
                                   ? "bg-factoring-amber/20 text-factoring-amber hover:bg-factoring-amber/30"
                                   : r.overdue
                                   ? "bg-cost-red/20 text-cost-red hover:bg-factoring-amber/30 hover:text-factoring-amber"
+                                  : isDueSoon(r)
+                                  ? "pill-due-soon hover:!bg-factoring-amber/30 hover:!text-factoring-amber"
                                   : "bg-net-green/15 text-net-green hover:bg-factoring-amber/30 hover:text-factoring-amber")
                               }
                             >
                               <span className="group-hover:hidden">
-                                {r.settled ? "LIQUIDADA" : r.overdue ? "VENCIDA" : "ABERTA"}
+                                {r.settled ? (
+                                  "LIQUIDADA"
+                                ) : r.overdue ? (
+                                  "VENCIDA"
+                                ) : isDueSoon(r) ? (
+                                  <span className="swap-label">
+                                    <span className="swap-a">ABERTA</span>
+                                    <span className="swap-b">{weekdayShortPt(r.dueDate)}</span>
+                                  </span>
+                                ) : (
+                                  "ABERTA"
+                                )}
                               </span>
                               <span className="hidden group-hover:inline">
                                 {r.settled ? "DESFAZER" : "LIQUIDAR"}
