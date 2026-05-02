@@ -320,6 +320,21 @@ const Historico = () => {
     }
     return Math.max(1, count);
   };
+  // Dias corridos do período — para exibição no cabeçalho do gráfico
+  const periodDays = (() => {
+    if (period === "total" && filteredRows.length > 0) {
+      const earliest = filteredRows.reduce(
+        (min, r) => (r.operationDate < min ? r.operationDate : min),
+        filteredRows[0].operationDate
+      );
+      return Math.max(1, Math.round(
+        (new Date(todayStr + "T00:00:00").getTime() - new Date(earliest + "T00:00:00").getTime()) / 86_400_000
+      ) + 1);
+    }
+    return Math.max(1, Math.round(
+      (new Date(range.to + "T00:00:00").getTime() - new Date(range.from + "T00:00:00").getTime()) / 86_400_000
+    ) + 1);
+  })();
   const businessDays = (() => {
     if (period === "total" && filteredRows.length > 0) {
       const earliest = filteredRows.reduce(
