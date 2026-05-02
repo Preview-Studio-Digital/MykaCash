@@ -852,17 +852,19 @@ const Historico = () => {
           <div className="relative overflow-hidden rounded-xl bg-gradient-factoring p-4 text-white panel-glow-factoring">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
             <div className="relative">
-              <div className="flex items-start justify-between gap-2">
-                <div className="font-mono text-[8px] tracking-[0.3em] opacity-90 shrink-0">VALOR EM ABERTO</div>
-                <div className="text-right">
-                  <div className="font-mono text-[8px] tracking-[0.25em] opacity-70">MÉDIA DIÁRIA</div>
-                  <div className="font-display text-base md:text-lg font-bold tabular-nums opacity-90">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="font-mono text-[8px] tracking-[0.3em] opacity-90">VALOR EM ABERTO</div>
+                  <div className="mt-1 font-display text-base md:text-lg font-bold tabular-nums">
+                    {formatBRL(openPresent)}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-mono text-[8px] tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
+                  <div className="mt-1 font-display text-base md:text-lg font-bold tabular-nums text-right opacity-90">
                     {formatBRL(dailyAvgOpen)}
                   </div>
                 </div>
-              </div>
-              <div className="mt-1 font-display text-base md:text-lg font-bold tabular-nums">
-                {formatBRL(openPresent)}
               </div>
               <div className="mt-3 h-px bg-white/25" />
               <div className="mt-3 font-mono text-[8px] tracking-[0.3em] opacity-90">VALOR LIQUIDADO</div>
