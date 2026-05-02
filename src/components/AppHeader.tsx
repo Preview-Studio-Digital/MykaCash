@@ -67,7 +67,7 @@ export const AppHeader = () => {
 
       {/* Hero title block */}
       <div className="relative z-10 flex flex-col items-center justify-center px-6 pt-4 pb-6 text-center">
-        <h1 className="font-title title-gradient title-shimmer font-extrabold leading-[0.9] tracking-tighter animate-fade-up text-3xl">
+        <h1 className="font-title title-gradient title-shimmer font-extrabold leading-[0.9] tracking-tighter animate-fade-up text-3xl lg:text-6xl">
           MYKA MONEY
         </h1>
         <p className="mt-2 font-mono text-xs tracking-[0.4em] text-muted-foreground animate-fade-up">VERSÃO 2.0</p>
