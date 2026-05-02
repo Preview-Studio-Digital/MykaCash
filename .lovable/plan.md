@@ -1,15 +1,25 @@
 ## Problema
 
-A tela de login deixou de aparecer no preview após eu importar o ícone `money-management.ico` como módulo (`import logo from "@/assets/money-management.ico"`). O Vite, por padrão, não trata `.ico` como asset importável de imagem em React, o que faz a página `/auth` falhar ao renderizar — por isso o preview ficou em branco.
+Eu apliquei `text-right` em mais elementos do que você pediu. Você pediu apenas para 4 labels específicos (linhas 11, 16, 27, 40 do `ResultPanels.tsx`), mas eu também alinhei à direita os valores numéricos (R$, %) e os textos do painel laranja "ECONOMIA FACTORING".
 
 ## Correção
 
-1. Servir o ícone como arquivo público em vez de import:
-   - Manter o arquivo em `public/money-management.ico` (já copiado).
-   - Remover o `src/assets/money-management.ico` (não será mais necessário).
+Em `src/components/ResultPanels.tsx`, remover `text-right` dos elementos que NÃO estavam no seu pedido original, mantendo somente nos 4 labels que você selecionou:
 
-2. Em `src/pages/Auth.tsx`:
-   - Remover a linha `import logo from "@/assets/money-management.ico";`
-   - Trocar `<img src={logo} ... />` por `<img src="/money-management.ico" ... />`
+**Manter `text-right` (seus 4 pedidos):**
+- L11 — `VALOR LÍQUIDO`
+- L16 — `VALOR DA NOTA FISCAL`
+- L27 — `CUSTO DA OPERAÇÃO`
+- L40 — `TAXA EFETIVA` (painel vermelho)
 
-Com isso a página volta a renderizar e o ícone aparece normalmente acima do título "SMART MONEY".
+**Reverter (remover `text-right` que adicionei a mais):**
+- L12 — valor numérico do `VALOR LÍQUIDO`
+- L17 — valor numérico do `VALOR DA NOTA FISCAL`
+- L28 — valor numérico do `CUSTO DA OPERAÇÃO`
+- L41 — valor numérico da `TAXA EFETIVA` vermelha
+- L53 — label `ECONOMIA FACTORING` (painel laranja)
+- L54 — valor numérico do `ECONOMIA FACTORING`
+- L66 — label `TAXA EFETIVA` (painel laranja)
+- L67 — valor numérico da `TAXA EFETIVA` laranja
+
+Resultado: os labels dos valores principais nas duas primeiras caixas (verde e vermelha) ficam alinhados à direita, e tudo o mais volta ao alinhamento original (esquerda). A caixa laranja fica intacta.
