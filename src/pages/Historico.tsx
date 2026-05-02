@@ -214,7 +214,7 @@ const Historico = () => {
       });
       const showIdx = result.installmentCalcs.length > 1;
       const createdAtMs = new Date(inv.created_at).getTime();
-      const withinEditWindow = now - createdAtMs < 5 * 60 * 1000;
+      const withinEditWindow = now - createdAtMs < 1 * 60 * 1000;
       const isAuthor = !!user && inv.created_by === user.id;
       const createdBy =
         inv.profiles?.username || inv.profiles?.display_name || "—";
@@ -510,7 +510,7 @@ const Historico = () => {
     const inv = invoices.find((i) => i.id === invoiceId);
     if (!inv) return;
     const createdAtMs = new Date(inv.created_at).getTime();
-    const withinEditWindow = Date.now() - createdAtMs < 5 * 60 * 1000;
+    const withinEditWindow = Date.now() - createdAtMs < 1 * 60 * 1000;
     const isAuthor = !!user && inv.created_by === user.id;
     const canManage = isAdmin || (isAuthor && withinEditWindow);
     if (!canManage) return toast.error("Sem permissão para excluir esta abertura");
@@ -532,7 +532,7 @@ const Historico = () => {
     const inv = invoices.find((i) => i.id === invoiceId);
     if (!inv) return;
     const createdAtMs = new Date(inv.created_at).getTime();
-    const withinEditWindow = Date.now() - createdAtMs < 5 * 60 * 1000;
+    const withinEditWindow = Date.now() - createdAtMs < 1 * 60 * 1000;
     const isAuthor = !!user && inv.created_by === user.id;
     const canManage = isAdmin || (isAuthor && withinEditWindow);
     if (!canManage) return toast.error("Sem permissão para editar esta abertura");
@@ -1277,7 +1277,7 @@ const Historico = () => {
           </div>
 
           <p className="mt-4 font-mono text-[10px] tracking-[0.25em] text-muted-foreground text-justify">
-            * EDIÇÃO E REMOÇÃO DE OPERAÇÕES PERMITIDAS APENAS AO ADMINISTRADOR.
+            * EDIÇÕES E EXCLUSÕES DE OPERAÇÕES SÓ SÃO POSSÍVEIS DENTRO DE UM MINUTO APÓS O CADASTRO.
           </p>
         </section>
       </main>
