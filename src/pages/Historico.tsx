@@ -316,7 +316,7 @@ const Historico = () => {
         86_400_000
     ) + 1
   );
-  const dailyAvgNet = totals.presentValue / periodDays;
+  const dailyAvgNet = (totals.presentValue - settledPresent) / periodDays;
 
   // Chart: "Operações em Transação" — running outstanding balance over time.
   // Bruto entra na operação; sai no vencimento se liquidado.
@@ -785,7 +785,7 @@ const Historico = () => {
                 <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
                 <div className="text-right">
                   <div className="font-mono text-[8px] tracking-[0.25em] opacity-70">MÉDIA DIÁRIA</div>
-                  <div className="font-display text-sm font-bold tabular-nums opacity-90">
+                  <div className="font-display text-xl md:text-2xl font-bold tabular-nums opacity-90">
                     {formatBRL(dailyAvgNet)}
                   </div>
                 </div>
