@@ -781,17 +781,15 @@ const Historico = () => {
           <div className="relative overflow-hidden rounded-xl bg-gradient-net p-4 text-net-green-foreground panel-glow-net">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
             <div className="relative">
-              <div className="flex items-start justify-between">
+              <div className="grid grid-cols-2 gap-x-2 items-end">
                 <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
-                <div className="text-right">
-                  <div className="font-mono text-[8px] tracking-[0.25em] opacity-70">MÉDIA DIÁRIA</div>
-                  <div className="font-display text-xl md:text-2xl font-bold tabular-nums opacity-90">
-                    {formatBRL(dailyAvgNet)}
-                  </div>
+                <div className="font-mono text-[8px] tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
+                <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums break-words">
+                  {formatBRL(totals.presentValue)}
                 </div>
-              </div>
-              <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums break-words">
-                {formatBRL(totals.presentValue)}
+                <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums text-right opacity-90">
+                  {formatBRL(dailyAvgNet)}
+                </div>
               </div>
               <div className="mt-3 h-px bg-white/20" />
               <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR BRUTO</div>
