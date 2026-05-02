@@ -31,8 +31,8 @@ import {
   ReferenceLine,
 } from "recharts";
 
-type Period = "hoje" | "semana" | "mes" | "total" | "periodo";
-type StatusFilter = "todas" | "iniciadas" | "andamento" | "vencidas" | "liquidadas";
+type Period = "hoje" | "dia" | "semana" | "mes" | "total" | "periodo";
+type StatusFilter = "todas" | "iniciadas" | "andamento" | "vencidas" | "a_vencer" | "liquidadas";
 
 type SettledEntry = string | { id: string; date: string };
 type InvoiceRow = {
@@ -257,6 +257,7 @@ const Historico = () => {
 
   const range = useMemo(() => {
     if (period === "hoje") return { from: todayStr, to: todayStr };
+    if (period === "dia") return { from, to: from }; // to is redundant for 'dia'
     if (period === "semana") return { from: startOfWeekISO(), to: todayStr };
     if (period === "mes") return { from: startOfMonthISO(), to: todayStr };
     if (period === "total") return dataBounds;
@@ -279,6 +280,10 @@ const Historico = () => {
       return rows.filter(
         (r) => !r.settled && r.operationDate <= range.to
       );
+    }
+    if (statusFilter === "a_vencer") {
+      // "A VENCER": parcelas cujo vencimento cai dentro do período selecionado
+      return rows.filter((r) => r.dueDate >= range.from && r.dueDate <= range.to);
     }
     if (statusFilter === "todas") {
       return rows.filter((r) => {
@@ -590,6 +595,7 @@ const Historico = () => {
   const periodOptions: { id: Period; label: string }[] = [
     { id: "total", label: "TOTAL" },
     { id: "hoje", label: "HOJE" },
+    { id: "dia", label: "DIA" },
     { id: "semana", label: "SEMANA" },
     { id: "mes", label: "MÊS" },
     { id: "periodo", label: "PERÍODO" },
@@ -600,6 +606,7 @@ const Historico = () => {
     { id: "iniciadas", label: "INICIADAS" },
     { id: "andamento", label: "ANDAMENTO" },
     { id: "vencidas", label: "VENCIDAS" },
+    { id: "a_vencer", label: "A VENCER" },
     { id: "liquidadas", label: "LIQUIDADAS" },
   ];
 
@@ -719,16 +726,25 @@ const Historico = () => {
         </span>
 
         {/* Custom date range inputs */}
-        {period === "periodo" && (
+        {(period === "periodo" || period === "dia") && (
           <div className="flex items-center justify-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">DE</span>
-              <DateField value={from} onChange={setFrom} />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">ATÉ</span>
-              <DateField value={to} onChange={setTo} />
-            </div>
+            {period === "dia" ? (
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">DATA</span>
+                <DateField value={from} onChange={(v) => { setFrom(v); setTo(v); }} />
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">DE</span>
+                  <DateField value={from} onChange={setFrom} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">ATÉ</span>
+                  <DateField value={to} onChange={setTo} />
+                </div>
+              </>
+            )}
           </div>
         )}
 
