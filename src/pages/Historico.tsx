@@ -448,7 +448,7 @@ const Historico = () => {
     }
     
     return series;
-  }, [filteredRows, period, range.from, range.to, todayStr]);
+  }, [filteredRows, period, range.from, range.to, todayStr, statusFilter]);
 
   const chartGradId = useMemo(() => Math.random().toString(36).substr(2, 9), [chartData]);
 
