@@ -32,13 +32,13 @@ export const ResultPanels = ({ result, monthlyRate }: { result: CalcResult; mont
           <div className="mt-3 grid grid-cols-2 gap-2">
             <div>
               <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">TAXA MENSAL</div>
-              <div className="mt-0.5 font-display text-sm font-semibold tabular-nums">
+              <div className="mt-0.5 font-display text-base md:text-lg font-semibold tabular-nums">
                 {formatPct(monthlyRate)}
               </div>
             </div>
             <div className="text-right">
               <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">TAXA EFETIVA</div>
-              <div className="mt-0.5 font-display text-sm font-semibold tabular-nums">
+              <div className="mt-0.5 font-display text-base md:text-lg font-semibold tabular-nums">
                 {formatPct(result.effectiveRatePct)}
               </div>
             </div>
@@ -58,13 +58,13 @@ export const ResultPanels = ({ result, monthlyRate }: { result: CalcResult; mont
           <div className="mt-3 grid grid-cols-2 gap-2">
             <div>
               <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">TAXA MENSAL</div>
-              <div className="mt-0.5 font-display text-sm font-semibold tabular-nums">
+              <div className="mt-0.5 font-display text-base md:text-lg font-semibold tabular-nums">
                 {formatPct(FACTORING_MONTHLY_RATE_PCT)} a.m.
               </div>
             </div>
             <div className="text-right">
               <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">TAXA EFETIVA</div>
-              <div className="mt-0.5 font-display text-sm font-semibold tabular-nums">
+              <div className="mt-0.5 font-display text-base md:text-lg font-semibold tabular-nums">
                 {formatPct(result.factoringEffectiveRatePct)}
               </div>
             </div>
