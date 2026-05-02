@@ -674,83 +674,94 @@ const Historico = () => {
     return "bg-[hsl(var(--net-green)/0.06)] hover:bg-[hsl(var(--net-green)/0.10)]";
   };
 
-  const renderFilters = () => (
-    <section className="flex flex-col items-center justify-center gap-4 animate-fade-up text-center w-full">
-      <div className="inline-flex flex-wrap justify-center rounded-2xl sm:rounded-full border border-border/60 bg-background/40 p-1 gap-1 max-w-full">
-        {periodOptions.map((opt) => {
-          const active = period === opt.id;
-          return (
-            <button
-              key={opt.id}
-              onClick={() => setPeriod(opt.id)}
-              className={
-                "inline-flex items-center rounded-full px-3 sm:px-4 py-1.5 font-mono text-[9px] sm:text-[10px] tracking-[0.25em] sm:tracking-[0.3em] transition-all whitespace-nowrap " +
-                (active
-                  ? "bg-primary text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.4)]"
-                  : "text-muted-foreground hover:text-foreground")
-              }
-            >
-              {opt.label}
-            </button>
-          );
-        })}
-      </div>
+  const renderFiltersBar = () => (
+    <div
+      className="fixed bottom-0 left-0 right-0 z-50"
+      style={{
+        background: "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background)/0.92) 55%, transparent 100%)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+      }}
+    >
+      {/* Decorative top line */}
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
 
-      {period === "periodo" && (
-        <div className="flex items-center justify-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">DE</span>
-            <DateField value={from} onChange={setFrom} />
+      <div className="flex flex-col items-center gap-2 px-4 py-3">
+        {/* Period label */}
+        <span className="font-mono text-[9px] tracking-[0.3em] text-muted-foreground/70">
+          {period === "total" ? "TODAS AS OPERAÇÕES" : period !== "periodo" ? (range.from === range.to ? fmtDate(range.from) : `${fmtDate(range.from)} → ${fmtDate(range.to)}`) : null}
+        </span>
+
+        {/* Custom date range inputs */}
+        {period === "periodo" && (
+          <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">DE</span>
+              <DateField value={from} onChange={setFrom} />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">ATÉ</span>
+              <DateField value={to} onChange={setTo} />
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">ATÉ</span>
-            <DateField value={to} onChange={setTo} />
+        )}
+
+        {/* Filter rows */}
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {/* Period pills */}
+          <div className="inline-flex flex-wrap justify-center rounded-full border border-border/50 bg-background/60 p-1 gap-1 shadow-panel">
+            {periodOptions.map((opt) => {
+              const active = period === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => setPeriod(opt.id)}
+                  className={
+                    "inline-flex items-center rounded-full px-3 py-1 font-mono text-[9px] tracking-[0.25em] transition-all whitespace-nowrap " +
+                    (active
+                      ? "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.5)]"
+                      : "text-muted-foreground hover:text-foreground")
+                  }
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Divider */}
+          <div className="h-5 w-px bg-border/50 hidden sm:block" />
+
+          {/* Status pills */}
+          <div className="inline-flex flex-wrap justify-center rounded-full border border-border/50 bg-background/60 p-1 gap-1 shadow-panel">
+            {statusOptions.map((opt) => {
+              const active = statusFilter === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => setStatusFilter(opt.id)}
+                  className={
+                    "inline-flex items-center rounded-full px-3 py-1 font-mono text-[9px] tracking-[0.25em] transition-all whitespace-nowrap " +
+                    (active
+                      ? "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.5)]"
+                      : "text-muted-foreground hover:text-foreground")
+                  }
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
           </div>
         </div>
-      )}
-
-      {period !== "periodo" && period !== "total" && (
-        <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
-          {range.from === range.to
-            ? fmtDate(range.from)
-            : `${fmtDate(range.from)} → ${fmtDate(range.to)}`}
-        </span>
-      )}
-      {period === "total" && (
-        <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
-          TODAS AS OPERAÇÕES
-        </span>
-      )}
-
-      <div className="inline-flex flex-wrap justify-center rounded-2xl sm:rounded-full border border-border/60 bg-background/40 p-1 gap-1 max-w-full">
-        {statusOptions.map((opt) => {
-          const active = statusFilter === opt.id;
-          const activeCls = "bg-primary text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.4)]";
-          return (
-            <button
-              key={opt.id}
-              onClick={() => setStatusFilter(opt.id)}
-              className={
-                "inline-flex items-center rounded-full px-3 py-1 font-mono text-[9px] tracking-[0.25em] transition-all whitespace-nowrap " +
-                (active ? activeCls : "text-muted-foreground hover:text-foreground")
-              }
-            >
-              {opt.label}
-            </button>
-          );
-        })}
       </div>
-    </section>
+    </div>
   );
 
   return (
     <div className="min-h-screen">
       <AppHeader />
-      <main className="container mx-auto max-w-6xl px-4 py-10 md:py-14 space-y-8">
+      <main className="container mx-auto max-w-6xl px-4 py-10 md:py-14 pb-36 space-y-8">
         <PageNav />
-
-        {/* Main filters (Top) */}
-        {renderFilters()}
 
         {/* Summary panels — reflect selected period */}
         <section className="grid gap-4 md:grid-cols-3 animate-fade-up">
@@ -1268,6 +1279,9 @@ const Historico = () => {
           </p>
         </section>
       </main>
+
+      {/* Fixed bottom filter bar */}
+      {renderFiltersBar()}
 
       {/* Edit operation dialog */}
       <Dialog open={!!editingId} onOpenChange={(o) => !o && closeEdit()}>
