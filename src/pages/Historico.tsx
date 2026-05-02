@@ -1,3 +1,4 @@
+// v2 - filtros fixos na base
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageNav } from "@/components/PageNav";
