@@ -356,7 +356,14 @@ const Historico = () => {
     const firstHistoricalDate = allDatesSorted[0];
     const includesFirst = firstHistoricalDate >= range.from && firstHistoricalDate <= range.to;
 
-    if (period === "total" && includesFirst) {
+    if (statusFilter === "liquidadas") {
+      // Sempre começa em zero — o gráfico mostra apenas saídas (liquidações)
+      const anchor = sortedDates[0] ?? range.from;
+      const baseDate = new Date(anchor + "T00:00:00");
+      baseDate.setDate(baseDate.getDate() - 1);
+      const baseline = localISO(baseDate);
+      series.push({ date: baseline, label: fmtDate(baseline), labelShort: fmtDayMonth(baseline), saldo: 0 });
+    } else if (period === "total" && includesFirst) {
       // Período total engloba a primeira operação: baseline em zero, uma semana antes
       const first = new Date(sortedDates[0] + "T00:00:00");
       first.setDate(first.getDate() - 7);
