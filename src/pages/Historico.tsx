@@ -478,12 +478,15 @@ const Historico = () => {
     const canManage = isAdmin || (isAuthor && withinEditWindow);
     if (!canManage) return toast.error("Sem permissão para excluir esta abertura");
     if (!confirm("Deseja realmente excluir a abertura? Essa ação não pode ser desfeita.")) return;
-    if (error) {
+    try {
+      const { error: deleteError } = await supabase.from("invoices").delete().eq("id", invoiceId);
+      if (deleteError) throw deleteError;
+      toast.success("Abertura removida");
+      load();
+    } catch (error) {
       const { friendlyDbError } = await import("@/lib/dbErrors");
-      return toast.error(friendlyDbError(error, "Erro ao excluir abertura"));
+      toast.error(friendlyDbError(error, "Erro ao excluir abertura"));
     }
-    toast.success("Abertura removida");
-    load();
   };
 
   const [editingId, setEditingId] = useState<string | null>(null);
