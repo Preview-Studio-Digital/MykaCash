@@ -307,6 +307,17 @@ const Historico = () => {
   // "Em aberto" deve refletir o saldo do gráfico (valores brutos): entra na operação, sai no vencimento se liquidado
   const openPresent = filteredRows.reduce((s, r) => s + (r.settled ? 0 : r.value), 0);
 
+  // Média diária do valor líquido: total / nº de dias no período (mínimo 1)
+  const periodDays = Math.max(
+    1,
+    Math.round(
+      (new Date(range.to + "T00:00:00").getTime() -
+        new Date(range.from + "T00:00:00").getTime()) /
+        86_400_000
+    ) + 1
+  );
+  const dailyAvgNet = totals.presentValue / periodDays;
+
   // Chart: "Operações em Transação" — running outstanding balance over time.
   // Bruto entra na operação; sai no vencimento se liquidado.
   const chartData = useMemo(() => {
@@ -770,7 +781,15 @@ const Historico = () => {
           <div className="relative overflow-hidden rounded-xl bg-gradient-net p-4 text-net-green-foreground panel-glow-net">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
             <div className="relative">
-              <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
+              <div className="flex items-start justify-between">
+                <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
+                <div className="text-right">
+                  <div className="font-mono text-[8px] tracking-[0.25em] opacity-70">MÉDIA DIÁRIA</div>
+                  <div className="font-display text-sm font-bold tabular-nums opacity-90">
+                    {formatBRL(dailyAvgNet)}
+                  </div>
+                </div>
+              </div>
               <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums break-words">
                 {formatBRL(totals.presentValue)}
               </div>
