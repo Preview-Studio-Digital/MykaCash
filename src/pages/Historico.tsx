@@ -287,7 +287,7 @@ const Historico = () => {
     }
     const base = rows.filter((r) => inRange(r.operationDate));
     if (statusFilter === "vencidas") return base.filter((r) => !r.settled && r.overdue);
-    return base.filter((r) => !r.settled && !r.overdue); // abertas
+    return base.filter((r) => !r.settled); // abertas
   }, [rows, statusFilter, range.from, range.to]);
 
   const totals = filteredRows.reduce(
@@ -327,8 +327,12 @@ const Historico = () => {
     if (allEvents.length === 0)
       return [] as { date: string; label: string; labelShort: string; saldo: number }[];
 
-    // Saldo acumulado anterior foi removido conforme solicitação para sempre partir do zero
-    const carryOver = 0;
+    // Para "andamento", precisamos do saldo anterior para que o gráfico bata com os quadros coloridos
+    let carryOver = 0;
+    if (statusFilter === "andamento") {
+      const pastEvents = allEvents.filter((e) => e.date < range.from);
+      carryOver = pastEvents.reduce((sum, e) => sum + e.delta, 0);
+    }
 
     // Eventos que ocorreram DENTRO do período
     const periodEvents = allEvents.filter((e) => e.date >= range.from && e.date <= range.to);
