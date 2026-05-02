@@ -813,12 +813,12 @@ const Historico = () => {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
             <div className="relative">
               <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
-              <div className="mt-1 font-display text-lg md:text-xl font-bold tabular-nums whitespace-nowrap">
+              <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums whitespace-nowrap">
                 {formatBRL(totals.presentValue)}
               </div>
               <div className="mt-3 h-px bg-white/20" />
               <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR BRUTO</div>
-              <div className="mt-1 font-display text-base font-semibold tabular-nums whitespace-nowrap">
+              <div className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap">
                 {formatBRL(totals.value)}
               </div>
             </div>
@@ -829,22 +829,21 @@ const Historico = () => {
             <div className="relative">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                <div>
                   <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">CUSTO</div>
-                  <div className="mt-1 font-display text-lg md:text-xl font-bold tabular-nums whitespace-nowrap">
+                  <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums whitespace-nowrap">
                     {formatBRL(totals.cost)}
                   </div>
                 </div>
                 <div>
                   <div className="font-mono text-[9px] tracking-[0.3em] opacity-80 text-right">TAXA EFETIVA MÉDIA</div>
-                  <div className="mt-1 font-display text-lg md:text-xl font-bold tabular-nums text-right whitespace-nowrap">
+                  <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums text-right whitespace-nowrap">
                     {formatPct(totalEffective)}
                   </div>
                 </div>
               </div>
               <div className="mt-3 h-px bg-white/20" />
               <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-80">ECONOMIA FACTORING</div>
-              <div className="mt-1 font-display text-base font-semibold tabular-nums whitespace-nowrap">
+              <div className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap">
                 {formatBRL(factoringSavings)}
               </div>
             </div>
@@ -855,22 +854,21 @@ const Historico = () => {
             <div className="relative">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                <div>
                   <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">VALOR EM ABERTO</div>
-                  <div className="mt-1 font-display text-lg md:text-xl font-bold tabular-nums whitespace-nowrap">
+                  <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums whitespace-nowrap">
                     {formatBRL(openPresent)}
                   </div>
                 </div>
                 <div>
                   <div className="font-mono text-[9px] tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
-                  <div className="mt-1 font-display text-lg md:text-xl font-bold tabular-nums text-right opacity-90 whitespace-nowrap">
+                  <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums text-right opacity-90 whitespace-nowrap">
                     {formatBRL(dailyAvgOpen)}
                   </div>
                 </div>
               </div>
               <div className="mt-3 h-px bg-white/25" />
               <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-90">VALOR LIQUIDADO</div>
-              <div className="mt-1 font-display text-base font-semibold tabular-nums whitespace-nowrap">
+              <div className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap">
                 {formatBRL(settledPresent)}
               </div>
             </div>
