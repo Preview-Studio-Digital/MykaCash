@@ -31,7 +31,7 @@ import {
 } from "recharts";
 
 type Period = "hoje" | "semana" | "mes" | "total" | "periodo";
-type StatusFilter = "todas" | "abertas" | "andamento" | "vencidas" | "liquidadas";
+type StatusFilter = "todas" | "iniciadas" | "andamento" | "vencidas" | "liquidadas";
 
 type SettledEntry = string | { id: string; date: string };
 type InvoiceRow = {
@@ -287,7 +287,7 @@ const Historico = () => {
     }
     const base = rows.filter((r) => inRange(r.operationDate));
     if (statusFilter === "vencidas") return base.filter((r) => !r.settled && r.overdue);
-    return base.filter((r) => !r.settled); // abertas
+    return base.filter((r) => !r.settled); // iniciadas
   }, [rows, statusFilter, range.from, range.to]);
 
   const totals = filteredRows.reduce(
@@ -550,7 +550,7 @@ const Historico = () => {
 
   const statusOptions: { id: StatusFilter; label: string }[] = [
     { id: "todas", label: "TODAS" },
-    { id: "abertas", label: "ABERTAS" },
+    { id: "iniciadas", label: "INICIADAS" },
     { id: "andamento", label: "ANDAMENTO" },
     { id: "vencidas", label: "VENCIDAS" },
     { id: "liquidadas", label: "LIQUIDADAS" },
