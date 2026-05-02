@@ -81,6 +81,10 @@ const startOfMonthISO = () => {
   d.setDate(1);
   return localISO(d);
 };
+const endOfMonthISO = () => {
+  const d = new Date();
+  return localISO(new Date(d.getFullYear(), d.getMonth() + 1, 0));
+};
 const fmtDate = (iso: string) =>
   iso ? new Date(iso + "T00:00:00").toLocaleDateString("pt-BR") : "-";
 
@@ -258,8 +262,8 @@ const Historico = () => {
   const range = useMemo(() => {
     if (period === "hoje") return { from: todayStr, to: todayStr };
     if (period === "dia") return { from, to: from }; // to is redundant for 'dia'
-    if (period === "semana") return { from: startOfWeekISO(), to: todayStr };
-    if (period === "mes") return { from: startOfMonthISO(), to: todayStr };
+    if (period === "semana") return { from: startOfWeekISO(), to: endOfWeekISO() };
+    if (period === "mes") return { from: startOfMonthISO(), to: endOfMonthISO() };
     if (period === "total") return dataBounds;
     return { from, to };
   }, [period, from, to, todayStr, dataBounds]);
