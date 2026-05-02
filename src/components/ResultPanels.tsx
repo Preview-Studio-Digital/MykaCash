@@ -36,8 +36,8 @@ export const ResultPanels = ({ result, monthlyRate }: { result: CalcResult; mont
                 {formatPct(monthlyRate)}
               </div>
             </div>
-            <div>
-              <div className="font-mono text-[9px] tracking-[0.3em] opacity-80 text-left">TAXA EFETIVA</div>
+            <div className="text-right">
+              <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">TAXA EFETIVA</div>
               <div className="mt-0.5 font-display text-sm font-semibold tabular-nums">
                 {formatPct(result.effectiveRatePct)}
               </div>
@@ -62,7 +62,7 @@ export const ResultPanels = ({ result, monthlyRate }: { result: CalcResult; mont
                 {formatPct(FACTORING_MONTHLY_RATE_PCT)} a.m.
               </div>
             </div>
-            <div>
+            <div className="text-right">
               <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">TAXA EFETIVA</div>
               <div className="mt-0.5 font-display text-sm font-semibold tabular-nums">
                 {formatPct(result.factoringEffectiveRatePct)}
