@@ -311,16 +311,23 @@ const Historico = () => {
   const chartData = useMemo(() => {
     type Ev = { date: string; delta: number };
 
+    const fmtTime = (iso: string) => {
+      if (!iso.includes("T")) return "00:00";
+      return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    };
+
     // Pegamos todos os eventos das operações filtradas
     // Para o filtro "liquidadas": exibimos apenas as saídas (valores negativos),
     // partindo de zero, pois o gráfico representa apenas as liquidações no período.
     const allEvents: Ev[] = [];
     for (const r of filteredRows) {
       if (statusFilter !== "liquidadas") {
-        allEvents.push({ date: r.operationDate, delta: r.value });
+        const evDate = (period === "hoje" && r.operationDate === todayStr) ? r.createdAt : r.operationDate;
+        allEvents.push({ date: evDate, delta: r.value });
       }
       if (r.settled) {
-        allEvents.push({ date: r.dueDate, delta: -r.value });
+        const setDate = (period === "hoje" && r.dueDate === todayStr) ? r.dueDate + "T23:59:59Z" : r.dueDate;
+        allEvents.push({ date: setDate, delta: -r.value });
       }
     }
 
@@ -335,7 +342,10 @@ const Historico = () => {
     }
 
     // Eventos que ocorreram DENTRO do período
-    const periodEvents = allEvents.filter((e) => e.date >= range.from && e.date <= range.to);
+    const periodEvents = allEvents.filter((e) => {
+      if (period === "hoje") return e.date === todayStr || e.date.includes("T");
+      return e.date >= range.from && e.date <= range.to;
+    });
 
     // Agrupa eventos do período por data
     const byDate = new Map<string, number>();
@@ -381,8 +391,8 @@ const Historico = () => {
       const anchor = range.from > "1900-01-01" ? range.from : (sortedDates[0] || todayStr);
       series.push({
         date: anchor,
-        label: fmtDate(anchor),
-        labelShort: fmtDayMonth(anchor),
+        label: period === "hoje" ? `${fmtDate(anchor)} 00:00` : fmtDate(anchor),
+        labelShort: period === "hoje" ? "00:00" : fmtDayMonth(anchor),
         saldo: Math.round(carryOver * 100) / 100,
       });
     }
@@ -418,15 +428,24 @@ const Historico = () => {
       } else {
         series.push({
           date: d,
-          label: fmtDate(d),
-          labelShort: fmtDayMonth(d),
+          label: period === "hoje" ? `${fmtDate(d.slice(0, 10))} ${fmtTime(d)}` : fmtDate(d),
+          labelShort: period === "hoje" ? fmtTime(d) : fmtDayMonth(d),
           saldo: Math.round(acc * 100) / 100,
         });
       }
     }
 
-    // Para períodos maiores, sempre mostrar a data de hoje se ainda não estiver (pra a linha ir até o fim)
-    if (period === "mes" || period === "total") {
+    if (period === "hoje") {
+      const last = series[series.length - 1];
+      if (last) {
+        series.push({
+          date: "agora",
+          label: `${fmtDate(todayStr)} Agora`,
+          labelShort: "AGORA",
+          saldo: last.saldo,
+        });
+      }
+    } else if (period === "mes" || period === "total") {
       const last = series[series.length - 1];
       const hasToday = series.some((s) => s.date === todayStr);
       if (!hasToday) {
