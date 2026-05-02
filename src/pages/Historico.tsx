@@ -309,9 +309,13 @@ const Historico = () => {
     type Ev = { date: string; delta: number };
 
     // Pegamos todos os eventos das operações filtradas
+    // Para o filtro "liquidadas": exibimos apenas as saídas (valores negativos),
+    // partindo de zero, pois o gráfico representa apenas as liquidações no período.
     const allEvents: Ev[] = [];
     for (const r of filteredRows) {
-      allEvents.push({ date: r.operationDate, delta: r.value });
+      if (statusFilter !== "liquidadas") {
+        allEvents.push({ date: r.operationDate, delta: r.value });
+      }
       if (r.settled) {
         const dropDate = r.settledDate ? r.settledDate : r.dueDate;
         allEvents.push({ date: dropDate, delta: -r.value });
@@ -352,7 +356,14 @@ const Historico = () => {
     const firstHistoricalDate = allDatesSorted[0];
     const includesFirst = firstHistoricalDate >= range.from && firstHistoricalDate <= range.to;
 
-    if (period === "total" && includesFirst) {
+    if (statusFilter === "liquidadas") {
+      // Sempre começa em zero — o gráfico mostra apenas saídas (liquidações)
+      const anchor = sortedDates[0] ?? range.from;
+      const baseDate = new Date(anchor + "T00:00:00");
+      baseDate.setDate(baseDate.getDate() - 1);
+      const baseline = localISO(baseDate);
+      series.push({ date: baseline, label: fmtDate(baseline), labelShort: fmtDayMonth(baseline), saldo: 0 });
+    } else if (period === "total" && includesFirst) {
       // Período total engloba a primeira operação: baseline em zero, uma semana antes
       const first = new Date(sortedDates[0] + "T00:00:00");
       first.setDate(first.getDate() - 7);
@@ -390,7 +401,7 @@ const Historico = () => {
       }
     };
 
-    let acc = (period === "total" && includesFirst) ? 0 : carryOver;
+    let acc = (statusFilter === "liquidadas" || (period === "total" && includesFirst)) ? 0 : carryOver;
     for (const d of sortedDates) {
       fillGaps(d, acc);
 
@@ -437,7 +448,7 @@ const Historico = () => {
     }
     
     return series;
-  }, [filteredRows, period, range.from, range.to, todayStr]);
+  }, [filteredRows, period, range.from, range.to, todayStr, statusFilter]);
 
   const chartGradId = useMemo(() => Math.random().toString(36).substr(2, 9), [chartData]);
 
