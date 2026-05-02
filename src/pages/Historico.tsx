@@ -137,15 +137,6 @@ const Historico = () => {
     return () => clearInterval(t);
   }, []);
 
-  const range = useMemo(() => {
-    const today = todayISO();
-    if (period === "hoje") return { from: today, to: today };
-    if (period === "semana") return { from: startOfWeekISO(), to: today };
-    if (period === "mes") return { from: startOfMonthISO(), to: today };
-    if (period === "total") return { from: "1900-01-01", to: "2999-12-31" };
-    return { from, to };
-  }, [period, from, to]);
-
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -257,6 +248,21 @@ const Historico = () => {
     return out;
   }, [invoices, todayStr, now, user]);
 
+  const dataBounds = useMemo(() => {
+    if (rows.length === 0) return { from: todayStr, to: todayStr };
+    const minOp = rows.reduce((min, r) => r.operationDate < min ? r.operationDate : min, rows[0].operationDate);
+    const maxDue = rows.reduce((max, r) => r.dueDate > max ? r.dueDate : max, rows[0].dueDate);
+    return { from: minOp, to: maxDue };
+  }, [rows, todayStr]);
+
+  const range = useMemo(() => {
+    if (period === "hoje") return { from: todayStr, to: todayStr };
+    if (period === "semana") return { from: startOfWeekISO(), to: todayStr };
+    if (period === "mes") return { from: startOfMonthISO(), to: todayStr };
+    if (period === "total") return dataBounds;
+    return { from, to };
+  }, [period, from, to, todayStr, dataBounds]);
+
   const filteredRows = useMemo(() => {
     // Para "liquidadas": filtrar por dueDate (data de vencimento) dentro do período.
     // Para "andamento": parcelas em aberto (não liquidadas, não vencidas) cujo intervalo
@@ -321,32 +327,11 @@ const Historico = () => {
     return Math.max(1, count);
   };
   // Dias corridos do período — para exibição no cabeçalho do gráfico
-  const periodDays = (() => {
-    if (period === "total" && filteredRows.length > 0) {
-      const earliest = filteredRows.reduce(
-        (min, r) => (r.operationDate < min ? r.operationDate : min),
-        filteredRows[0].operationDate
-      );
-      return Math.max(1, Math.round(
-        (new Date(todayStr + "T00:00:00").getTime() - new Date(earliest + "T00:00:00").getTime()) / 86_400_000
-      ) + 1);
-    }
-    return Math.max(1, Math.round(
-      (new Date(range.to + "T00:00:00").getTime() - new Date(range.from + "T00:00:00").getTime()) / 86_400_000
-    ) + 1);
-  })();
-  const businessDays = (() => {
-    if (period === "total" && filteredRows.length > 0) {
-      const earliest = filteredRows.reduce(
-        (min, r) => (r.operationDate < min ? r.operationDate : min),
-        filteredRows[0].operationDate
-      );
-      return countBusinessDays(earliest, todayStr);
-    }
-    const effFrom = period === "total" ? todayStr : range.from;
-    const effTo = period === "total" ? todayStr : range.to;
-    return countBusinessDays(effFrom, effTo);
-  })();
+  const periodDays = Math.max(1, Math.round(
+    (new Date(range.to + "T00:00:00").getTime() - new Date(range.from + "T00:00:00").getTime()) / 86_400_000
+  ) + 1);
+
+  const businessDays = countBusinessDays(range.from, range.to);
   const dailyAvgOpen = openPresent / businessDays;
 
   // Chart: "Operações em Transação" — running outstanding balance over time.
@@ -1358,7 +1343,7 @@ const Historico = () => {
       </Dialog>
 
       <footer className="border-t border-border/40 py-6 text-center">
-        <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">MYKA MONEY · VERSÃO 2.0</p>
+        <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">MYKACA$H · VERSÃO 2.0</p>
       </footer>
     </div>
   );
