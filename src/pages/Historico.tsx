@@ -307,16 +307,34 @@ const Historico = () => {
   // "Em aberto" deve refletir o saldo do gráfico (valores brutos): entra na operação, sai no vencimento se liquidado
   const openPresent = filteredRows.reduce((s, r) => s + (r.settled ? 0 : r.value), 0);
 
-  // Média diária do valor líquido: total / nº de dias no período (mínimo 1)
-  const periodDays = Math.max(
-    1,
-    Math.round(
-      (new Date(range.to + "T00:00:00").getTime() -
-        new Date(range.from + "T00:00:00").getTime()) /
-        86_400_000
-    ) + 1
-  );
-  const dailyAvgNet = (totals.presentValue - settledPresent) / periodDays;
+  // Média diária: (valor líquido do período - valor líquido liquidado) / nº de dias do período
+  // Para "total" usa o intervalo real dos dados (primeira operação → hoje) para evitar divisão por ~400 mil dias
+  const settledNetLiq = filteredRows.reduce((s, r) => s + (r.settled ? r.presentValue : 0), 0);
+  const periodDays = (() => {
+    if (period === "total" && filteredRows.length > 0) {
+      const earliest = filteredRows.reduce(
+        (min, r) => (r.operationDate < min ? r.operationDate : min),
+        filteredRows[0].operationDate
+      );
+      return Math.max(
+        1,
+        Math.round(
+          (new Date(todayStr + "T00:00:00").getTime() -
+            new Date(earliest + "T00:00:00").getTime()) /
+            86_400_000
+        ) + 1
+      );
+    }
+    return Math.max(
+      1,
+      Math.round(
+        (new Date(range.to + "T00:00:00").getTime() -
+          new Date(range.from + "T00:00:00").getTime()) /
+          86_400_000
+      ) + 1
+    );
+  })();
+  const dailyAvgNet = (totals.presentValue - settledNetLiq) / periodDays;
 
   // Chart: "Operações em Transação" — running outstanding balance over time.
   // Bruto entra na operação; sai no vencimento se liquidado.
