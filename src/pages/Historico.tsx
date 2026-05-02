@@ -307,34 +307,32 @@ const Historico = () => {
   // "Em aberto" deve refletir o saldo do gráfico (valores brutos): entra na operação, sai no vencimento se liquidado
   const openPresent = filteredRows.reduce((s, r) => s + (r.settled ? 0 : r.value), 0);
 
-  // Média diária: (valor líquido do período - valor líquido liquidado) / nº de dias do período
-  // Para "total" usa o intervalo real dos dados (primeira operação → hoje) para evitar divisão por ~400 mil dias
-  const settledNetLiq = filteredRows.reduce((s, r) => s + (r.settled ? r.presentValue : 0), 0);
-  const periodDays = (() => {
+  // Dias úteis (seg–sex) no período — para média diária do valor em aberto
+  const countBusinessDays = (fromISO: string, toISO: string) => {
+    const start = new Date(fromISO + "T00:00:00");
+    const end = new Date(toISO + "T00:00:00");
+    let count = 0;
+    const cur = new Date(start);
+    while (cur <= end) {
+      const dow = cur.getDay(); // 0=dom, 6=sab
+      if (dow !== 0 && dow !== 6) count++;
+      cur.setDate(cur.getDate() + 1);
+    }
+    return Math.max(1, count);
+  };
+  const businessDays = (() => {
     if (period === "total" && filteredRows.length > 0) {
       const earliest = filteredRows.reduce(
         (min, r) => (r.operationDate < min ? r.operationDate : min),
         filteredRows[0].operationDate
       );
-      return Math.max(
-        1,
-        Math.round(
-          (new Date(todayStr + "T00:00:00").getTime() -
-            new Date(earliest + "T00:00:00").getTime()) /
-            86_400_000
-        ) + 1
-      );
+      return countBusinessDays(earliest, todayStr);
     }
-    return Math.max(
-      1,
-      Math.round(
-        (new Date(range.to + "T00:00:00").getTime() -
-          new Date(range.from + "T00:00:00").getTime()) /
-          86_400_000
-      ) + 1
-    );
+    const effFrom = period === "total" ? todayStr : range.from;
+    const effTo = period === "total" ? todayStr : range.to;
+    return countBusinessDays(effFrom, effTo);
   })();
-  const dailyAvgNet = (totals.presentValue - settledNetLiq) / periodDays;
+  const dailyAvgOpen = openPresent / businessDays;
 
   // Chart: "Operações em Transação" — running outstanding balance over time.
   // Bruto entra na operação; sai no vencimento se liquidado.
@@ -799,15 +797,9 @@ const Historico = () => {
           <div className="relative overflow-hidden rounded-xl bg-gradient-net p-4 text-net-green-foreground panel-glow-net">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
             <div className="relative">
-              <div className="grid grid-cols-2 gap-x-2 items-end">
-                <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
-                <div className="font-mono text-[8px] tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
-                <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums break-words">
-                  {formatBRL(totals.presentValue)}
-                </div>
-                <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums text-right opacity-90">
-                  {formatBRL(dailyAvgNet)}
-                </div>
+              <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
+              <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums break-words">
+                {formatBRL(totals.presentValue)}
               </div>
               <div className="mt-3 h-px bg-white/20" />
               <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR BRUTO</div>
@@ -845,7 +837,15 @@ const Historico = () => {
           <div className="relative overflow-hidden rounded-xl bg-gradient-factoring p-4 text-white panel-glow-factoring">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
             <div className="relative">
-              <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">VALOR EM ABERTO</div>
+              <div className="flex items-start justify-between">
+                <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">VALOR EM ABERTO</div>
+                <div className="text-right">
+                  <div className="font-mono text-[8px] tracking-[0.25em] opacity-70">MÉDIA DIÁRIA</div>
+                  <div className="font-display text-xl md:text-2xl font-bold tabular-nums opacity-90">
+                    {formatBRL(dailyAvgOpen)}
+                  </div>
+                </div>
+              </div>
               <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums">
                 {formatBRL(openPresent)}
               </div>
