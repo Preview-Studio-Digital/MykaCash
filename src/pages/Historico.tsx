@@ -309,9 +309,13 @@ const Historico = () => {
     type Ev = { date: string; delta: number };
 
     // Pegamos todos os eventos das operações filtradas
+    // Para o filtro "liquidadas": exibimos apenas as saídas (valores negativos),
+    // partindo de zero, pois o gráfico representa apenas as liquidações no período.
     const allEvents: Ev[] = [];
     for (const r of filteredRows) {
-      allEvents.push({ date: r.operationDate, delta: r.value });
+      if (statusFilter !== "liquidadas") {
+        allEvents.push({ date: r.operationDate, delta: r.value });
+      }
       if (r.settled) {
         const dropDate = r.settledDate ? r.settledDate : r.dueDate;
         allEvents.push({ date: dropDate, delta: -r.value });
