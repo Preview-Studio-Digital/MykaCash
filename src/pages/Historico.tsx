@@ -756,6 +756,9 @@ const Historico = () => {
     </div>
   );
 
+  // alias para compatibilidade com versão anterior (evita ReferenceError no Lovable)
+  const renderFilters = renderFiltersBar;
+
   return (
     <div className="min-h-screen">
       <AppHeader />
