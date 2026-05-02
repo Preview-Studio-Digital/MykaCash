@@ -277,8 +277,11 @@ const Historico = () => {
       return rows.filter((r) => {
         // "andamento" (inclui abertas e vencidas até a data limite)
         if (!r.settled && r.operationDate <= range.to) return true;
-        // "liquidadas" apenas se a data de liquidação estiver dentro do período
-        if (r.settled && r.settledDate && inRange(r.settledDate)) return true;
+        // "liquidadas" (se legacy, usa dueDate como fallback)
+        if (r.settled) {
+          const refDate = r.settledDate || r.dueDate;
+          if (inRange(refDate)) return true;
+        }
         return false;
       });
     }
@@ -313,8 +316,7 @@ const Historico = () => {
     for (const r of filteredRows) {
       allEvents.push({ date: r.operationDate, delta: r.value });
       if (r.settled) {
-        const dropDate = r.settledDate ? r.settledDate : r.dueDate;
-        allEvents.push({ date: dropDate, delta: -r.value });
+        allEvents.push({ date: r.dueDate, delta: -r.value });
       }
     }
 
