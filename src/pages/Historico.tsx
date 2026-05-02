@@ -282,8 +282,8 @@ const Historico = () => {
       );
     }
     if (statusFilter === "a_vencer") {
-      // "A VENCER": parcelas cujo vencimento cai dentro do período selecionado
-      return rows.filter((r) => r.dueDate >= range.from && r.dueDate <= range.to);
+      // "A VENCER": parcelas em aberto cujo vencimento cai dentro do período selecionado
+      return rows.filter((r) => !r.settled && r.dueDate >= range.from && r.dueDate <= range.to);
     }
     if (statusFilter === "todas") {
       return rows.filter((r) => {
@@ -355,11 +355,11 @@ const Historico = () => {
     const allEvents: Ev[] = [];
     for (const r of filteredRows) {
       if (statusFilter !== "liquidadas") {
-        const evDate = (period === "hoje" && r.operationDate === todayStr) ? r.createdAt : r.operationDate;
+        const evDate = ((period === "hoje" || period === "dia") && r.operationDate === range.from) ? r.createdAt : r.operationDate;
         allEvents.push({ date: evDate, delta: r.value });
       }
       if (r.settled) {
-        const setDate = (period === "hoje" && r.dueDate === todayStr) ? r.dueDate + "T23:59:59Z" : r.dueDate;
+        const setDate = ((period === "hoje" || period === "dia") && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : r.dueDate;
         allEvents.push({ date: setDate, delta: -r.value });
       }
     }
@@ -376,7 +376,7 @@ const Historico = () => {
 
     // Eventos que ocorreram DENTRO do período
     const periodEvents = allEvents.filter((e) => {
-      if (period === "hoje") return e.date === todayStr || e.date.includes("T");
+      if (period === "hoje" || period === "dia") return e.date.startsWith(range.from);
       return e.date >= range.from && e.date <= range.to;
     });
 
@@ -424,8 +424,8 @@ const Historico = () => {
       const anchor = range.from > "1900-01-01" ? range.from : (sortedDates[0] || todayStr);
       series.push({
         date: anchor,
-        label: period === "hoje" ? `${fmtDate(anchor)} 00:00` : fmtDate(anchor),
-        labelShort: period === "hoje" ? "00:00" : fmtDayMonth(anchor),
+        label: (period === "hoje" || period === "dia") ? `${fmtDate(anchor)} 00:00` : fmtDate(anchor),
+        labelShort: (period === "hoje" || period === "dia") ? "00:00" : fmtDayMonth(anchor),
         saldo: Math.round(carryOver * 100) / 100,
       });
     }
@@ -461,14 +461,14 @@ const Historico = () => {
       } else {
         series.push({
           date: d,
-          label: period === "hoje" ? `${fmtDate(d.slice(0, 10))} ${fmtTime(d)}` : fmtDate(d),
-          labelShort: period === "hoje" ? fmtTime(d) : fmtDayMonth(d),
+          label: (period === "hoje" || period === "dia") ? `${fmtDate(d.slice(0, 10))} ${fmtTime(d)}` : fmtDate(d),
+          labelShort: (period === "hoje" || period === "dia") ? fmtTime(d) : fmtDayMonth(d),
           saldo: Math.round(acc * 100) / 100,
         });
       }
     }
 
-    if (period === "hoje") {
+    if (period === "hoje" || (period === "dia" && range.from === todayStr)) {
       const last = series[series.length - 1];
       if (last) {
         series.push({
