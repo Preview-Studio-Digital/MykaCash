@@ -868,7 +868,7 @@ const Historico = () => {
               </h2>
             </div>
             <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
-              {chartData.length} {chartData.length === 1 ? "DATA" : "DATAS"}
+              {periodDays} {periodDays === 1 ? "DIA" : "DIAS"}
             </span>
           </div>
           <div className="h-64 w-full">
