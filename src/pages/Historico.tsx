@@ -509,6 +509,32 @@ const Historico = () => {
       }
     }
     
+    // Curva projetada (a vencer): continuação tracejada nos filtros "todas" e "andamento"
+    if (statusFilter === "todas" || statusFilter === "andamento") {
+      const futureDeltas = new Map<string, number>();
+      for (const r of filteredRows) {
+        if (!r.settled && r.dueDate > todayStr) {
+          futureDeltas.set(r.dueDate, (futureDeltas.get(r.dueDate) ?? 0) + (-r.value));
+        }
+      }
+      const futureDates = Array.from(futureDeltas.keys()).sort();
+      if (futureDates.length > 0 && series.length > 0) {
+        const lastHist = series[series.length - 1];
+        (lastHist as any).saldoFuturo = lastHist.saldo;
+        let accF = lastHist.saldo;
+        for (const d of futureDates) {
+          accF += futureDeltas.get(d)!;
+          series.push({
+            date: d,
+            label: fmtDate(d),
+            labelShort: fmtDayMonth(d),
+            saldo: null as any,
+            saldoFuturo: Math.round(accF * 100) / 100,
+          } as any);
+        }
+      }
+    }
+
     return series;
   }, [filteredRows, period, range.from, range.to, todayStr, statusFilter]);
 
@@ -1026,7 +1052,24 @@ const Historico = () => {
                         strokeWidth={2.5}
                         fill={`url(#areaGradH-${gradId})`}
                         mask={`url(#areaFadeMask-${gradId})`}
+                        connectNulls={false}
+                        isAnimationActive={false}
                       />
+                      {(statusFilter === "todas" || statusFilter === "andamento") && (
+                        <Area
+                          type="monotone"
+                          dataKey="saldoFuturo"
+                          name="a vencer"
+                          stroke={`url(#lineGrad-${gradId})`}
+                          strokeWidth={2.5}
+                          strokeDasharray="6 4"
+                          fill={`url(#areaGradH-${gradId})`}
+                          fillOpacity={0.35}
+                          mask={`url(#areaFadeMask-${gradId})`}
+                          connectNulls={false}
+                          isAnimationActive={false}
+                        />
+                      )}
 
                     </AreaChart>
                   </ResponsiveContainer>
