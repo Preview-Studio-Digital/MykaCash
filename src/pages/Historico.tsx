@@ -357,14 +357,24 @@ const Historico = () => {
     // Para o filtro "liquidadas": exibimos apenas as saídas (valores negativos),
     // partindo de zero, pois o gráfico representa apenas as liquidações no período.
     const allEvents: Ev[] = [];
-    for (const r of filteredRows) {
-      if (statusFilter !== "liquidadas") {
-        const evDate = ((period === "hoje" || period === "dia") && r.operationDate === range.from) ? r.createdAt : r.operationDate;
-        allEvents.push({ date: evDate, delta: r.value });
+    if (statusFilter === "a_vencer") {
+      // "A vencer": gráfico parte do saldo em aberto na data inicial e decai a cada vencimento futuro.
+      // Usa TODAS as parcelas não liquidadas (não apenas as filtradas) para compor o saldo inicial corretamente.
+      for (const r of rows) {
+        if (r.settled) continue;
+        allEvents.push({ date: r.operationDate, delta: r.value });
+        allEvents.push({ date: r.dueDate, delta: -r.value });
       }
-      if (r.settled) {
-        const setDate = ((period === "hoje" || period === "dia") && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : r.dueDate;
-        allEvents.push({ date: setDate, delta: -r.value });
+    } else {
+      for (const r of filteredRows) {
+        if (statusFilter !== "liquidadas") {
+          const evDate = ((period === "hoje" || period === "dia") && r.operationDate === range.from) ? r.createdAt : r.operationDate;
+          allEvents.push({ date: evDate, delta: r.value });
+        }
+        if (r.settled) {
+          const setDate = ((period === "hoje" || period === "dia") && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : r.dueDate;
+          allEvents.push({ date: setDate, delta: -r.value });
+        }
       }
     }
 
@@ -373,7 +383,7 @@ const Historico = () => {
 
     // Para "andamento", precisamos do saldo anterior para que o gráfico bata com os quadros coloridos
     let carryOver = 0;
-    if (statusFilter === "andamento") {
+    if (statusFilter === "andamento" || statusFilter === "a_vencer") {
       const pastEvents = allEvents.filter((e) => e.date < range.from);
       carryOver = pastEvents.reduce((sum, e) => sum + e.delta, 0);
     }
