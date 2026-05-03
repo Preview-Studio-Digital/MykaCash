@@ -995,7 +995,24 @@ const Historico = () => {
                         strokeWidth={2.5}
                         fill={`url(#areaGradH-${gradId})`}
                         mask={`url(#areaFadeMask-${gradId})`}
+                        connectNulls={false}
+                        isAnimationActive={false}
                       />
+                      {(statusFilter === "todas" || statusFilter === "andamento") && (
+                        <Area
+                          type="monotone"
+                          dataKey="saldoFuturo"
+                          name="a vencer"
+                          stroke={`url(#lineGrad-${gradId})`}
+                          strokeWidth={2.5}
+                          strokeDasharray="6 4"
+                          fill={`url(#areaGradH-${gradId})`}
+                          fillOpacity={0.35}
+                          mask={`url(#areaFadeMask-${gradId})`}
+                          connectNulls={false}
+                          isAnimationActive={false}
+                        />
+                      )}
 
                     </AreaChart>
                   </ResponsiveContainer>
