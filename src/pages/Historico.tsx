@@ -952,10 +952,14 @@ const Historico = () => {
                   const light = 50;
                   return `hsl(${hue.toFixed(1)} ${sat}% ${light}%)`;
                 };
+                const valOf = (idx: number) => {
+                  const p: any = chartData[idx];
+                  return (p?.saldo ?? p?.saldoFuturo ?? 0) as number;
+                };
                 const slopes: number[] = [];
                 for (let i = 0; i < n; i++) {
-                  const prev = chartData[Math.max(0, i - 1)].saldo;
-                  const next = chartData[Math.min(n - 1, i + 1)].saldo;
+                  const prev = valOf(Math.max(0, i - 1));
+                  const next = valOf(Math.min(n - 1, i + 1));
                   slopes.push(next - prev);
                 }
                 const maxAbs = Math.max(1, ...slopes.map((s) => Math.abs(s)));
