@@ -357,14 +357,27 @@ const Historico = () => {
     // Para o filtro "liquidadas": exibimos apenas as saídas (valores negativos),
     // partindo de zero, pois o gráfico representa apenas as liquidações no período.
     const allEvents: Ev[] = [];
-    for (const r of filteredRows) {
-      if (statusFilter !== "liquidadas") {
-        const evDate = ((period === "hoje" || period === "dia") && r.operationDate === range.from) ? r.createdAt : r.operationDate;
-        allEvents.push({ date: evDate, delta: r.value });
+    if (statusFilter === "a_vencer") {
+      // "A vencer": parte do somatório de todas as parcelas a vencer no período (saldo inicial)
+      // e decai a cada vencimento. Apenas eventos de saída (vencimento) são plotados.
+      for (const r of filteredRows) {
+        // Saldo inicial: lança +value como evento "passado" (antes do range)
+        const beforeStart = new Date(range.from + "T00:00:00");
+        beforeStart.setDate(beforeStart.getDate() - 1);
+        allEvents.push({ date: localISO(beforeStart), delta: r.value });
+        // Saída no vencimento (dentro do range)
+        allEvents.push({ date: r.dueDate, delta: -r.value });
       }
-      if (r.settled) {
-        const setDate = ((period === "hoje" || period === "dia") && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : r.dueDate;
-        allEvents.push({ date: setDate, delta: -r.value });
+    } else {
+      for (const r of filteredRows) {
+        if (statusFilter !== "liquidadas") {
+          const evDate = ((period === "hoje" || period === "dia") && r.operationDate === range.from) ? r.createdAt : r.operationDate;
+          allEvents.push({ date: evDate, delta: r.value });
+        }
+        if (r.settled) {
+          const setDate = ((period === "hoje" || period === "dia") && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : r.dueDate;
+          allEvents.push({ date: setDate, delta: -r.value });
+        }
       }
     }
 
@@ -373,7 +386,7 @@ const Historico = () => {
 
     // Para "andamento", precisamos do saldo anterior para que o gráfico bata com os quadros coloridos
     let carryOver = 0;
-    if (statusFilter === "andamento") {
+    if (statusFilter === "andamento" || statusFilter === "a_vencer") {
       const pastEvents = allEvents.filter((e) => e.date < range.from);
       carryOver = pastEvents.reduce((sum, e) => sum + e.delta, 0);
     }
@@ -416,7 +429,7 @@ const Historico = () => {
       baseDate.setDate(baseDate.getDate() - 1);
       const baseline = localISO(baseDate);
       series.push({ date: baseline, label: fmtDate(baseline), labelShort: fmtDayMonth(baseline), saldo: 0 });
-    } else if (period === "total" && includesFirst) {
+    } else if (period === "total" && includesFirst && statusFilter !== "a_vencer") {
       // Período total engloba a primeira operação: baseline em zero, uma semana antes
       const first = new Date(sortedDates[0] + "T00:00:00");
       first.setDate(first.getDate() - 7);
@@ -454,7 +467,7 @@ const Historico = () => {
       }
     };
 
-    let acc = (statusFilter === "liquidadas" || (period === "total" && includesFirst)) ? 0 : carryOver;
+    let acc = (statusFilter === "liquidadas" || (period === "total" && includesFirst && statusFilter !== "a_vencer")) ? 0 : carryOver;
     for (const d of sortedDates) {
       fillGaps(d, acc);
 
