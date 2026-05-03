@@ -426,7 +426,7 @@ const Historico = () => {
       baseDate.setDate(baseDate.getDate() - 1);
       const baseline = localISO(baseDate);
       series.push({ date: baseline, label: fmtDate(baseline), labelShort: fmtDayMonth(baseline), saldo: 0 });
-    } else if (period === "total" && includesFirst) {
+    } else if (period === "total" && includesFirst && statusFilter !== "a_vencer") {
       // Período total engloba a primeira operação: baseline em zero, uma semana antes
       const first = new Date(sortedDates[0] + "T00:00:00");
       first.setDate(first.getDate() - 7);
