@@ -358,11 +358,14 @@ const Historico = () => {
     // partindo de zero, pois o gráfico representa apenas as liquidações no período.
     const allEvents: Ev[] = [];
     if (statusFilter === "a_vencer") {
-      // "A vencer": gráfico parte do saldo em aberto na data inicial e decai a cada vencimento futuro.
-      // Usa TODAS as parcelas não liquidadas (não apenas as filtradas) para compor o saldo inicial corretamente.
-      for (const r of rows) {
-        if (r.settled) continue;
-        allEvents.push({ date: r.operationDate, delta: r.value });
+      // "A vencer": parte do somatório de todas as parcelas a vencer no período (saldo inicial)
+      // e decai a cada vencimento. Apenas eventos de saída (vencimento) são plotados.
+      for (const r of filteredRows) {
+        // Saldo inicial: lança +value como evento "passado" (antes do range)
+        const beforeStart = new Date(range.from + "T00:00:00");
+        beforeStart.setDate(beforeStart.getDate() - 1);
+        allEvents.push({ date: localISO(beforeStart), delta: r.value });
+        // Saída no vencimento (dentro do range)
         allEvents.push({ date: r.dueDate, delta: -r.value });
       }
     } else {
