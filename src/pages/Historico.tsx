@@ -464,7 +464,7 @@ const Historico = () => {
       }
     };
 
-    let acc = (statusFilter === "liquidadas" || (period === "total" && includesFirst)) ? 0 : carryOver;
+    let acc = (statusFilter === "liquidadas" || (period === "total" && includesFirst && statusFilter !== "a_vencer")) ? 0 : carryOver;
     for (const d of sortedDates) {
       fillGaps(d, acc);
 
