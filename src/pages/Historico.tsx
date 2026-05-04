@@ -971,9 +971,11 @@ const Historico = () => {
                   slopes.push(valOf(neighbor(i, 1)) - valOf(neighbor(i, -1)));
                 }
                 const maxAbs = Math.max(1, ...slopes.map((s) => Math.abs(s)));
-                const stops = chartData.map((_, i) => ({
-                  offset: n === 1 ? 0 : (i / (n - 1)) * 100,
-                  color: slopeColor(slopes[i], maxAbs),
+                const histIdx = chartData.map((_, i) => i).filter((i) => !isFuture(i));
+                const histN = histIdx.length;
+                const stops = histIdx.map((origIdx, k) => ({
+                  offset: histN <= 1 ? 0 : (k / (histN - 1)) * 100,
+                  color: slopeColor(slopes[origIdx], maxAbs),
                 }));
 
                 const monthBoundaries: string[] = [];
