@@ -342,7 +342,8 @@ const Historico = () => {
   ) + 1);
 
   // Para a média diária, considera apenas até hoje (não conta dias úteis futuros do período)
-  const avgEnd = range.to > todayStr ? todayStr : range.to;
+  // EXCETO se o filtro for "a_vencer", pois aí queremos a média da projeção sobre o período todo.
+  const avgEnd = (statusFilter === "a_vencer" || range.to <= todayStr) ? range.to : todayStr;
   const businessDays = countBusinessDays(range.from, avgEnd);
   const dailyAvgOpen = openPresent / businessDays;
 
