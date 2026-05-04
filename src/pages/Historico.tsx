@@ -129,6 +129,7 @@ const Historico = () => {
   const { user, isAdmin } = useAuth();
   const [period, setPeriod] = useState<Period>("total");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("todas");
+  const [showFuture, setShowFuture] = useState<boolean>(false);
   const [from, setFrom] = useState<string>(todayISO());
   const [to, setTo] = useState<string>(todayISO());
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
@@ -287,7 +288,7 @@ const Historico = () => {
     }
     if (statusFilter === "a_vencer") {
       // "A VENCER": parcelas em aberto cujo vencimento cai dentro do período selecionado
-      return rows.filter((r) => !r.settled && r.dueDate >= range.from && r.dueDate <= range.to);
+      return rows.filter((r) => !r.settled && inRange(r.dueDate));
     }
     if (statusFilter === "todas") {
       return rows.filter((r) => {
@@ -340,7 +341,9 @@ const Historico = () => {
     (new Date(range.to + "T00:00:00").getTime() - new Date(range.from + "T00:00:00").getTime()) / 86_400_000
   ) + 1);
 
-  const businessDays = countBusinessDays(range.from, range.to);
+  // Para a média diária, considera apenas até hoje (não conta dias úteis futuros do período)
+  const avgEnd = range.to > todayStr ? todayStr : range.to;
+  const businessDays = countBusinessDays(range.from, avgEnd);
   const dailyAvgOpen = openPresent / businessDays;
 
   // Chart: "Operações em Transação" — running outstanding balance over time.
@@ -509,8 +512,34 @@ const Historico = () => {
       }
     }
     
+    // Curva projetada (a vencer): continuação tracejada nos filtros "todas" e "andamento"
+    if (showFuture && statusFilter !== "liquidadas") {
+      const futureDeltas = new Map<string, number>();
+      for (const r of filteredRows) {
+        if (!r.settled && r.dueDate > todayStr) {
+          futureDeltas.set(r.dueDate, (futureDeltas.get(r.dueDate) ?? 0) + (-r.value));
+        }
+      }
+      const futureDates = Array.from(futureDeltas.keys()).sort();
+      if (futureDates.length > 0 && series.length > 0) {
+        const lastHist = series[series.length - 1];
+        (lastHist as any).saldoFuturo = lastHist.saldo;
+        let accF = lastHist.saldo;
+        for (const d of futureDates) {
+          accF += futureDeltas.get(d)!;
+          series.push({
+            date: d,
+            label: fmtDate(d),
+            labelShort: fmtDayMonth(d),
+            saldo: null as any,
+            saldoFuturo: Math.round(accF * 100) / 100,
+          } as any);
+        }
+      }
+    }
+
     return series;
-  }, [filteredRows, period, range.from, range.to, todayStr, statusFilter]);
+  }, [filteredRows, rows, period, range.from, range.to, todayStr, statusFilter, showFuture]);
 
   const chartGradId = useMemo(() => Math.random().toString(36).substr(2, 9), [chartData]);
 
@@ -798,6 +827,22 @@ const Historico = () => {
               );
             })}
           </div>
+
+          {/* Toggle adicional — projeção "A vencer" */}
+          <div className="inline-flex rounded-full border border-border/50 bg-background/60 p-1 shadow-panel">
+            <button
+              onClick={() => setShowFuture((v) => !v)}
+              className={
+                "inline-flex items-center rounded-full px-3 py-1 font-mono text-[9px] tracking-[0.25em] transition-all whitespace-nowrap " +
+                (showFuture
+                  ? "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.5)]"
+                  : "text-muted-foreground hover:text-foreground")
+              }
+              aria-pressed={showFuture}
+            >
+              VENCIMENTOS FUTUROS
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -913,16 +958,31 @@ const Historico = () => {
                   const light = 50;
                   return `hsl(${hue.toFixed(1)} ${sat}% ${light}%)`;
                 };
+                const isFuture = (idx: number) => {
+                  const p: any = chartData[idx];
+                  return p?.saldo == null && p?.saldoFuturo != null;
+                };
+                const valOf = (idx: number) => {
+                  const p: any = chartData[idx];
+                  return (isFuture(idx) ? p.saldoFuturo : p?.saldo ?? 0) as number;
+                };
+                const neighbor = (i: number, dir: -1 | 1) => {
+                  const target = isFuture(i);
+                  let j = i + dir;
+                  while (j >= 0 && j < n && isFuture(j) !== target) j += dir;
+                  if (j < 0 || j >= n) j = i;
+                  return j;
+                };
                 const slopes: number[] = [];
                 for (let i = 0; i < n; i++) {
-                  const prev = chartData[Math.max(0, i - 1)].saldo;
-                  const next = chartData[Math.min(n - 1, i + 1)].saldo;
-                  slopes.push(next - prev);
+                  slopes.push(valOf(neighbor(i, 1)) - valOf(neighbor(i, -1)));
                 }
                 const maxAbs = Math.max(1, ...slopes.map((s) => Math.abs(s)));
-                const stops = chartData.map((_, i) => ({
-                  offset: n === 1 ? 0 : (i / (n - 1)) * 100,
-                  color: slopeColor(slopes[i], maxAbs),
+                const histIdx = chartData.map((_, i) => i).filter((i) => !isFuture(i));
+                const histN = histIdx.length;
+                const stops = histIdx.map((origIdx, k) => ({
+                  offset: histN <= 1 ? 0 : (k / (histN - 1)) * 100,
+                  color: slopeColor(slopes[origIdx], maxAbs),
                 }));
 
                 const monthBoundaries: string[] = [];
@@ -1026,7 +1086,24 @@ const Historico = () => {
                         strokeWidth={2.5}
                         fill={`url(#areaGradH-${gradId})`}
                         mask={`url(#areaFadeMask-${gradId})`}
+                        connectNulls={false}
+                        isAnimationActive={false}
                       />
+                      {showFuture && statusFilter !== "liquidadas" && (
+                        <Area
+                          type="monotone"
+                          dataKey="saldoFuturo"
+                          name="a vencer"
+                          stroke="hsl(0 0% 100%)"
+                          strokeWidth={2.5}
+                          strokeDasharray="6 4"
+                          fill="hsl(0 0% 60%)"
+                          fillOpacity={0.35}
+                          mask={`url(#areaFadeMask-${gradId})`}
+                          connectNulls={false}
+                          isAnimationActive={false}
+                        />
+                      )}
 
                     </AreaChart>
                   </ResponsiveContainer>
@@ -1334,7 +1411,7 @@ const Historico = () => {
           </div>
 
           <p className="mt-4 font-mono text-[10px] tracking-[0.25em] text-muted-foreground text-justify">
-            * EDIÇÕES E EXCLUSÕES DE OPERAÇÕES SÓ SÃO POSSÍVEIS DENTRO DE UM MINUTO APÓS O CADASTRO.
+            * EDIÇÕES E EXCLUSÕES DE OPERAÇÕES PERMITIDAS DENTRO DE UM MINUTO APÓS O CADASTRO.
           </p>
         </section>
       </main>
