@@ -1085,10 +1085,10 @@ const Historico = () => {
                           type="monotone"
                           dataKey="saldoFuturo"
                           name="a vencer"
-                          stroke={`url(#lineGrad-${gradId})`}
+                          stroke="hsl(0 0% 100%)"
                           strokeWidth={2.5}
                           strokeDasharray="6 4"
-                          fill={`url(#areaGradH-${gradId})`}
+                          fill="hsl(0 0% 60%)"
                           fillOpacity={0.35}
                           mask={`url(#areaFadeMask-${gradId})`}
                           connectNulls={false}
