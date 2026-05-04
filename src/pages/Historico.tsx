@@ -1406,7 +1406,7 @@ const Historico = () => {
           </div>
 
           <p className="mt-4 font-mono text-[10px] tracking-[0.25em] text-muted-foreground text-justify">
-            * EDIÇÕES E EXCLUSÕES DE OPERAÇÕES SÓ SÃO POSSÍVEIS DENTRO DE UM MINUTO APÓS O CADASTRO.
+            * EDIÇÕES E EXCLUSÕES DE OPERAÇÕES PERMITIDAS DENTRO DE UM MINUTO APÓS O CADASTRO.
           </p>
         </section>
       </main>
