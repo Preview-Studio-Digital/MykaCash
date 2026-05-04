@@ -936,7 +936,7 @@ const Historico = () => {
                 </div>
                 <div>
                   <div className="font-mono text-[9px] tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
-                  <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums text-right opacity-90 whitespace-nowrap">
+                  <div className="mt-1 font-display text-lg font-semibold tabular-nums text-right opacity-90 whitespace-nowrap">
                     {formatBRL(dailyAvgOpen)}
                   </div>
                 </div>
