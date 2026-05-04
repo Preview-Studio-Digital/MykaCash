@@ -835,7 +835,7 @@ const Historico = () => {
               }
               aria-pressed={showFuture}
             >
-              A VENCER
+              VENCIMENTOS FUTUROS
             </button>
           </div>
         </div>
