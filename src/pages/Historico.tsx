@@ -360,25 +360,35 @@ const Historico = () => {
     // Para o filtro "liquidadas": exibimos apenas as saídas (valores negativos),
     // partindo de zero, pois o gráfico representa apenas as liquidações no período.
     const allEvents: Ev[] = [];
-    for (const r of filteredRows) {
-      if (statusFilter !== "liquidadas") {
-        const evDate = ((period === "hoje" || period === "dia") && r.operationDate === range.from) ? r.createdAt : r.operationDate;
-        allEvents.push({ date: evDate, delta: r.value });
+    if (statusFilter === "a_vencer") {
+      // Para "a vencer": começa com o saldo total do período e diminui nos vencimentos
+      for (const r of filteredRows) {
+        allEvents.push({ date: r.dueDate, delta: -r.value });
       }
-      if (r.settled) {
-        const setDate = ((period === "hoje" || period === "dia") && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : r.dueDate;
-        allEvents.push({ date: setDate, delta: -r.value });
+    } else {
+      for (const r of filteredRows) {
+        if (statusFilter !== "liquidadas") {
+          const evDate = ((period === "hoje" || period === "dia") && r.operationDate === range.from) ? r.createdAt : r.operationDate;
+          allEvents.push({ date: evDate, delta: r.value });
+        }
+        if (r.settled) {
+          const setDate = ((period === "hoje" || period === "dia") && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : r.dueDate;
+          allEvents.push({ date: setDate, delta: -r.value });
+        }
       }
     }
 
     if (allEvents.length === 0)
-      return [] as { date: string; label: string; labelShort: string; saldo: number }[];
+      return [] as { date: string; label: string; labelShort: string; saldo: number | null; saldoFuturo?: number }[];
 
     // Para "andamento", precisamos do saldo anterior para que o gráfico bata com os quadros coloridos
     let carryOver = 0;
     if (statusFilter === "andamento") {
       const pastEvents = allEvents.filter((e) => e.date < range.from);
       carryOver = pastEvents.reduce((sum, e) => sum + e.delta, 0);
+    } else if (statusFilter === "a_vencer") {
+      // Saldo inicial é a soma de todos os valores "a vencer" no período (deltas negativos no allEvents)
+      carryOver = filteredRows.reduce((sum, r) => sum + r.value, 0);
     }
 
     // Eventos que ocorreram DENTRO do período
@@ -406,7 +416,7 @@ const Historico = () => {
 
     const sortedDates = Array.from(byDate.keys()).sort();
 
-    const series: { date: string; label: string; labelShort: string; saldo: number }[] = [];
+    const series: { date: string; label: string; labelShort: string; saldo: number | null; saldoFuturo?: number }[] = [];
 
     const allDatesSorted = allEvents.map((e) => e.date).sort();
     const firstHistoricalDate = allDatesSorted[0];
@@ -419,7 +429,7 @@ const Historico = () => {
       baseDate.setDate(baseDate.getDate() - 1);
       const baseline = localISO(baseDate);
       series.push({ date: baseline, label: fmtDate(baseline), labelShort: fmtDayMonth(baseline), saldo: 0 });
-    } else if (period === "total" && includesFirst) {
+    } else if (period === "total" && includesFirst && statusFilter !== "a_vencer") {
       // Período total engloba a primeira operação: baseline em zero, uma semana antes
       const first = new Date(sortedDates[0] + "T00:00:00");
       first.setDate(first.getDate() - 7);
@@ -429,11 +439,14 @@ const Historico = () => {
       // Período NÃO é total ou não engloba a primeira operação: começa com o saldo acumulado real
       // ancorado no início do intervalo
       const anchor = range.from > "1900-01-01" ? range.from : (sortedDates[0] || todayStr);
+      const startVal = Math.round(carryOver * 100) / 100;
+      const isAVencer = statusFilter === "a_vencer";
       series.push({
         date: anchor,
         label: (period === "hoje" || period === "dia") ? `${fmtDate(anchor)} 00:00` : fmtDate(anchor),
         labelShort: (period === "hoje" || period === "dia") ? "00:00" : fmtDayMonth(anchor),
-        saldo: Math.round(carryOver * 100) / 100,
+        saldo: isAVencer ? null : startVal,
+        saldoFuturo: isAVencer ? startVal : undefined,
       });
     }
 
@@ -446,31 +459,38 @@ const Historico = () => {
       while (temp < dObj) {
         const firstStr = localISO(temp);
         if (firstStr !== targetDateStr && firstStr !== lastDate) {
+          const isAVencer = statusFilter === "a_vencer";
+          const val = Math.round(currentSaldo * 100) / 100;
           series.push({
             date: firstStr,
             label: fmtDate(firstStr),
             labelShort: fmtDayMonth(firstStr),
-            saldo: Math.round(currentSaldo * 100) / 100,
+            saldo: isAVencer ? null : val,
+            saldoFuturo: isAVencer ? val : undefined,
           });
         }
         temp.setMonth(temp.getMonth() + 1);
       }
     };
 
-    let acc = (statusFilter === "liquidadas" || (period === "total" && includesFirst)) ? 0 : carryOver;
+    const isAVencer = statusFilter === "a_vencer";
+    let acc = (statusFilter === "liquidadas" || (period === "total" && includesFirst && !isAVencer)) ? 0 : carryOver;
     for (const d of sortedDates) {
       fillGaps(d, acc);
 
       acc += byDate.get(d)!;
+      const currentVal = Math.round(acc * 100) / 100;
       // Evita ponto duplicado se o primeiro evento coincide com o anchor
       if (series.length && series[series.length - 1].date === d) {
-        series[series.length - 1].saldo = Math.round(acc * 100) / 100;
+        if (isAVencer) series[series.length - 1].saldoFuturo = currentVal;
+        else series[series.length - 1].saldo = currentVal;
       } else {
         series.push({
           date: d,
           label: (period === "hoje" || period === "dia") ? `${fmtDate(d.slice(0, 10))} ${fmtTime(d)}` : fmtDate(d),
           labelShort: (period === "hoje" || period === "dia") ? fmtTime(d) : fmtDayMonth(d),
-          saldo: Math.round(acc * 100) / 100,
+          saldo: isAVencer ? null : currentVal,
+          saldoFuturo: isAVencer ? currentVal : undefined,
         });
       }
     }
@@ -483,6 +503,7 @@ const Historico = () => {
           label: `${fmtDate(todayStr)} Agora`,
           labelShort: "AGORA",
           saldo: last.saldo,
+          saldoFuturo: (last as any).saldoFuturo,
         });
       }
     } else if (period === "mes" || period === "total") {
@@ -490,22 +511,26 @@ const Historico = () => {
       const hasToday = series.some((s) => s.date === todayStr);
       if (!hasToday) {
         if (last && last.date < todayStr) {
-          fillGaps(todayStr, last.saldo);
+          const lastSaldo = last.saldo ?? (last as any).saldoFuturo ?? 0;
+          fillGaps(todayStr, lastSaldo);
           series.push({
             date: todayStr,
             label: fmtDate(todayStr),
             labelShort: fmtDayMonth(todayStr),
-            saldo: last.saldo,
+            saldo: isAVencer ? null : lastSaldo,
+            saldoFuturo: isAVencer ? lastSaldo : undefined,
           });
         } else if (last && last.date > todayStr) {
           const insertIdx = series.findIndex((s) => s.date > todayStr);
           if (insertIdx > 0) {
             const prev = series[insertIdx - 1];
+            const prevVal = prev.saldo ?? (prev as any).saldoFuturo ?? 0;
             series.splice(insertIdx, 0, {
               date: todayStr,
               label: fmtDate(todayStr),
               labelShort: fmtDayMonth(todayStr),
-              saldo: prev.saldo,
+              saldo: isAVencer ? null : prevVal,
+              saldoFuturo: isAVencer ? prevVal : undefined,
             });
           }
         }
@@ -513,7 +538,7 @@ const Historico = () => {
     }
     
     // Curva projetada (a vencer): continuação tracejada nos filtros "todas" e "andamento"
-    if (showFuture && statusFilter !== "liquidadas") {
+    if (showFuture && statusFilter !== "liquidadas" && statusFilter !== "a_vencer") {
       const futureDeltas = new Map<string, number>();
       for (const r of filteredRows) {
         if (!r.settled && r.dueDate > todayStr) {
@@ -1089,7 +1114,7 @@ const Historico = () => {
                         connectNulls={false}
                         isAnimationActive={false}
                       />
-                      {showFuture && statusFilter !== "liquidadas" && (
+                      {(showFuture || statusFilter === "a_vencer") && statusFilter !== "liquidadas" && (
                         <Area
                           type="monotone"
                           dataKey="saldoFuturo"
@@ -1097,8 +1122,8 @@ const Historico = () => {
                           stroke="hsl(0 0% 100%)"
                           strokeWidth={2.5}
                           strokeDasharray="6 4"
-                          fill="hsl(0 0% 60%)"
-                          fillOpacity={0.35}
+                          fill={statusFilter === "a_vencer" ? `url(#areaGradH-${gradId})` : "hsl(0 0% 60%)"}
+                          fillOpacity={statusFilter === "a_vencer" ? 0.55 : 0.35}
                           mask={`url(#areaFadeMask-${gradId})`}
                           connectNulls={false}
                           isAnimationActive={false}
