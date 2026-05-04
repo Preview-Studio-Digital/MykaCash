@@ -32,7 +32,7 @@ import {
 } from "recharts";
 
 type Period = "hoje" | "dia" | "semana" | "mes" | "total" | "periodo";
-type StatusFilter = "todas" | "iniciadas" | "andamento" | "vencidas" | "a_vencer" | "liquidadas";
+type StatusFilter = "todas" | "iniciadas" | "andamento" | "vencidas" | "liquidadas" | "a_vencer";
 
 type SettledEntry = string | { id: string; date: string };
 type InvoiceRow = {
@@ -610,8 +610,8 @@ const Historico = () => {
     { id: "iniciadas", label: "INICIADAS" },
     { id: "andamento", label: "ANDAMENTO" },
     { id: "vencidas", label: "VENCIDAS" },
-    { id: "a_vencer", label: "A VENCER" },
     { id: "liquidadas", label: "LIQUIDADAS" },
+    { id: "a_vencer", label: "A VENCER" },
   ];
 
   // Hover state to preview liquidation in orange
