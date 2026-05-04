@@ -32,7 +32,7 @@ import {
 } from "recharts";
 
 type Period = "hoje" | "dia" | "semana" | "mes" | "total" | "periodo";
-type StatusFilter = "todas" | "iniciadas" | "andamento" | "vencidas" | "a_vencer" | "liquidadas";
+type StatusFilter = "todas" | "iniciadas" | "andamento" | "vencidas" | "liquidadas";
 
 type SettledEntry = string | { id: string; date: string };
 type InvoiceRow = {
@@ -129,6 +129,7 @@ const Historico = () => {
   const { user, isAdmin } = useAuth();
   const [period, setPeriod] = useState<Period>("total");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("todas");
+  const [showFuture, setShowFuture] = useState<boolean>(false);
   const [from, setFrom] = useState<string>(todayISO());
   const [to, setTo] = useState<string>(todayISO());
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
@@ -285,10 +286,6 @@ const Historico = () => {
         (r) => !r.settled && r.operationDate <= range.to
       );
     }
-    if (statusFilter === "a_vencer") {
-      // "A VENCER": parcelas em aberto cujo vencimento cai dentro do período selecionado
-      return rows.filter((r) => !r.settled && r.dueDate >= range.from && r.dueDate <= range.to);
-    }
     if (statusFilter === "todas") {
       return rows.filter((r) => {
         // "andamento" (inclui abertas e vencidas até a data limite)
@@ -357,27 +354,14 @@ const Historico = () => {
     // Para o filtro "liquidadas": exibimos apenas as saídas (valores negativos),
     // partindo de zero, pois o gráfico representa apenas as liquidações no período.
     const allEvents: Ev[] = [];
-    if (statusFilter === "a_vencer") {
-      // "A vencer": parte do somatório de todas as parcelas a vencer no período (saldo inicial)
-      // e decai a cada vencimento. Apenas eventos de saída (vencimento) são plotados.
-      for (const r of filteredRows) {
-        // Saldo inicial: lança +value como evento "passado" (antes do range)
-        const beforeStart = new Date(range.from + "T00:00:00");
-        beforeStart.setDate(beforeStart.getDate() - 1);
-        allEvents.push({ date: localISO(beforeStart), delta: r.value });
-        // Saída no vencimento (dentro do range)
-        allEvents.push({ date: r.dueDate, delta: -r.value });
+    for (const r of filteredRows) {
+      if (statusFilter !== "liquidadas") {
+        const evDate = ((period === "hoje" || period === "dia") && r.operationDate === range.from) ? r.createdAt : r.operationDate;
+        allEvents.push({ date: evDate, delta: r.value });
       }
-    } else {
-      for (const r of filteredRows) {
-        if (statusFilter !== "liquidadas") {
-          const evDate = ((period === "hoje" || period === "dia") && r.operationDate === range.from) ? r.createdAt : r.operationDate;
-          allEvents.push({ date: evDate, delta: r.value });
-        }
-        if (r.settled) {
-          const setDate = ((period === "hoje" || period === "dia") && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : r.dueDate;
-          allEvents.push({ date: setDate, delta: -r.value });
-        }
+      if (r.settled) {
+        const setDate = ((period === "hoje" || period === "dia") && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : r.dueDate;
+        allEvents.push({ date: setDate, delta: -r.value });
       }
     }
 
@@ -386,7 +370,7 @@ const Historico = () => {
 
     // Para "andamento", precisamos do saldo anterior para que o gráfico bata com os quadros coloridos
     let carryOver = 0;
-    if (statusFilter === "andamento" || statusFilter === "a_vencer") {
+    if (statusFilter === "andamento") {
       const pastEvents = allEvents.filter((e) => e.date < range.from);
       carryOver = pastEvents.reduce((sum, e) => sum + e.delta, 0);
     }
@@ -429,7 +413,7 @@ const Historico = () => {
       baseDate.setDate(baseDate.getDate() - 1);
       const baseline = localISO(baseDate);
       series.push({ date: baseline, label: fmtDate(baseline), labelShort: fmtDayMonth(baseline), saldo: 0 });
-    } else if (period === "total" && includesFirst && statusFilter !== "a_vencer") {
+    } else if (period === "total" && includesFirst) {
       // Período total engloba a primeira operação: baseline em zero, uma semana antes
       const first = new Date(sortedDates[0] + "T00:00:00");
       first.setDate(first.getDate() - 7);
@@ -467,7 +451,7 @@ const Historico = () => {
       }
     };
 
-    let acc = (statusFilter === "liquidadas" || (period === "total" && includesFirst && statusFilter !== "a_vencer")) ? 0 : carryOver;
+    let acc = (statusFilter === "liquidadas" || (period === "total" && includesFirst)) ? 0 : carryOver;
     for (const d of sortedDates) {
       fillGaps(d, acc);
 
@@ -523,7 +507,7 @@ const Historico = () => {
     }
     
     // Curva projetada (a vencer): continuação tracejada nos filtros "todas" e "andamento"
-    if (statusFilter === "todas" || statusFilter === "andamento") {
+    if (showFuture && statusFilter !== "liquidadas") {
       const futureDeltas = new Map<string, number>();
       for (const r of filteredRows) {
         if (!r.settled && r.dueDate > todayStr) {
@@ -549,7 +533,7 @@ const Historico = () => {
     }
 
     return series;
-  }, [filteredRows, period, range.from, range.to, todayStr, statusFilter]);
+  }, [filteredRows, rows, period, range.from, range.to, todayStr, statusFilter, showFuture]);
 
   const chartGradId = useMemo(() => Math.random().toString(36).substr(2, 9), [chartData]);
 
@@ -649,7 +633,6 @@ const Historico = () => {
     { id: "iniciadas", label: "INICIADAS" },
     { id: "andamento", label: "ANDAMENTO" },
     { id: "vencidas", label: "VENCIDAS" },
-    { id: "a_vencer", label: "A VENCER" },
     { id: "liquidadas", label: "LIQUIDADAS" },
   ];
 
@@ -1081,7 +1064,7 @@ const Historico = () => {
                         connectNulls={false}
                         isAnimationActive={false}
                       />
-                      {(statusFilter === "todas" || statusFilter === "andamento") && (
+                      {showFuture && statusFilter !== "liquidadas" && (
                         <Area
                           type="monotone"
                           dataKey="saldoFuturo"
