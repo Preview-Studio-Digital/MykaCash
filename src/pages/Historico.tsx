@@ -337,7 +337,9 @@ const Historico = () => {
     (new Date(range.to + "T00:00:00").getTime() - new Date(range.from + "T00:00:00").getTime()) / 86_400_000
   ) + 1);
 
-  const businessDays = countBusinessDays(range.from, range.to);
+  // Para a média diária, considera apenas até hoje (não conta dias úteis futuros do período)
+  const avgEnd = range.to > todayStr ? todayStr : range.to;
+  const businessDays = countBusinessDays(range.from, avgEnd);
   const dailyAvgOpen = openPresent / businessDays;
 
   // Chart: "Operações em Transação" — running outstanding balance over time.
