@@ -1051,10 +1051,14 @@ const Historico = () => {
                       <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--muted-foreground))" opacity={0.4} vertical={true} horizontal={true} />
                       <XAxis
                         dataKey="date"
-                        tick={false}
-                        tickLine={false}
-                        axisLine={false}
-                        height={0}
+                        interval={period === "semana" ? 0 : "preserveStartEnd"}
+                        tickFormatter={(val) => {
+                          const parts = val.split("-");
+                          if (parts.length === 3) return parts[2];
+                          return val;
+                        }}
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                        stroke="hsl(var(--border))"
                       />
                       <YAxis
                         width={80}
