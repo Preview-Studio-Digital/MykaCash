@@ -1051,14 +1051,10 @@ const Historico = () => {
                       <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--muted-foreground))" opacity={0.4} vertical={true} horizontal={true} />
                       <XAxis
                         dataKey="date"
-                        interval={period === "semana" ? 0 : "preserveStartEnd"}
-                        tickFormatter={(val) => {
-                          const parts = val.split("-");
-                          if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
-                          return val;
-                        }}
-                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                        stroke="hsl(var(--border))"
+                        tick={false}
+                        tickLine={false}
+                        axisLine={false}
+                        height={0}
                       />
                       <YAxis
                         width={80}
@@ -1140,6 +1136,17 @@ const Historico = () => {
             )}
           </div>
           {chartData.length > 0 && (() => {
+            const MONTHS_PT = ["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DEZ"];
+            // Agrupa meses consecutivos
+            const monthSegs: { key: string; label: string; count: number }[] = [];
+            for (const p of chartData) {
+              const [y, m] = p.date.split("-");
+              const key = `${y}-${m}`;
+              const label = MONTHS_PT[parseInt(m, 10) - 1] || m;
+              const last = monthSegs[monthSegs.length - 1];
+              if (last && last.key === key) last.count += 1;
+              else monthSegs.push({ key, label, count: 1 });
+            }
             // Agrupa anos consecutivos preservando largura proporcional ao nº de pontos
             const segs: { year: string; count: number }[] = [];
             for (const p of chartData) {
@@ -1151,17 +1158,30 @@ const Historico = () => {
             const total = chartData.length;
             // Compensa as margens do AreaChart (left: 0 + YAxis ~45px, right: 16)
             return (
-              <div className="mt-1 flex" style={{ paddingLeft: 45, paddingRight: 16 }}>
-                {segs.map((s, i) => (
-                  <div
-                    key={i}
-                    className="text-center font-mono text-[10px] tracking-[0.25em] text-muted-foreground"
-                    style={{ flex: s.count / total }}
-                  >
-                    {s.year}
-                  </div>
-                ))}
-              </div>
+              <>
+                <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: 45, marginRight: 16 }}>
+                  {monthSegs.map((s, i) => (
+                    <div
+                      key={i}
+                      className="text-center font-mono text-[10px] tracking-[0.2em] text-muted-foreground py-1 overflow-hidden whitespace-nowrap"
+                      style={{ flex: s.count / total }}
+                    >
+                      {s.label}
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-1 flex" style={{ paddingLeft: 45, paddingRight: 16 }}>
+                  {segs.map((s, i) => (
+                    <div
+                      key={i}
+                      className="text-center font-mono text-[10px] tracking-[0.25em] text-muted-foreground"
+                      style={{ flex: s.count / total }}
+                    >
+                      {s.year}
+                    </div>
+                  ))}
+                </div>
+              </>
             );
           })()}
         </section>
