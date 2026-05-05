@@ -337,8 +337,10 @@ const Historico = () => {
     return Math.max(1, count);
   };
   // Dias corridos do período — para exibição no cabeçalho do gráfico
+  // Para "total", limita ao dia de hoje (não conta vencimentos futuros)
+  const periodEndForDays = period === "total" && range.to > todayStr ? todayStr : range.to;
   const periodDays = Math.max(1, Math.round(
-    (new Date(range.to + "T00:00:00").getTime() - new Date(range.from + "T00:00:00").getTime()) / 86_400_000
+    (new Date(periodEndForDays + "T00:00:00").getTime() - new Date(range.from + "T00:00:00").getTime()) / 86_400_000
   ) + 1);
 
   // Para a média diária, considera apenas até hoje (não conta dias úteis futuros do período)
