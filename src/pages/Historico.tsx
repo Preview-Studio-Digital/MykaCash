@@ -1061,8 +1061,8 @@ const Historico = () => {
                         stroke="hsl(var(--border))"
                       />
                       <YAxis
-                        width={80}
-                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11, textAnchor: "start", dx: -78 }}
+                        width={50}
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                         stroke="hsl(var(--border))"
                         tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`}
                       />
@@ -1163,7 +1163,7 @@ const Historico = () => {
             // Compensa as margens do AreaChart (left: 0 + YAxis ~45px, right: 16)
             return (
               <>
-                <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: 45, marginRight: 16 }}>
+                <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: 50, marginRight: 16 }}>
                   {monthSegs.map((s, i) => (
                     <div
                       key={i}
@@ -1174,7 +1174,7 @@ const Historico = () => {
                     </div>
                   ))}
                 </div>
-                <div className="mt-1 flex" style={{ paddingLeft: 45, paddingRight: 16 }}>
+                <div className="mt-1 flex" style={{ paddingLeft: 50, paddingRight: 16 }}>
                   {segs.map((s, i) => (
                     <div
                       key={i}
