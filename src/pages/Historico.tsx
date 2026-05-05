@@ -1062,7 +1062,7 @@ const Historico = () => {
                       />
                       <YAxis
                         width={80}
-                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11, textAnchor: "start", dx: -78 }}
                         stroke="hsl(var(--border))"
                         tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`}
                       />
