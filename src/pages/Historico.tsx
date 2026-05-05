@@ -1140,7 +1140,7 @@ const Historico = () => {
             )}
           </div>
           {chartData.length > 0 && (() => {
-            const MONTHS_PT = ["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DEZ"];
+            const MONTHS_PT = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
             // Agrupa meses consecutivos
             const monthSegs: { key: string; label: string; count: number }[] = [];
             for (const p of chartData) {
