@@ -1163,7 +1163,7 @@ const Historico = () => {
             // Compensa as margens do AreaChart (left: 0 + YAxis ~45px, right: 16)
             return (
               <>
-                <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: 45, marginRight: 16 }}>
+                <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: 50, marginRight: 16 }}>
                   {monthSegs.map((s, i) => (
                     <div
                       key={i}
