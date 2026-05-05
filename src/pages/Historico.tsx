@@ -1174,7 +1174,7 @@ const Historico = () => {
                     </div>
                   ))}
                 </div>
-                <div className="mt-1 flex" style={{ paddingLeft: 45, paddingRight: 16 }}>
+                <div className="mt-1 flex" style={{ paddingLeft: 50, paddingRight: 16 }}>
                   {segs.map((s, i) => (
                     <div
                       key={i}
