@@ -366,8 +366,10 @@ const Historico = () => {
     return Math.max(1, count);
   };
   // Dias corridos do período — para exibição no cabeçalho do gráfico
+  // Para "total", limita ao dia de hoje (não conta vencimentos futuros)
+  const periodEndForDays = period === "total" && range.to > todayStr ? todayStr : range.to;
   const periodDays = Math.max(1, Math.round(
-    (new Date(range.to + "T00:00:00").getTime() - new Date(range.from + "T00:00:00").getTime()) / 86_400_000
+    (new Date(periodEndForDays + "T00:00:00").getTime() - new Date(range.from + "T00:00:00").getTime()) / 86_400_000
   ) + 1);
 
   // Para a média diária, considera apenas até hoje (não conta dias úteis futuros do período)
@@ -940,8 +942,8 @@ const Historico = () => {
                   </div>
                 </div>
                 <div>
-                  <div className="font-mono text-[9px] tracking-[0.3em] opacity-80 text-right">TAXA EFETIVA MÉDIA</div>
-                  <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums text-right whitespace-nowrap">
+                  <div className="font-mono text-[9px] tracking-[0.3em] opacity-80 text-right">TAXA EFETIVA</div>
+                  <div className="mt-1 font-display text-xl font-bold tabular-nums text-right whitespace-nowrap md:text-lg">
                     {formatPct(totalEffective)}
                   </div>
                 </div>
@@ -1094,14 +1096,14 @@ const Historico = () => {
                         interval={period === "semana" ? 0 : "preserveStartEnd"}
                         tickFormatter={(val) => {
                           const parts = val.split("-");
-                          if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
+                          if (parts.length === 3) return parts[2];
                           return val;
                         }}
                         tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                         stroke="hsl(var(--border))"
                       />
                       <YAxis
-                        width={80}
+                        width={50}
                         tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                         stroke="hsl(var(--border))"
                         tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`}
@@ -1180,6 +1182,17 @@ const Historico = () => {
             )}
           </div>
           {chartData.length > 0 && (() => {
+            const MONTHS_PT = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
+            // Agrupa meses consecutivos
+            const monthSegs: { key: string; label: string; count: number }[] = [];
+            for (const p of chartData) {
+              const [y, m] = p.date.split("-");
+              const key = `${y}-${m}`;
+              const label = MONTHS_PT[parseInt(m, 10) - 1] || m;
+              const last = monthSegs[monthSegs.length - 1];
+              if (last && last.key === key) last.count += 1;
+              else monthSegs.push({ key, label, count: 1 });
+            }
             // Agrupa anos consecutivos preservando largura proporcional ao nº de pontos
             const segs: { year: string; count: number }[] = [];
             for (const p of chartData) {
@@ -1191,17 +1204,30 @@ const Historico = () => {
             const total = chartData.length;
             // Compensa as margens do AreaChart (left: 0 + YAxis ~45px, right: 16)
             return (
-              <div className="mt-1 flex" style={{ paddingLeft: 45, paddingRight: 16 }}>
-                {segs.map((s, i) => (
-                  <div
-                    key={i}
-                    className="text-center font-mono text-[10px] tracking-[0.25em] text-muted-foreground"
-                    style={{ flex: s.count / total }}
-                  >
-                    {s.year}
-                  </div>
-                ))}
-              </div>
+              <>
+                <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: 50, marginRight: 16 }}>
+                  {monthSegs.map((s, i) => (
+                    <div
+                      key={i}
+                      className="text-center font-mono text-[10px] tracking-[0.2em] text-muted-foreground py-1 overflow-hidden whitespace-nowrap"
+                      style={{ flex: s.count / total }}
+                    >
+                      {s.label}
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-1 flex" style={{ paddingLeft: 50, paddingRight: 16 }}>
+                  {segs.map((s, i) => (
+                    <div
+                      key={i}
+                      className="text-center font-mono text-[10px] tracking-[0.25em] text-muted-foreground"
+                      style={{ flex: s.count / total }}
+                    >
+                      {s.year}
+                    </div>
+                  ))}
+                </div>
+              </>
             );
           })()}
         </section>
