@@ -343,10 +343,11 @@ const Historico = () => {
       }
     }
     if (events.length === 0) return { maxHistoricOpenPresent: 0, valorEmConta: 0 };
-    // Ordena por data; em empates: aberturas antes de liquidações (para detectar topo corretamente)
+    // Ordena por data; em empates: liquidações antes de aberturas
+    // (entrada do liquidado compõe a conta antes da saída líquida da nova abertura)
     events.sort((a, b) => {
       if (a.date !== b.date) return a.date.localeCompare(b.date);
-      return a.kind === "open" ? -1 : 1;
+      return a.kind === "settle" ? -1 : 1;
     });
     let openBal = 0;
     let peak = 0;
@@ -358,16 +359,16 @@ const Historico = () => {
           peak = openBal;
           account = 0; // novo topo → zera valor em conta
         } else {
-          account -= e.net; // operação aberta posterior ao topo
+          account -= e.net; // operação aberta posterior ao topo (sai o líquido)
         }
       } else {
         openBal -= e.gross;
-        account += e.gross; // liquidação posterior ao topo
+        account += e.gross; // liquidação posterior ao topo (entra o bruto)
       }
     }
     return {
       maxHistoricOpenPresent: Math.round(peak * 100) / 100,
-      valorEmConta: Math.max(0, Math.round(account * 100) / 100),
+      valorEmConta: Math.round(account * 100) / 100,
     };
   }, [filteredRows]);
 
