@@ -323,34 +323,44 @@ const Historico = () => {
   // "Em aberto" deve refletir o saldo do gráfico (valores brutos): entra na operação, sai no vencimento se liquidado
   const openPresent = filteredRows.reduce((s, r) => s + (r.settled ? 0 : r.value), 0);
 
-  // Pico do saldo em aberto dentro do período/filtro selecionado.
+  // Pico do saldo em aberto dentro do período/filtro selecionado e a data desse pico.
   // Reconstrói o running balance usando apenas as filteredRows e captura o valor máximo.
-  const maxHistoricOpenPresent = useMemo(() => {
-    // Eventos: +value na abertura, -value no vencimento se liquidado
+  const { maxHistoricOpenPresent, peakDate } = useMemo(() => {
     type Ev = { date: string; delta: number };
     const events: Ev[] = [];
     for (const r of filteredRows) {
       events.push({ date: r.operationDate, delta: r.value });
-      if (r.settled) events.push({ date: r.dueDate, delta: -r.value });
+      if (r.settled) events.push({ date: r.settledDate || r.dueDate, delta: -r.value });
     }
-    if (events.length === 0) return 0;
-    // Agrupa por data
+    if (events.length === 0) return { maxHistoricOpenPresent: 0, peakDate: "" };
     const byDate = new Map<string, number>();
     for (const e of events) byDate.set(e.date, (byDate.get(e.date) ?? 0) + e.delta);
     const sorted = Array.from(byDate.entries()).sort((a, b) => a[0].localeCompare(b[0]));
     let acc = 0;
     let peak = 0;
-    for (const [, delta] of sorted) {
+    let peakAt = "";
+    for (const [date, delta] of sorted) {
       acc += delta;
-      if (acc > peak) peak = acc;
+      if (acc > peak) { peak = acc; peakAt = date; }
     }
-    return Math.round(peak * 100) / 100;
+    return { maxHistoricOpenPresent: Math.round(peak * 100) / 100, peakDate: peakAt };
   }, [filteredRows]);
 
-  // Valor que deve existir na conta do banco:
-  // maior saldo em aberto já atingido menos o saldo em aberto atual.
-  // Se o saldo atual for o maior (ou igual), registra zero.
-  const valorEmConta = Math.max(0, maxHistoricOpenPresent - openPresent);
+  // VALOR EM CONTA =
+  //   SALDO MAIS ALTO DE VALOR EM ABERTO
+  //   - soma das LIQUIDAÇÕES posteriores ao pico (valor bruto liberado ao cliente em cada liquidação)
+  //   - soma dos VALORES LÍQUIDOS das OPERAÇÕES ABERTAS posteriores ao pico
+  const valorEmConta = useMemo(() => {
+    if (!peakDate) return 0;
+    let settledAfterPeak = 0;
+    let openedNetAfterPeak = 0;
+    for (const r of filteredRows) {
+      const settleDate = r.settledDate || r.dueDate;
+      if (r.settled && settleDate > peakDate) settledAfterPeak += r.value;
+      if (!r.settled && r.operationDate > peakDate) openedNetAfterPeak += r.presentValue;
+    }
+    return Math.max(0, Math.round((maxHistoricOpenPresent - settledAfterPeak - openedNetAfterPeak) * 100) / 100);
+  }, [filteredRows, peakDate, maxHistoricOpenPresent]);
 
   // Dias úteis (seg–sex) no período — para média diária do valor em aberto
   const countBusinessDays = (fromISO: string, toISO: string) => {
