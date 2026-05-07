@@ -608,11 +608,11 @@ export const RegistrationSection = ({
               position: "relative",
               borderRadius: "20px",
               padding: "28px 32px",
-              background: "linear-gradient(135deg, #0a0f1c 0%, #111a30 100%)",
+              background: "#4b5563",
               color: "#ffffff",
               boxShadow: "0 18px 40px -20px rgba(10, 15, 28, 0.6)",
               marginBottom: "32px",
-              border: "1px solid rgba(34,211,238,0.25)",
+              border: "1px solid rgba(255,255,255,0.1)",
             }}
           >
             <div
@@ -638,43 +638,16 @@ export const RegistrationSection = ({
                       marginBottom: "8px",
                     }}
                   >
-                    ◆ MYKACA$H · REGISTRO DE ABERTURA
+                    MYKACA$H · ADIANTAMENTO DE RECEBÍVEIS
                   </div>
                   <div style={{ fontSize: "30px", fontWeight: 800, letterSpacing: "0.04em", lineHeight: 1, color: "#ffffff" }}>
                     MYKA COMPRESSORES DO BRASIL
                   </div>
-                  <div
-                    style={{
-                      fontSize: "11px",
-                      color: "#94a3b8",
-                      marginTop: "10px",
-                      letterSpacing: "0.25em",
-                    }}
-                  >
-                    PREVIEW STUDIO DIGITAL · ADIANTAMENTO DE RECEBÍVEIS
+                    PREVIEW STUDIO DIGITAL
                   </div>
                 </div>
               </div>
-              <div style={{ textAlign: "right" }}>
-                <div
-                  style={{
-                    display: "inline-block",
-                    padding: "8px 14px",
-                    borderRadius: "999px",
-                    background: "rgba(34,211,238,0.12)",
-                    border: "1px solid rgba(34,211,238,0.45)",
-                    color: "#67e8f9",
-                    fontSize: "11px",
-                    letterSpacing: "0.3em",
-                    fontWeight: 600,
-                  }}
-                >
-                  NF · {invoiceNumber || "—"}
-                </div>
-                <div style={{ marginTop: "10px", fontSize: "11px", color: "#94a3b8", letterSpacing: "0.2em" }}>
-                  {new Date(operationDate + "T00:00:00").toLocaleDateString("pt-BR")}
-                </div>
-              </div>
+              <div style={{ textAlign: "right" }} />
             </div>
           </div>
 
@@ -693,6 +666,7 @@ export const RegistrationSection = ({
               { label: "CNPJ", value: clients.find((c) => c.id === clientId)?.document ?? "—" },
               { label: "NOTA FISCAL", value: invoiceNumber || "—" },
               { label: "DATA DA ABERTURA", value: new Date(operationDate + "T00:00:00").toLocaleDateString("pt-BR") },
+              { label: "TAXA MENSAL", value: formatPct(monthlyRate) },
               { label: "TAXA EFETIVA", value: formatPct(result.effectiveRatePct) },
             ].map((item) => (
               <div
@@ -783,7 +757,7 @@ export const RegistrationSection = ({
                     <td style={{ padding: "10px 12px", textAlign: "center", color: "#0f766e", fontWeight: 600 }}>
                       {formatBRL(i.presentValue)}
                     </td>
-                    <td style={{ padding: "10px 12px", textAlign: "right", color: "#b91c1c", fontWeight: 600 }}>
+                    <td style={{ padding: "10px 12px", textAlign: "center", color: "#b91c1c", fontWeight: 600 }}>
                       {formatBRL(i.value - i.presentValue)}
                     </td>
                   </tr>
@@ -804,11 +778,11 @@ export const RegistrationSection = ({
           >
             <div
               style={{
-                background: "linear-gradient(135deg, #0a0f1c 0%, #0f172a 100%)",
+                background: "#4b5563",
                 color: "#ffffff",
                 borderRadius: "14px",
                 padding: "18px 20px",
-                border: "1px solid rgba(148,163,184,0.25)",
+                border: "1px solid rgba(255,255,255,0.1)",
               }}
             >
               <div style={{ fontSize: "10px", letterSpacing: "0.3em", color: "#94a3b8", marginBottom: "8px" }}>
