@@ -376,9 +376,9 @@ const Historico = () => {
           const evDate = ((period === "hoje" || period === "dia") && r.operationDate === range.from) ? r.createdAt : r.operationDate;
           allEvents.push({ date: evDate, delta: r.value });
         }
-        // "Vencimentos": No gráfico principal (área sólida), mostra apenas as liquidações efetivas.
-        // As projeções de vencimento futuro serão tratadas pela curva tracejada (showFuture).
-        if (r.settled) {
+        // "Vencimentos": No gráfico principal, mostra a saída no vencimento para operações liquidadas,
+        // ou para qualquer operação se o filtro for "andamento", "todas" ou "iniciadas" (visão de ciclo de vida).
+        if (r.settled || statusFilter === "andamento" || statusFilter === "todas" || statusFilter === "iniciadas") {
           const setDate = ((period === "hoje" || period === "dia") && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : r.dueDate;
           allEvents.push({ date: setDate, delta: -r.value });
         }
@@ -409,6 +409,10 @@ const Historico = () => {
     periodEvents.forEach((e) => {
       byDate.set(e.date, (byDate.get(e.date) ?? 0) + e.delta);
     });
+
+    // Garante que o início e fim do período estejam presentes no eixo X para mostrar as datas corretamente
+    if (range.from && !byDate.has(range.from)) byDate.set(range.from, 0);
+    if (range.to && !byDate.has(range.to)) byDate.set(range.to, 0);
 
     if (period === "semana") {
       // Garante que todos os dias da semana estejam presentes no eixo X
@@ -561,7 +565,8 @@ const Historico = () => {
     if (showFuture && statusFilter !== "liquidadas" && statusFilter !== "a_vencer") {
       const futureDeltas = new Map<string, number>();
       for (const r of filteredRows) {
-        if (!r.settled && r.dueDate > todayStr) {
+        // Apenas projeções que estão FORA do período já coberto pelo gráfico principal
+        if (!r.settled && r.dueDate > todayStr && r.dueDate > range.to) {
           futureDeltas.set(r.dueDate, (futureDeltas.get(r.dueDate) ?? 0) + (-r.value));
         }
       }
