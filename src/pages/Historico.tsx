@@ -265,7 +265,7 @@ const Historico = () => {
     if (period === "dia") return { from, to: from }; // to is redundant for 'dia'
     if (period === "semana") return { from: startOfWeekISO(), to: endOfWeekISO() };
     if (period === "mes") return { from: startOfMonthISO(), to: endOfMonthISO() };
-    if (period === "total") return { from: dataBounds.from, to: todayStr };
+    if (period === "total") return dataBounds;
     return { from, to };
   }, [period, from, to, todayStr, dataBounds]);
 
@@ -493,7 +493,7 @@ const Historico = () => {
       const currentVal = Math.round(acc * 100) / 100;
       
       const isFuture = d > todayStr;
-      const useFuture = isAVencer || isFuture;
+      const useFuture = isFuture;
 
       // Evita ponto duplicado se o primeiro evento coincide com o anchor
       if (series.length && series[series.length - 1].date === d) {
