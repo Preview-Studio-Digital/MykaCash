@@ -323,55 +323,6 @@ const Historico = () => {
   // "Em aberto" deve refletir o saldo do gráfico (valores brutos): entra na operação, sai no vencimento se liquidado
   const openPresent = filteredRows.reduce((s, r) => s + (r.settled ? 0 : r.value), 0);
 
-  // VALOR EM CONTA:
-  // Caminha cronologicamente pelos eventos. Sempre que o saldo em aberto
-  // atinge um NOVO TOPO, zera o "valor em conta". A partir daí:
-  //   + soma cada VALOR LIQUIDADO (bruto) posterior
-  //   - subtrai cada VALOR LÍQUIDO de cada NOVA OPERAÇÃO aberta posterior
-  const { maxHistoricOpenPresent, valorEmConta } = useMemo(() => {
-    type Ev = {
-      date: string;
-      kind: "open" | "settle";
-      gross: number; // valor bruto (afeta saldo em aberto)
-      net: number;   // valor líquido (apenas usado na abertura)
-    };
-    const events: Ev[] = [];
-    for (const r of filteredRows) {
-      events.push({ date: r.operationDate, kind: "open", gross: r.value, net: r.presentValue });
-      if (r.settled) {
-        events.push({ date: r.settledDate || r.dueDate, kind: "settle", gross: r.value, net: r.value });
-      }
-    }
-    if (events.length === 0) return { maxHistoricOpenPresent: 0, valorEmConta: 0 };
-    // Ordena por data; em empates: liquidações antes de aberturas
-    // (entrada do liquidado compõe a conta antes da saída líquida da nova abertura)
-    events.sort((a, b) => {
-      if (a.date !== b.date) return a.date.localeCompare(b.date);
-      return a.kind === "settle" ? -1 : 1;
-    });
-    let openBal = 0;
-    let peak = 0;
-    let account = 0;
-    for (const e of events) {
-      if (e.kind === "open") {
-        openBal += e.gross;
-        if (openBal > peak) {
-          peak = openBal;
-          account = 0; // novo topo → zera valor em conta
-        } else {
-          account -= e.net; // operação aberta posterior ao topo (sai o líquido)
-        }
-      } else {
-        openBal -= e.gross;
-        account += e.gross; // liquidação posterior ao topo (entra o bruto)
-      }
-    }
-    return {
-      maxHistoricOpenPresent: Math.round(peak * 100) / 100,
-      valorEmConta: Math.round(account * 100) / 100,
-    };
-  }, [filteredRows]);
-
   // Dias úteis (seg–sex) no período — para média diária do valor em aberto
   const countBusinessDays = (fromISO: string, toISO: string) => {
     const start = new Date(fromISO + "T00:00:00");
@@ -994,20 +945,11 @@ const Historico = () => {
                 </div>
               </div>
               <div className="mt-3 h-px bg-white/25" />
-              <div className="mt-3 flex items-end justify-between gap-2">
+              <div className="mt-3">
                 <div>
                   <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">VALOR LIQUIDADO</div>
                   <div className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap">
                     {formatBRL(settledPresent)}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-mono text-[9px] tracking-[0.25em] opacity-70">VALOR EM CONTA</div>
-                  <div
-                    className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap"
-                    title={`Pico histórico em aberto: ${formatBRL(maxHistoricOpenPresent)}`}
-                  >
-                    {formatBRL(valorEmConta)}
                   </div>
                 </div>
               </div>
