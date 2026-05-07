@@ -616,10 +616,10 @@ export const RegistrationSection = ({
                     marginBottom: "8px",
                   }}
                 >
-                  ◆ MYKA MONEY · REGISTRO DE ABERTURA
+                  ◆ MYKACA$H · REGISTRO DE ABERTURA
                 </div>
-                <div style={{ fontSize: "30px", fontWeight: 800, letterSpacing: "0.04em", lineHeight: 1 }}>
-                  MYKA COMPRESSORES <span style={{ color: "#22d3ee" }}>DO BRASIL</span>
+                <div style={{ fontSize: "30px", fontWeight: 800, letterSpacing: "0.04em", lineHeight: 1, color: "#ffffff" }}>
+                  MYKA COMPRESSORES DO BRASIL
                 </div>
                 <div
                   style={{
