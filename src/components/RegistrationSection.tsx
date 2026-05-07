@@ -631,27 +631,17 @@ export const RegistrationSection = ({
                 <div>
                   <div
                     style={{
-                      fontSize: "11px",
-                      letterSpacing: "0.45em",
+                      fontSize: "15px",
+                      letterSpacing: "0.25em",
                       color: "#22d3ee",
-                      fontWeight: 600,
-                      marginBottom: "8px",
+                      fontWeight: 700,
+                      marginBottom: "6px",
                     }}
                   >
                     MYKACA$H · ADIANTAMENTO DE RECEBÍVEIS
                   </div>
                   <div style={{ fontSize: "30px", fontWeight: 800, letterSpacing: "0.04em", lineHeight: 1, color: "#ffffff" }}>
                     MYKA COMPRESSORES DO BRASIL
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "11px",
-                      color: "#94a3b8",
-                      marginTop: "10px",
-                      letterSpacing: "0.25em",
-                    }}
-                  >
-                    PREVIEW STUDIO DIGITAL
                   </div>
                 </div>
               </div>
@@ -685,6 +675,11 @@ export const RegistrationSection = ({
                   borderRadius: "14px",
                   padding: "16px 20px",
                   boxShadow: "0 6px 16px -10px rgba(15, 23, 42, 0.15)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center",
                 }}
               >
                 <div
@@ -791,6 +786,7 @@ export const RegistrationSection = ({
                 borderRadius: "14px",
                 padding: "18px 20px",
                 border: "1px solid rgba(255,255,255,0.1)",
+                textAlign: "center",
               }}
             >
               <div style={{ fontSize: "10px", letterSpacing: "0.3em", color: "#94a3b8", marginBottom: "8px" }}>
@@ -806,6 +802,7 @@ export const RegistrationSection = ({
                 padding: "18px 20px",
                 border: "1px solid rgba(16,185,129,0.45)",
                 boxShadow: "0 10px 24px -14px rgba(16,185,129,0.5)",
+                textAlign: "center",
               }}
             >
               <div style={{ fontSize: "10px", letterSpacing: "0.3em", color: "#a7f3d0", marginBottom: "8px" }}>
@@ -820,6 +817,7 @@ export const RegistrationSection = ({
                 borderRadius: "14px",
                 padding: "18px 20px",
                 border: "1px solid rgba(248,113,113,0.45)",
+                textAlign: "center",
               }}
             >
               <div style={{ fontSize: "10px", letterSpacing: "0.3em", color: "#fecaca", marginBottom: "8px" }}>
