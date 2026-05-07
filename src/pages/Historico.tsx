@@ -31,7 +31,7 @@ import {
   ReferenceLine,
 } from "recharts";
 
-type Period = "hoje" | "dia" | "semana" | "mes" | "total" | "periodo";
+type Period = "data" | "semana" | "mes" | "total" | "periodo";
 type StatusFilter = "todas" | "iniciadas" | "andamento" | "vencidas" | "liquidadas" | "a_vencer";
 
 type SettledEntry = string | { id: string; date: string };
@@ -261,8 +261,7 @@ const Historico = () => {
   }, [rows, todayStr]);
 
   const range = useMemo(() => {
-    if (period === "hoje") return { from: todayStr, to: todayStr };
-    if (period === "dia") return { from, to: from }; // to is redundant for 'dia'
+    if (period === "data") return { from, to: from };
     if (period === "semana") return { from: startOfWeekISO(), to: endOfWeekISO() };
     if (period === "mes") return { from: startOfMonthISO(), to: endOfMonthISO() };
     if (period === "total") return { from: dataBounds.from, to: todayStr };
@@ -373,13 +372,13 @@ const Historico = () => {
     } else {
       for (const r of filteredRows) {
         if (statusFilter !== "liquidadas") {
-          const evDate = ((period === "hoje" || period === "dia") && r.operationDate === range.from) ? r.createdAt : r.operationDate;
+          const evDate = (period === "data" && r.operationDate === range.from) ? r.createdAt : r.operationDate;
           allEvents.push({ date: evDate, delta: r.value });
         }
         // "Vencimentos": No gráfico principal, mostra a saída no vencimento para operações liquidadas,
         // ou para qualquer operação se o filtro for "andamento", "todas" ou "iniciadas" (visão de ciclo de vida).
         if (r.settled || statusFilter === "andamento" || statusFilter === "todas" || statusFilter === "iniciadas") {
-          const setDate = ((period === "hoje" || period === "dia") && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : r.dueDate;
+          const setDate = (period === "data" && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : r.dueDate;
           allEvents.push({ date: setDate, delta: -r.value });
         }
       }
@@ -400,7 +399,7 @@ const Historico = () => {
 
     // Eventos que ocorreram DENTRO do período
     const periodEvents = allEvents.filter((e) => {
-      if (period === "hoje" || period === "dia") return e.date.startsWith(range.from);
+      if (period === "data") return e.date.startsWith(range.from);
       return e.date >= range.from && e.date <= range.to;
     });
 
@@ -454,8 +453,8 @@ const Historico = () => {
       const isAVencer = statusFilter === "a_vencer";
       series.push({
         date: anchor,
-        label: (period === "hoje" || period === "dia") ? `${fmtDate(anchor)} 00:00` : fmtDate(anchor),
-        labelShort: (period === "hoje" || period === "dia") ? "00:00" : fmtDayMonth(anchor),
+        label: (period === "data") ? `${fmtDate(anchor)} 00:00` : fmtDate(anchor),
+        labelShort: (period === "data") ? "00:00" : fmtDayMonth(anchor),
         saldo: isAVencer ? null : startVal,
         saldoFuturo: isAVencer ? startVal : undefined,
       });
@@ -502,15 +501,15 @@ const Historico = () => {
       } else {
         series.push({
           date: d,
-          label: (period === "hoje" || period === "dia") ? `${fmtDate(d.slice(0, 10))} ${fmtTime(d)}` : fmtDate(d),
-          labelShort: (period === "hoje" || period === "dia") ? fmtTime(d) : fmtDayMonth(d),
+          label: (period === "data") ? `${fmtDate(d.slice(0, 10))} ${fmtTime(d)}` : fmtDate(d),
+          labelShort: (period === "data") ? fmtTime(d) : fmtDayMonth(d),
           saldo: useFuture ? null : currentVal,
           saldoFuturo: useFuture ? currentVal : undefined,
         });
       }
     }
 
-    if (period === "hoje" || (period === "dia" && range.from === todayStr)) {
+    if (period === "data" && range.from === todayStr) {
       const last = series[series.length - 1];
       if (last) {
         series.push({
@@ -521,7 +520,7 @@ const Historico = () => {
           saldoFuturo: (last as any).saldoFuturo,
         });
       }
-    } else if (period !== "hoje" && period !== "dia") {
+    } else if (period !== "data") {
       const last = series[series.length - 1];
       const hasToday = series.some((s) => s.date === todayStr);
       if (!hasToday) {
@@ -678,8 +677,7 @@ const Historico = () => {
 
   const periodOptions: { id: Period; label: string }[] = [
     { id: "total", label: "TOTAL" },
-    { id: "hoje", label: "HOJE" },
-    { id: "dia", label: "DIA" },
+    { id: "data", label: "DATA" },
     { id: "semana", label: "SEMANA" },
     { id: "mes", label: "MÊS" },
     { id: "periodo", label: "PERÍODO" },
@@ -810,9 +808,9 @@ const Historico = () => {
         </span>
 
         {/* Custom date range inputs */}
-        {(period === "periodo" || period === "dia") && (
+        {(period === "periodo" || period === "data") && (
           <div className="flex items-center justify-center gap-3">
-            {period === "dia" ? (
+            {period === "data" ? (
               <div className="flex items-center gap-2">
                 <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">DATA</span>
                 <DateField value={from} onChange={(v) => { setFrom(v); setTo(v); }} />
