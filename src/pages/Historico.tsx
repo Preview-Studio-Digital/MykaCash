@@ -349,6 +349,7 @@ const Historico = () => {
   const avgEnd = (statusFilter === "a_vencer" || range.to <= todayStr) ? range.to : todayStr;
   const businessDays = countBusinessDays(range.from, avgEnd);
   const dailyAvgOpen = openPresent / businessDays;
+  const dailyAvgSettled = settledPresent / businessDays;
 
   // Chart: "Operações em Transação" — running outstanding balance over time.
   // Bruto entra na operação; sai no vencimento se liquidado.
@@ -957,10 +958,18 @@ const Historico = () => {
               </div>
               <div className="mt-3 h-px bg-white/25" />
               <div className="mt-3">
-                <div>
-                  <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">VALOR LIQUIDADO</div>
-                  <div className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap">
-                    {formatBRL(settledPresent)}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">VALOR LIQUIDADO</div>
+                    <div className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap">
+                      {formatBRL(settledPresent)}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-mono text-[9px] tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
+                    <div className="mt-1 font-display text-lg font-semibold tabular-nums text-right opacity-90 whitespace-nowrap">
+                      {formatBRL(dailyAvgSettled)}
+                    </div>
                   </div>
                 </div>
               </div>
