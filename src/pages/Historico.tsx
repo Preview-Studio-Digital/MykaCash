@@ -265,7 +265,7 @@ const Historico = () => {
     if (period === "dia") return { from, to: from }; // to is redundant for 'dia'
     if (period === "semana") return { from: startOfWeekISO(), to: endOfWeekISO() };
     if (period === "mes") return { from: startOfMonthISO(), to: endOfMonthISO() };
-    if (period === "total") return { from: dataBounds.from, to: todayStr };
+    if (period === "total") return dataBounds;
     return { from, to };
   }, [period, from, to, todayStr, dataBounds]);
 
@@ -487,17 +487,21 @@ const Historico = () => {
 
       acc += byDate.get(d)!;
       const currentVal = Math.round(acc * 100) / 100;
+      
+      const isFuture = d > todayStr;
+      const useFuture = isAVencer || isFuture;
+
       // Evita ponto duplicado se o primeiro evento coincide com o anchor
       if (series.length && series[series.length - 1].date === d) {
-        if (isAVencer) series[series.length - 1].saldoFuturo = currentVal;
+        if (useFuture) series[series.length - 1].saldoFuturo = currentVal;
         else series[series.length - 1].saldo = currentVal;
       } else {
         series.push({
           date: d,
           label: (period === "hoje" || period === "dia") ? `${fmtDate(d.slice(0, 10))} ${fmtTime(d)}` : fmtDate(d),
           labelShort: (period === "hoje" || period === "dia") ? fmtTime(d) : fmtDayMonth(d),
-          saldo: isAVencer ? null : currentVal,
-          saldoFuturo: isAVencer ? currentVal : undefined,
+          saldo: useFuture ? null : currentVal,
+          saldoFuturo: useFuture ? currentVal : undefined,
         });
       }
     }
@@ -518,7 +522,7 @@ const Historico = () => {
       const hasToday = series.some((s) => s.date === todayStr);
       if (!hasToday) {
         if (last && last.date < todayStr) {
-          const lastSaldo = last.saldo ?? (last as any).saldoFuturo ?? 0;
+          const lastSaldo = last.saldo ?? last.saldoFuturo ?? 0;
           fillGaps(todayStr, lastSaldo);
           series.push({
             date: todayStr,
@@ -531,7 +535,7 @@ const Historico = () => {
           const insertIdx = series.findIndex((s) => s.date > todayStr);
           if (insertIdx > 0) {
             const prev = series[insertIdx - 1];
-            const prevVal = prev.saldo ?? (prev as any).saldoFuturo ?? 0;
+            const prevVal = prev.saldo ?? prev.saldoFuturo ?? 0;
             series.splice(insertIdx, 0, {
               date: todayStr,
               label: fmtDate(todayStr),
@@ -540,6 +544,15 @@ const Historico = () => {
               saldoFuturo: isAVencer ? prevVal : undefined,
             });
           }
+        }
+      }
+    }
+
+    // Bridge historical to future points
+    if (!isAVencer) {
+      for (let i = 0; i < series.length - 1; i++) {
+        if (series[i].date <= todayStr && series[i+1].date > todayStr) {
+          series[i].saldoFuturo = series[i].saldo;
         }
       }
     }
