@@ -791,7 +791,7 @@ export const RegistrationSection = ({
               }}
             >
               <div style={{ fontSize: "10px", letterSpacing: "0.3em", color: "#94a3b8", marginBottom: "8px" }}>
-                VALOR TOTAL DA NOTA
+                VALOR BRUTO A PAGAR
               </div>
               <div style={{ fontSize: "22px", fontWeight: 800 }}>{formatBRL(result.totalInvoice)}</div>
             </div>
@@ -811,7 +811,7 @@ export const RegistrationSection = ({
               }}
             >
               <div style={{ fontSize: "10px", letterSpacing: "0.3em", color: "#a7f3d0", marginBottom: "8px" }}>
-                LÍQUIDO A RECEBER
+                VALOR LÍQUIDO A RECEBER
               </div>
               <div style={{ fontSize: "22px", fontWeight: 800 }}>{formatBRL(result.netValue)}</div>
             </div>
