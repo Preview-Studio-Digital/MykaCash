@@ -281,9 +281,9 @@ const Historico = () => {
       return rows.filter((r) => r.settled && r.settledDate && inRange(r.settledDate));
     }
     if (statusFilter === "andamento") {
-      // Operações em andamento: não foram liquidadas e começaram antes ou durante o período
+      // Operações em andamento: não foram liquidadas e o ciclo [abertura, vencimento] intersecta o período
       return rows.filter(
-        (r) => !r.settled && r.operationDate <= range.to
+        (r) => !r.settled && r.operationDate <= range.to && r.dueDate >= range.from
       );
     }
     if (statusFilter === "a_vencer") {
@@ -292,8 +292,8 @@ const Historico = () => {
     }
     if (statusFilter === "todas") {
       return rows.filter((r) => {
-        // "andamento" (inclui abertas e vencidas até a data limite)
-        if (!r.settled && r.operationDate <= range.to) return true;
+        // "andamento" (não liquidadas que intersectam o período)
+        if (!r.settled && r.operationDate <= range.to && r.dueDate >= range.from) return true;
         // "liquidadas" (se legacy, usa dueDate como fallback)
         if (r.settled) {
           const refDate = r.settledDate || r.dueDate;
