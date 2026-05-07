@@ -1,5 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
+// @ts-expect-error - Some environments may have issues with default exports
+const reactPlugin = (react as any).default || react;
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
@@ -12,7 +14,7 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [reactPlugin(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
