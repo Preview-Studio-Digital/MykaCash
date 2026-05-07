@@ -643,7 +643,6 @@ export const RegistrationSection = ({
                   <div style={{ fontSize: "30px", fontWeight: 800, letterSpacing: "0.04em", lineHeight: 1, color: "#ffffff" }}>
                     MYKA COMPRESSORES DO BRASIL
                   </div>
-                </div>
                   <div
                     style={{
                       fontSize: "11px",
@@ -656,8 +655,26 @@ export const RegistrationSection = ({
                   </div>
                 </div>
               </div>
-              <div style={{ textAlign: "right" }} />
-
+              <div style={{ textAlign: "right" }}>
+                <div
+                  style={{
+                    display: "inline-block",
+                    padding: "8px 14px",
+                    borderRadius: "999px",
+                    background: "rgba(34,211,238,0.12)",
+                    border: "1px solid rgba(34,211,238,0.45)",
+                    color: "#67e8f9",
+                    fontSize: "11px",
+                    letterSpacing: "0.3em",
+                    fontWeight: 600,
+                  }}
+                >
+                  NF · {invoiceNumber || "—"}
+                </div>
+                <div style={{ marginTop: "10px", fontSize: "11px", color: "#94a3b8", letterSpacing: "0.2em" }}>
+                  {new Date(operationDate + "T00:00:00").toLocaleDateString("pt-BR")}
+                </div>
+              </div>
             </div>
           </div>
 
