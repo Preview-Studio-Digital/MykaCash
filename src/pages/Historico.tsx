@@ -319,6 +319,7 @@ const Historico = () => {
   );
   const totalEffective = totals.value > 0 ? (totals.cost / totals.value) * 100 : 0;
   const factoringSavings = Math.max(0, totals.factoring - totals.cost);
+  const factoringEffectiveRate = totals.value > 0 ? (totals.factoring / totals.value) * 100 : 0;
   const settledPresent = filteredRows.reduce((s, r) => s + (r.settled ? r.value : 0), 0);
   // "Em aberto" deve refletir o saldo do gráfico (valores brutos): entra na operação, sai no vencimento se liquidado
   const openPresent = filteredRows.reduce((s, r) => s + (r.settled ? 0 : r.value), 0);
@@ -920,9 +921,19 @@ const Historico = () => {
                 </div>
               </div>
               <div className="mt-3 h-px bg-white/20" />
-              <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-80">ECONOMIA FACTORING</div>
-              <div className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap">
-                {formatBRL(factoringSavings)}
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                <div>
+                  <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">ECONOMIA FACTORING</div>
+                  <div className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap">
+                    {formatBRL(factoringSavings)}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-mono text-[9px] tracking-[0.3em] opacity-80 text-right">TAXA EFETIVA (3,75%)</div>
+                  <div className="mt-1 font-display text-lg font-semibold tabular-nums text-right whitespace-nowrap">
+                    {formatPct(factoringEffectiveRate)}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
