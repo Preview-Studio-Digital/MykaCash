@@ -899,7 +899,7 @@ export const RegistrationSection = ({
               position: "relative",
             }}
           >
-            ◆ MYKA MONEY · VERSÃO 2.0 · DOCUMENTO GERADO EM {new Date().toLocaleString("pt-BR")} ◆
+            ◆ MYKACA$H · VERSÃO 2.0 · DOCUMENTO GERADO EM {new Date().toLocaleString("pt-BR")} ◆
           </div>
         </div>
       </div>
