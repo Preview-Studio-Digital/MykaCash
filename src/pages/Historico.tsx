@@ -265,7 +265,7 @@ const Historico = () => {
     if (period === "dia") return { from, to: from }; // to is redundant for 'dia'
     if (period === "semana") return { from: startOfWeekISO(), to: endOfWeekISO() };
     if (period === "mes") return { from: startOfMonthISO(), to: endOfMonthISO() };
-    if (period === "total") return dataBounds;
+    if (period === "total") return { from: dataBounds.from, to: todayStr };
     return { from, to };
   }, [period, from, to, todayStr, dataBounds]);
 
@@ -376,9 +376,9 @@ const Historico = () => {
           const evDate = ((period === "hoje" || period === "dia") && r.operationDate === range.from) ? r.createdAt : r.operationDate;
           allEvents.push({ date: evDate, delta: r.value });
         }
-        // "Vencimentos": mostra a saída no vencimento para operações liquidadas,
-        // ou para qualquer operação se o filtro for "andamento", "todas" ou "iniciadas" (visão contratual)
-        if (r.settled || statusFilter === "andamento" || statusFilter === "todas" || statusFilter === "iniciadas") {
+        // "Vencimentos": No gráfico principal (área sólida), mostra apenas as liquidações efetivas.
+        // As projeções de vencimento futuro serão tratadas pela curva tracejada (showFuture).
+        if (r.settled) {
           const setDate = ((period === "hoje" || period === "dia") && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : r.dueDate;
           allEvents.push({ date: setDate, delta: -r.value });
         }
@@ -548,7 +548,7 @@ const Historico = () => {
     if (showFuture && statusFilter !== "liquidadas" && statusFilter !== "a_vencer") {
       const futureDeltas = new Map<string, number>();
       for (const r of filteredRows) {
-        if (!r.settled && r.dueDate > todayStr && r.dueDate > range.to) {
+        if (!r.settled && r.dueDate > todayStr) {
           futureDeltas.set(r.dueDate, (futureDeltas.get(r.dueDate) ?? 0) + (-r.value));
         }
       }
