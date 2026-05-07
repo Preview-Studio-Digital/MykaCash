@@ -129,7 +129,7 @@ const Historico = () => {
   const { user, isAdmin } = useAuth();
   const [period, setPeriod] = useState<Period>("total");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("todas");
-  const [showFuture, setShowFuture] = useState<boolean>(false);
+  const [showFuture, setShowFuture] = useState<boolean>(true);
   const [from, setFrom] = useState<string>(todayISO());
   const [to, setTo] = useState<string>(todayISO());
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
@@ -877,21 +877,6 @@ const Historico = () => {
             })}
           </div>
 
-          {/* Toggle adicional — projeção "A vencer" */}
-          <div className="inline-flex rounded-full border border-border/50 bg-background/60 p-1 shadow-panel">
-            <button
-              onClick={() => setShowFuture((v) => !v)}
-              className={
-                "inline-flex items-center rounded-full px-3 py-1 font-mono text-[9px] tracking-[0.25em] transition-all whitespace-nowrap " +
-                (showFuture
-                  ? "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.5)]"
-                  : "text-muted-foreground hover:text-foreground")
-              }
-              aria-pressed={showFuture}
-            >
-              VENCIMENTOS FUTUROS
-            </button>
-          </div>
         </div>
       </div>
     </div>
