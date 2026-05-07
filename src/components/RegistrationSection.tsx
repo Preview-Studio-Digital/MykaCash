@@ -187,6 +187,26 @@ export const RegistrationSection = ({
 
   const archiveRef = useRef<HTMLDivElement>(null);
 
+  const [authorName, setAuthorName] = useState<string>("");
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase
+      .from("profiles")
+      .select("display_name, username")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setAuthorName(data?.display_name || data?.username || "");
+      });
+  }, [user?.id]);
+
+  const monthlyEffectiveRatePct = useMemo(() => {
+    const eff = result.effectiveRatePct / 100;
+    const days = result.averageDays;
+    if (!days || eff <= 0) return 0;
+    return (Math.pow(1 + eff, 30 / days) - 1) * 100;
+  }, [result.effectiveRatePct, result.averageDays]);
+
   const generateArchivePng = async (clientName: string) => {
     const node = archiveRef.current;
     if (!node) return;
@@ -641,7 +661,7 @@ export const RegistrationSection = ({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr",
+              gridTemplateColumns: "1fr 1fr 1fr",
               gap: "16px",
               marginBottom: "28px",
               position: "relative",
@@ -649,9 +669,11 @@ export const RegistrationSection = ({
           >
             {[
               { label: "CLIENTE", value: clients.find((c) => c.id === clientId)?.name ?? "—" },
+              { label: "CNPJ", value: clients.find((c) => c.id === clientId)?.document ?? "—" },
               { label: "NOTA FISCAL", value: invoiceNumber || "—" },
               { label: "DATA DA ABERTURA", value: new Date(operationDate + "T00:00:00").toLocaleDateString("pt-BR") },
               { label: "TAXA MENSAL", value: formatPct(monthlyRate) },
+              { label: "TAXA MENSAL EFETIVA", value: formatPct(monthlyEffectiveRatePct) },
             ].map((item) => (
               <div
                 key={item.label}
@@ -715,25 +737,29 @@ export const RegistrationSection = ({
             <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "linear-gradient(90deg, #f1f5f9, #e2e8f0)" }}>
-                  <th style={{ padding: "10px 12px", textAlign: "left", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>#</th>
-                  <th style={{ padding: "10px 12px", textAlign: "left", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>VENCIMENTO</th>
-                  <th style={{ padding: "10px 12px", textAlign: "right", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>DIAS</th>
-                  <th style={{ padding: "10px 12px", textAlign: "right", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>VALOR</th>
-                  <th style={{ padding: "10px 12px", textAlign: "right", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>VP</th>
+                  <th style={{ padding: "10px 12px", textAlign: "center", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>#</th>
+                  <th style={{ padding: "10px 12px", textAlign: "center", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>ABERTURA</th>
+                  <th style={{ padding: "10px 12px", textAlign: "center", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>VENCIMENTO</th>
+                  <th style={{ padding: "10px 12px", textAlign: "center", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>DIAS</th>
+                  <th style={{ padding: "10px 12px", textAlign: "center", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>VALOR BRUTO</th>
+                  <th style={{ padding: "10px 12px", textAlign: "center", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>VALOR LÍQUIDO</th>
                 </tr>
               </thead>
               <tbody>
                 {result.installmentCalcs.map((i, idx) => (
                   <tr key={i.id} style={{ background: idx % 2 === 0 ? "#ffffff" : "#f8fafc" }}>
-                    <td style={{ padding: "10px 12px", fontWeight: 700, color: "#0f172a" }}>{String(idx + 1).padStart(2, "0")}</td>
-                    <td style={{ padding: "10px 12px", color: "#0f172a" }}>
+                    <td style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700, color: "#0f172a" }}>{String(idx + 1).padStart(2, "0")}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", color: "#0f172a" }}>
+                      {new Date(operationDate + "T00:00:00").toLocaleDateString("pt-BR")}
+                    </td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", color: "#0f172a" }}>
                       {i.dueDate ? new Date(i.dueDate + "T00:00:00").toLocaleDateString("pt-BR") : "-"}
                     </td>
-                    <td style={{ padding: "10px 12px", textAlign: "right", color: "#475569" }}>{i.days}</td>
-                    <td style={{ padding: "10px 12px", textAlign: "right", fontWeight: 700, color: "#0f172a" }}>
+                    <td style={{ padding: "10px 12px", textAlign: "center", color: "#475569" }}>{i.days}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700, color: "#0f172a" }}>
                       {formatBRL(i.value)}
                     </td>
-                    <td style={{ padding: "10px 12px", textAlign: "right", color: "#0f766e", fontWeight: 600 }}>
+                    <td style={{ padding: "10px 12px", textAlign: "center", color: "#0f766e", fontWeight: 600 }}>
                       {formatBRL(i.presentValue)}
                     </td>
                   </tr>
@@ -791,7 +817,7 @@ export const RegistrationSection = ({
               }}
             >
               <div style={{ fontSize: "10px", letterSpacing: "0.3em", color: "#fecaca", marginBottom: "8px" }}>
-                CUSTO DA ABERTURA
+                CUSTO DA OPERAÇÃO
               </div>
               <div style={{ fontSize: "22px", fontWeight: 800 }}>{formatBRL(result.operationCost)}</div>
             </div>
@@ -899,7 +925,7 @@ export const RegistrationSection = ({
               position: "relative",
             }}
           >
-            ◆ MYKACA$H · VERSÃO 2.0 · DOCUMENTO GERADO EM {new Date().toLocaleString("pt-BR")} ◆
+            ◆ MYKACA$H · VERSÃO 2.0 · DOCUMENTO GERADO EM {new Date().toLocaleString("pt-BR")}{authorName ? ` · POR ${authorName.toUpperCase()}` : ""} ◆
           </div>
         </div>
       </div>
