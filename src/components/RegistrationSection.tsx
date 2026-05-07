@@ -200,6 +200,13 @@ export const RegistrationSection = ({
       });
   }, [user?.id]);
 
+  const [opCount, setOpCount] = useState(0);
+  useEffect(() => {
+    supabase.from("invoices").select("*", { count: "exact", head: true }).then(({ count }) => {
+      setOpCount((count || 0) + (invoiceToEdit ? 0 : 1));
+    });
+  }, [invoiceToEdit]);
+
   const monthlyEffectiveRatePct = useMemo(() => {
     const eff = result.effectiveRatePct / 100;
     const days = result.averageDays;
@@ -613,7 +620,7 @@ export const RegistrationSection = ({
             style={{
               position: "relative",
               borderRadius: "20px",
-              padding: "28px 32px",
+              padding: "20px 32px",
               background: "#4b5563",
               color: "#ffffff",
               boxShadow: "0 18px 40px -20px rgba(10, 15, 28, 0.6)",
@@ -631,8 +638,7 @@ export const RegistrationSection = ({
                 background: "linear-gradient(90deg, transparent, #22d3ee, #10b981, transparent)",
               }}
             />
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%", gap: "16px" }}>
-              <img src="/money-management.ico" alt="Logo" style={{ width: "64px", height: "64px" }} />
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%", gap: "8px" }}>
               <div style={{ textAlign: "center" }}>
                 <div
                   style={{
@@ -647,6 +653,17 @@ export const RegistrationSection = ({
                 </div>
                 <div style={{ fontSize: "30px", fontWeight: 800, letterSpacing: "0.04em", lineHeight: 1, color: "#ffffff" }}>
                   MYKA COMPRESSORES DO BRASIL
+                </div>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    letterSpacing: "0.4em",
+                    color: "#94a3b8",
+                    marginTop: "12px",
+                    fontWeight: 600,
+                  }}
+                >
+                  OPERAÇÃO {String(opCount).padStart(4, "0")}
                 </div>
               </div>
             </div>
@@ -849,7 +866,7 @@ export const RegistrationSection = ({
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
               gap: "48px",
-              marginTop: "60px",
+              marginTop: "100px",
               position: "relative",
             }}
           >
