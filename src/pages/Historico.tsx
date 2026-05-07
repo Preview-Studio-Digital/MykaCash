@@ -265,7 +265,7 @@ const Historico = () => {
     if (period === "dia") return { from, to: from }; // to is redundant for 'dia'
     if (period === "semana") return { from: startOfWeekISO(), to: endOfWeekISO() };
     if (period === "mes") return { from: startOfMonthISO(), to: endOfMonthISO() };
-    if (period === "total") return dataBounds;
+    if (period === "total") return { from: dataBounds.from, to: todayStr };
     return { from, to };
   }, [period, from, to, todayStr, dataBounds]);
 
