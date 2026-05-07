@@ -376,7 +376,9 @@ const Historico = () => {
           const evDate = ((period === "hoje" || period === "dia") && r.operationDate === range.from) ? r.createdAt : r.operationDate;
           allEvents.push({ date: evDate, delta: r.value });
         }
-        if (r.settled) {
+        // "Vencimentos": mostra a saída no vencimento para operações liquidadas,
+        // ou para qualquer operação se o filtro for "andamento", "todas" ou "iniciadas" (visão contratual)
+        if (r.settled || statusFilter === "andamento" || statusFilter === "todas" || statusFilter === "iniciadas") {
           const setDate = ((period === "hoje" || period === "dia") && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : r.dueDate;
           allEvents.push({ date: setDate, delta: -r.value });
         }
@@ -386,9 +388,9 @@ const Historico = () => {
     if (allEvents.length === 0)
       return [] as { date: string; label: string; labelShort: string; saldo: number | null; saldoFuturo?: number }[];
 
-    // Para "andamento", precisamos do saldo anterior para que o gráfico bata com os quadros coloridos
+    // Para "andamento", "todas" e "iniciadas", precisamos do saldo anterior para que o gráfico bata com os quadros coloridos
     let carryOver = 0;
-    if (statusFilter === "andamento") {
+    if (statusFilter === "andamento" || statusFilter === "todas" || statusFilter === "iniciadas") {
       const pastEvents = allEvents.filter((e) => e.date < range.from);
       carryOver = pastEvents.reduce((sum, e) => sum + e.delta, 0);
     } else if (statusFilter === "a_vencer") {
@@ -546,7 +548,7 @@ const Historico = () => {
     if (showFuture && statusFilter !== "liquidadas" && statusFilter !== "a_vencer") {
       const futureDeltas = new Map<string, number>();
       for (const r of filteredRows) {
-        if (!r.settled && r.dueDate > todayStr) {
+        if (!r.settled && r.dueDate > todayStr && r.dueDate > range.to) {
           futureDeltas.set(r.dueDate, (futureDeltas.get(r.dueDate) ?? 0) + (-r.value));
         }
       }
