@@ -323,35 +323,6 @@ const Historico = () => {
   // "Em aberto" deve refletir o saldo do gráfico (valores brutos): entra na operação, sai no vencimento se liquidado
   const openPresent = filteredRows.reduce((s, r) => s + (r.settled ? 0 : r.value), 0);
 
-  // Pico do saldo em aberto dentro do período/filtro selecionado.
-  // Reconstrói o running balance usando apenas as filteredRows e captura o valor máximo.
-  const maxHistoricOpenPresent = useMemo(() => {
-    // Eventos: +value na abertura, -value no vencimento se liquidado
-    type Ev = { date: string; delta: number };
-    const events: Ev[] = [];
-    for (const r of filteredRows) {
-      events.push({ date: r.operationDate, delta: r.value });
-      if (r.settled) events.push({ date: r.dueDate, delta: -r.value });
-    }
-    if (events.length === 0) return 0;
-    // Agrupa por data
-    const byDate = new Map<string, number>();
-    for (const e of events) byDate.set(e.date, (byDate.get(e.date) ?? 0) + e.delta);
-    const sorted = Array.from(byDate.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-    let acc = 0;
-    let peak = 0;
-    for (const [, delta] of sorted) {
-      acc += delta;
-      if (acc > peak) peak = acc;
-    }
-    return Math.round(peak * 100) / 100;
-  }, [filteredRows]);
-
-  // Valor que deve existir na conta do banco:
-  // maior saldo em aberto já atingido menos o saldo em aberto atual.
-  // Se o saldo atual for o maior (ou igual), registra zero.
-  const valorEmConta = Math.max(0, maxHistoricOpenPresent - openPresent);
-
   // Dias úteis (seg–sex) no período — para média diária do valor em aberto
   const countBusinessDays = (fromISO: string, toISO: string) => {
     const start = new Date(fromISO + "T00:00:00");
@@ -974,20 +945,11 @@ const Historico = () => {
                 </div>
               </div>
               <div className="mt-3 h-px bg-white/25" />
-              <div className="mt-3 flex items-end justify-between gap-2">
+              <div className="mt-3">
                 <div>
                   <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">VALOR LIQUIDADO</div>
                   <div className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap">
                     {formatBRL(settledPresent)}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-mono text-[9px] tracking-[0.25em] opacity-70">VALOR EM CONTA</div>
-                  <div
-                    className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap"
-                    title={`Pico histórico em aberto: ${formatBRL(maxHistoricOpenPresent)}`}
-                  >
-                    {formatBRL(valorEmConta)}
                   </div>
                 </div>
               </div>
