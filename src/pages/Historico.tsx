@@ -521,7 +521,7 @@ const Historico = () => {
           saldoFuturo: (last as any).saldoFuturo,
         });
       }
-    } else if (period === "mes" || period === "total") {
+    } else if (period !== "hoje" && period !== "dia") {
       const last = series[series.length - 1];
       const hasToday = series.some((s) => s.date === todayStr);
       if (!hasToday) {
@@ -1161,18 +1161,18 @@ const Historico = () => {
                         connectNulls={false}
                         isAnimationActive={false}
                       />
-                      {(showFuture || statusFilter === "a_vencer") && statusFilter !== "liquidadas" && (
+                      {statusFilter !== "liquidadas" && (
                         <Area
                           type="monotone"
                           dataKey="saldoFuturo"
-                          name="a vencer"
+                          name="projeção"
                           stroke="hsl(0 0% 100%)"
                           strokeWidth={2.5}
                           strokeDasharray="6 4"
-                          fill={statusFilter === "a_vencer" ? `url(#areaGradH-${gradId})` : "hsl(0 0% 60%)"}
-                          fillOpacity={statusFilter === "a_vencer" ? 0.55 : 0.35}
+                          fill={statusFilter === "a_vencer" ? `url(#areaGradH-${gradId})` : "transparent"}
+                          fillOpacity={statusFilter === "a_vencer" ? 0.55 : 0}
                           mask={`url(#areaFadeMask-${gradId})`}
-                          connectNulls={false}
+                          connectNulls={true}
                           isAnimationActive={false}
                         />
                       )}
