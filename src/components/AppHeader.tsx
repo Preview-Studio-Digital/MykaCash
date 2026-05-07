@@ -70,7 +70,7 @@ export const AppHeader = () => {
         <h1 className="font-title title-gradient title-shimmer font-extrabold leading-[0.9] tracking-tighter animate-fade-up text-3xl lg:text-5xl">
           MYKACA$H
         </h1>
-        <p className="mt-2 font-mono text-xs tracking-[0.4em] text-muted-foreground animate-fade-up">VERSÃO 2.0</p>
+        <p className="mt-2 font-mono text-xs tracking-[0.4em] text-muted-foreground animate-fade-up">VERSÃO 2.1</p>
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
