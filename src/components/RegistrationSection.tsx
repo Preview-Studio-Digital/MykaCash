@@ -606,30 +606,33 @@ export const RegistrationSection = ({
               }}
             />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div
-                  style={{
-                    fontSize: "11px",
-                    letterSpacing: "0.45em",
-                    color: "#22d3ee",
-                    fontWeight: 600,
-                    marginBottom: "8px",
-                  }}
-                >
-                  ◆ MYKA MONEY · REGISTRO DE ABERTURA
-                </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+                <img src="/money-management.ico" alt="Logo" style={{ width: "56px", height: "56px" }} />
+                <div>
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      letterSpacing: "0.45em",
+                      color: "#22d3ee",
+                      fontWeight: 600,
+                      marginBottom: "8px",
+                    }}
+                  >
+                    ◆ MYKA MONEY · REGISTRO DE ABERTURA
+                  </div>
                 <div style={{ fontSize: "30px", fontWeight: 800, letterSpacing: "0.04em", lineHeight: 1 }}>
                   MYKA COMPRESSORES <span style={{ color: "#22d3ee" }}>DO BRASIL</span>
                 </div>
-                <div
-                  style={{
-                    fontSize: "11px",
-                    color: "#94a3b8",
-                    marginTop: "10px",
-                    letterSpacing: "0.25em",
-                  }}
-                >
-                  PREVIEW STUDIO DIGITAL · ADIANTAMENTO DE RECEBÍVEIS
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: "#94a3b8",
+                      marginTop: "10px",
+                      letterSpacing: "0.25em",
+                    }}
+                  >
+                    PREVIEW STUDIO DIGITAL · ADIANTAMENTO DE RECEBÍVEIS
+                  </div>
                 </div>
               </div>
               <div style={{ textAlign: "right" }}>
@@ -669,7 +672,7 @@ export const RegistrationSection = ({
               { label: "CLIENTE", value: clients.find((c) => c.id === clientId)?.name ?? "—" },
               { label: "NOTA FISCAL", value: invoiceNumber || "—" },
               { label: "DATA DA ABERTURA", value: new Date(operationDate + "T00:00:00").toLocaleDateString("pt-BR") },
-              { label: "TAXA MENSAL", value: formatPct(monthlyRate) },
+              { label: "TAXA EFETIVA", value: formatPct(result.effectiveRatePct) },
             ].map((item) => (
               <div
                 key={item.label}
@@ -738,6 +741,7 @@ export const RegistrationSection = ({
                   <th style={{ padding: "10px 12px", textAlign: "right", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>DIAS</th>
                   <th style={{ padding: "10px 12px", textAlign: "right", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>VALOR</th>
                   <th style={{ padding: "10px 12px", textAlign: "right", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>VP</th>
+                  <th style={{ padding: "10px 12px", textAlign: "right", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>CUSTO</th>
                 </tr>
               </thead>
               <tbody>
@@ -753,6 +757,9 @@ export const RegistrationSection = ({
                     </td>
                     <td style={{ padding: "10px 12px", textAlign: "right", color: "#0f766e", fontWeight: 600 }}>
                       {formatBRL(i.presentValue)}
+                    </td>
+                    <td style={{ padding: "10px 12px", textAlign: "right", color: "#b91c1c", fontWeight: 600 }}>
+                      {formatBRL(i.value - i.presentValue)}
                     </td>
                   </tr>
                 ))}
@@ -815,45 +822,6 @@ export const RegistrationSection = ({
             </div>
           </div>
 
-          {/* SECONDARY METRICS */}
-          <div
-            style={{
-              background: "#ffffff",
-              border: "1px solid #e2e8f0",
-              borderRadius: "14px",
-              padding: "18px 24px",
-              marginBottom: "32px",
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
-              gap: "20px",
-              position: "relative",
-            }}
-          >
-            <div>
-              <div style={{ fontSize: "10px", color: "#64748b", letterSpacing: "0.25em", marginBottom: "4px" }}>
-                TAXA EFETIVA
-              </div>
-              <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
-                {formatPct(result.effectiveRatePct)}
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: "10px", color: "#64748b", letterSpacing: "0.25em", marginBottom: "4px" }}>
-                PRAZO MÉDIO PONDERADO
-              </div>
-              <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
-                {result.averageDays.toFixed(1)} dias
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: "10px", color: "#64748b", letterSpacing: "0.25em", marginBottom: "4px" }}>
-                CUSTO FACTORING ({formatPct(result.factoringMonthlyRatePct)}/mês)
-              </div>
-              <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
-                {formatBRL(result.factoringCost)}
-              </div>
-            </div>
-          </div>
 
           {/* SIGNATURES */}
           <div
