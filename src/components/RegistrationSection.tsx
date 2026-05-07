@@ -616,10 +616,10 @@ export const RegistrationSection = ({
                     marginBottom: "8px",
                   }}
                 >
-                  ◆ MYKA MONEY · REGISTRO DE ABERTURA
+                  ◆ MYKACA$H · REGISTRO DE ABERTURA
                 </div>
-                <div style={{ fontSize: "30px", fontWeight: 800, letterSpacing: "0.04em", lineHeight: 1 }}>
-                  MYKA COMPRESSORES <span style={{ color: "#22d3ee" }}>DO BRASIL</span>
+                <div style={{ fontSize: "30px", fontWeight: 800, letterSpacing: "0.04em", lineHeight: 1, color: "#ffffff" }}>
+                  MYKA COMPRESSORES DO BRASIL
                 </div>
                 <div
                   style={{
@@ -632,26 +632,8 @@ export const RegistrationSection = ({
                   PREVIEW STUDIO DIGITAL · ADIANTAMENTO DE RECEBÍVEIS
                 </div>
               </div>
-              <div style={{ textAlign: "right" }}>
-                <div
-                  style={{
-                    display: "inline-block",
-                    padding: "8px 14px",
-                    borderRadius: "999px",
-                    background: "rgba(34,211,238,0.12)",
-                    border: "1px solid rgba(34,211,238,0.45)",
-                    color: "#67e8f9",
-                    fontSize: "11px",
-                    letterSpacing: "0.3em",
-                    fontWeight: 600,
-                  }}
-                >
-                  NF · {invoiceNumber || "—"}
-                </div>
-                <div style={{ marginTop: "10px", fontSize: "11px", color: "#94a3b8", letterSpacing: "0.2em" }}>
-                  {new Date(operationDate + "T00:00:00").toLocaleDateString("pt-BR")}
-                </div>
-              </div>
+              <div style={{ textAlign: "right" }} />
+
             </div>
           </div>
 
@@ -917,7 +899,7 @@ export const RegistrationSection = ({
               position: "relative",
             }}
           >
-            ◆ MYKA MONEY · VERSÃO 2.0 · DOCUMENTO GERADO EM {new Date().toLocaleString("pt-BR")} ◆
+            ◆ MYKACA$H · VERSÃO 2.0 · DOCUMENTO GERADO EM {new Date().toLocaleString("pt-BR")} ◆
           </div>
         </div>
       </div>
