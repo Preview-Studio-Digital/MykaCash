@@ -643,6 +643,14 @@ export const RegistrationSection = ({
                   <div style={{ fontSize: "30px", fontWeight: 800, letterSpacing: "0.04em", lineHeight: 1, color: "#ffffff" }}>
                     MYKA COMPRESSORES DO BRASIL
                   </div>
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: "#94a3b8",
+                      marginTop: "10px",
+                      letterSpacing: "0.25em",
+                    }}
+                  >
                     PREVIEW STUDIO DIGITAL
                   </div>
                 </div>
