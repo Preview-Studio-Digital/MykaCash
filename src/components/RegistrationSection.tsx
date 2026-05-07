@@ -187,6 +187,26 @@ export const RegistrationSection = ({
 
   const archiveRef = useRef<HTMLDivElement>(null);
 
+  const [authorName, setAuthorName] = useState<string>("");
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase
+      .from("profiles")
+      .select("display_name, username")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setAuthorName(data?.display_name || data?.username || "");
+      });
+  }, [user?.id]);
+
+  const monthlyEffectiveRatePct = useMemo(() => {
+    const eff = result.effectiveRatePct / 100;
+    const days = result.averageDays;
+    if (!days || eff <= 0) return 0;
+    return (Math.pow(1 + eff, 30 / days) - 1) * 100;
+  }, [result.effectiveRatePct, result.averageDays]);
+
   const generateArchivePng = async (clientName: string) => {
     const node = archiveRef.current;
     if (!node) return;
