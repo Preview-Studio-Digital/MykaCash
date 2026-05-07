@@ -661,7 +661,7 @@ export const RegistrationSection = ({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr",
+              gridTemplateColumns: "1fr 1fr 1fr",
               gap: "16px",
               marginBottom: "28px",
               position: "relative",
@@ -669,9 +669,11 @@ export const RegistrationSection = ({
           >
             {[
               { label: "CLIENTE", value: clients.find((c) => c.id === clientId)?.name ?? "—" },
+              { label: "CNPJ", value: clients.find((c) => c.id === clientId)?.document ?? "—" },
               { label: "NOTA FISCAL", value: invoiceNumber || "—" },
               { label: "DATA DA ABERTURA", value: new Date(operationDate + "T00:00:00").toLocaleDateString("pt-BR") },
               { label: "TAXA MENSAL", value: formatPct(monthlyRate) },
+              { label: "TAXA MENSAL EFETIVA", value: formatPct(monthlyEffectiveRatePct) },
             ].map((item) => (
               <div
                 key={item.label}
