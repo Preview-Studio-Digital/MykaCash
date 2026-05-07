@@ -210,6 +210,12 @@ export const RegistrationSection = ({
   const generateArchivePng = async (clientName: string) => {
     const node = archiveRef.current;
     if (!node) return;
+
+    // Fetch count for sequential naming
+    const { count } = await supabase.from("invoices").select("*", { count: "exact", head: true });
+    const seq = count || 0;
+    const seqStr = String(seq).padStart(4, "0");
+
     // Temporarily make it visible for rendering
     const prev = node.style.cssText;
     node.style.cssText = "position:fixed;left:-10000px;top:0;width:1100px;background:#0b0f1a;";
@@ -217,7 +223,7 @@ export const RegistrationSection = ({
       const canvas = await html2canvas(node, { backgroundColor: "#ffffff", scale: 2 });
       const link = document.createElement("a");
       const safeClient = clientName.replace(/[^a-z0-9]+/gi, "_");
-      link.download = `${safeClient}_NF-${invoiceNumber.trim()}_${operationDate}.png`;
+      link.download = `${seqStr}_${safeClient}_NF-${invoiceNumber.trim()}_${operationDate}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     } finally {
