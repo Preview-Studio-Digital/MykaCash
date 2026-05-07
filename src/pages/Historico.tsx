@@ -929,7 +929,7 @@ const Historico = () => {
                   </div>
                 </div>
                 <div>
-                  <div className="font-mono text-[9px] tracking-[0.3em] opacity-80 text-right">TAXA EFETIVA (3,75%)</div>
+                  <div className="font-mono text-[9px] tracking-[0.3em] opacity-80 text-right">TAXA EFETIVA</div>
                   <div className="mt-1 font-display text-lg font-semibold tabular-nums text-right whitespace-nowrap">
                     {formatPct(factoringEffectiveRate)}
                   </div>
