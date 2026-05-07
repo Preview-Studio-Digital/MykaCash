@@ -265,7 +265,7 @@ const Historico = () => {
     if (period === "dia") return { from, to: from }; // to is redundant for 'dia'
     if (period === "semana") return { from: startOfWeekISO(), to: endOfWeekISO() };
     if (period === "mes") return { from: startOfMonthISO(), to: endOfMonthISO() };
-    if (period === "total") return dataBounds;
+    if (period === "total") return { from: dataBounds.from, to: todayStr };
     return { from, to };
   }, [period, from, to, todayStr, dataBounds]);
 
@@ -562,7 +562,8 @@ const Historico = () => {
     }
     
     // Curva projetada (a vencer): continuação tracejada nos filtros "todas" e "andamento"
-    if (showFuture && statusFilter !== "liquidadas" && statusFilter !== "a_vencer") {
+    // Não mostramos projeções no período "TOTAL", conforme regra de tempo histórico.
+    if (showFuture && period !== "total" && statusFilter !== "liquidadas" && statusFilter !== "a_vencer") {
       const futureDeltas = new Map<string, number>();
       for (const r of filteredRows) {
         // Apenas projeções que estão FORA do período já coberto pelo gráfico principal
