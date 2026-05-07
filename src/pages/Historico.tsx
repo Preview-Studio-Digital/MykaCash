@@ -129,7 +129,7 @@ const Historico = () => {
   const { user, isAdmin } = useAuth();
   const [period, setPeriod] = useState<Period>("total");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("todas");
-  const [showFuture, setShowFuture] = useState<boolean>(true);
+  const [showFuture, setShowFuture] = useState<boolean>(false);
   const [from, setFrom] = useState<string>(todayISO());
   const [to, setTo] = useState<string>(todayISO());
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
@@ -560,36 +560,8 @@ const Historico = () => {
       }
     }
     
-    // Curva projetada (a vencer): continuação tracejada nos filtros "todas" e "andamento"
-    // Não mostramos projeções no período "TOTAL", conforme regra de tempo histórico.
-    if (showFuture && period !== "total" && statusFilter !== "liquidadas" && statusFilter !== "a_vencer") {
-      const futureDeltas = new Map<string, number>();
-      for (const r of filteredRows) {
-        // Apenas projeções que estão FORA do período já coberto pelo gráfico principal
-        if (!r.settled && r.dueDate > todayStr && r.dueDate > range.to) {
-          futureDeltas.set(r.dueDate, (futureDeltas.get(r.dueDate) ?? 0) + (-r.value));
-        }
-      }
-      const futureDates = Array.from(futureDeltas.keys()).sort();
-      if (futureDates.length > 0 && series.length > 0) {
-        const lastHist = series[series.length - 1];
-        (lastHist as any).saldoFuturo = lastHist.saldo;
-        let accF = lastHist.saldo;
-        for (const d of futureDates) {
-          accF += futureDeltas.get(d)!;
-          series.push({
-            date: d,
-            label: fmtDate(d),
-            labelShort: fmtDayMonth(d),
-            saldo: null as any,
-            saldoFuturo: Math.round(accF * 100) / 100,
-          } as any);
-        }
-      }
-    }
-
     return series;
-  }, [filteredRows, rows, period, range.from, range.to, todayStr, statusFilter, showFuture]);
+  }, [filteredRows, statusFilter, range.from, range.to, todayStr, period]);
 
   const chartGradId = useMemo(() => Math.random().toString(36).substr(2, 9), [chartData]);
 
