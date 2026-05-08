@@ -365,7 +365,7 @@ const Historico = () => {
     // partindo de zero, pois o gráfico representa apenas as liquidações no período.
     const allEvents: Ev[] = [];
     if (statusFilter === "a_vencer") {
-      // Para "a vencer": começa com o saldo total do período e diminui nos vencimentos
+      // Para "a vencer": começa com o saldo total do período e diminui nos vencimentos (visão contratual)
       for (const r of filteredRows) {
         allEvents.push({ date: r.dueDate, delta: -r.value });
       }
@@ -375,10 +375,9 @@ const Historico = () => {
           const evDate = (period === "data" && r.operationDate === range.from) ? r.createdAt : r.operationDate;
           allEvents.push({ date: evDate, delta: r.value });
         }
-        // "Vencimentos": No gráfico principal, mostra a saída no vencimento para operações liquidadas,
-        // ou para qualquer operação se o filtro for "andamento", "todas" ou "iniciadas" (visão de ciclo de vida).
-        if (r.settled || statusFilter === "andamento" || statusFilter === "todas" || statusFilter === "iniciadas") {
-          const setDate = (period === "data" && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : r.dueDate;
+        // No gráfico principal (Exceto "A Vencer"), o valor só sai do saldo quando é LIQUIDADO.
+        if (r.settled) {
+          const setDate = (period === "data" && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : (r.settledDate || r.dueDate);
           allEvents.push({ date: setDate, delta: -r.value });
         }
       }
