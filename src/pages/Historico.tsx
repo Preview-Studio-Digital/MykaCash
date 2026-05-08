@@ -450,13 +450,13 @@ const Historico = () => {
       // ancorado no início do intervalo
       const anchor = range.from > "1900-01-01" ? range.from : (sortedDates[0] || todayStr);
       const startVal = Math.round(carryOver * 100) / 100;
-      const isAVencer = statusFilter === "a_vencer";
+      const isAnchorFuture = anchor > todayStr;
       series.push({
         date: anchor,
         label: (period === "data") ? `${fmtDate(anchor)} 00:00` : fmtDate(anchor),
         labelShort: (period === "data") ? "00:00" : fmtDayMonth(anchor),
-        saldo: isAVencer ? null : startVal,
-        saldoFuturo: isAVencer ? startVal : undefined,
+        saldo: isAnchorFuture ? null : startVal,
+        saldoFuturo: isAnchorFuture ? startVal : undefined,
       });
     }
 
@@ -469,15 +469,14 @@ const Historico = () => {
       while (temp < dObj) {
         const firstStr = localISO(temp);
         if (firstStr !== targetDateStr && firstStr !== lastDate) {
-          const isAVencer = statusFilter === "a_vencer";
           const val = Math.round(currentSaldo * 100) / 100;
           const isGapFuture = firstStr > todayStr;
           series.push({
             date: firstStr,
             label: fmtDate(firstStr),
             labelShort: fmtDayMonth(firstStr),
-            saldo: (isAVencer || isGapFuture) ? null : val,
-            saldoFuturo: (isAVencer || isGapFuture) ? val : undefined,
+            saldo: isGapFuture ? null : val,
+            saldoFuturo: isGapFuture ? val : undefined,
           });
         }
         temp.setMonth(temp.getMonth() + 1);
@@ -555,14 +554,8 @@ const Historico = () => {
     // Bridge historical to future points
     for (let i = 0; i < series.length - 1; i++) {
       if (series[i].date <= todayStr && series[i+1].date > todayStr) {
-        if (!isAVencer) {
+        if (series[i].saldo !== null) {
           series[i].saldoFuturo = series[i].saldo;
-        } else {
-          // Para A Vencer, se o ponto atual tem saldo (passado/overdue) 
-          // e o próximo tem saldoFuturo, precisamos conectar
-          if (series[i].saldo !== null) {
-            series[i].saldoFuturo = series[i].saldo;
-          }
         }
       }
     }
