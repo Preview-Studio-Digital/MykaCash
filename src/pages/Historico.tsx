@@ -471,12 +471,13 @@ const Historico = () => {
         if (firstStr !== targetDateStr && firstStr !== lastDate) {
           const isAVencer = statusFilter === "a_vencer";
           const val = Math.round(currentSaldo * 100) / 100;
+          const isGapFuture = firstStr > todayStr;
           series.push({
             date: firstStr,
             label: fmtDate(firstStr),
             labelShort: fmtDayMonth(firstStr),
-            saldo: isAVencer ? null : val,
-            saldoFuturo: isAVencer ? val : undefined,
+            saldo: (isAVencer || isGapFuture) ? null : val,
+            saldoFuturo: (isAVencer || isGapFuture) ? val : undefined,
           });
         }
         temp.setMonth(temp.getMonth() + 1);
@@ -1136,7 +1137,6 @@ const Historico = () => {
                           strokeDasharray="6 4"
                           fill="hsl(var(--muted-foreground))"
                           fillOpacity={0.35}
-                          mask={`url(#areaFadeMask-${gradId})`}
                           connectNulls={true}
                           isAnimationActive={false}
                         />
