@@ -263,18 +263,12 @@ const Historico = () => {
   const range = useMemo(() => {
     const todayStr = todayISO();
     if (period === "total") return { from: dataBounds.from, to: dataBounds.to };
-    if (period === "mes") {
-      const from = todayStr.substring(0, 8) + "01";
-      const to = localISO(new Date(new Date(from + "T12:00:00").getFullYear(), new Date(from + "T12:00:00").getMonth() + 1, 0));
-      return { from, to };
-    }
-    if (period === "semana") {
-      const { from, to } = startOfWeekISO();
-      return { from, to };
-    }
-    // "data" - hoje ou dia específico
-    return { from: fromDate || todayStr, to: toDate || todayStr };
-  }, [period, fromDate, toDate, todayStr, dataBounds]);
+    if (period === "mes") return { from: startOfMonthISO(), to: endOfMonthISO() };
+    if (period === "semana") return { from: startOfWeekISO(), to: endOfWeekISO() };
+    if (period === "data") return { from: from || todayStr, to: from || todayStr };
+    // periodo
+    return { from: from || todayStr, to: to || todayStr };
+  }, [period, from, to, todayStr, dataBounds]);
 
   const inRange = (d: string) => d >= range.from && d <= range.to;
 
