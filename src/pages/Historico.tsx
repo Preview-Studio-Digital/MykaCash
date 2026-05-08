@@ -1008,10 +1008,13 @@ const Historico = () => {
                 const maxAbs = Math.max(1, ...slopes.map((s) => Math.abs(s)));
                 const histIdx = chartData.map((_, i) => i).filter((i) => !isFuture(i));
                 const histN = histIdx.length;
-                const stops = histIdx.map((origIdx, k) => ({
-                  offset: histN <= 1 ? 0 : (k / (histN - 1)) * 100,
-                  color: slopeColor(slopes[origIdx], maxAbs),
-                }));
+                const isAVencerFilter = statusFilter === "a_vencer";
+                const stops = isAVencerFilter 
+                  ? [{ offset: 0, color: "hsl(var(--muted-foreground))" }, { offset: 100, color: "hsl(var(--muted-foreground))" }]
+                  : histIdx.map((origIdx, k) => ({
+                      offset: histN <= 1 ? 0 : (k / (histN - 1)) * 100,
+                      color: slopeColor(slopes[origIdx], maxAbs),
+                    }));
 
                 const monthBoundaries: string[] = [];
                 
@@ -1122,11 +1125,11 @@ const Historico = () => {
                           type="monotone"
                           dataKey="saldoFuturo"
                           name="projeção"
-                          stroke="hsl(0 0% 100%)"
+                          stroke={isAVencerFilter ? "hsl(var(--muted-foreground))" : "hsl(0 0% 100%)"}
                           strokeWidth={2.5}
                           strokeDasharray="6 4"
-                          fill={statusFilter === "a_vencer" ? `url(#areaGradH-${gradId})` : "transparent"}
-                          fillOpacity={statusFilter === "a_vencer" ? 0.55 : 0}
+                          fill={isAVencerFilter ? "hsl(var(--muted-foreground))" : "transparent"}
+                          fillOpacity={isAVencerFilter ? 0.35 : 0}
                           mask={`url(#areaFadeMask-${gradId})`}
                           connectNulls={true}
                           isAnimationActive={false}
