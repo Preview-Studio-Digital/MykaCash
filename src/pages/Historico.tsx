@@ -261,46 +261,45 @@ const Historico = () => {
   }, [rows, todayStr]);
 
   const range = useMemo(() => {
-    if (period === "data") return { from, to: from };
-    if (period === "semana") return { from: startOfWeekISO(), to: endOfWeekISO() };
-    if (period === "mes") return { from: startOfMonthISO(), to: endOfMonthISO() };
-    if (period === "total") return { from: dataBounds.from, to: todayStr };
-    return { from, to };
-  }, [period, from, to, todayStr, dataBounds]);
+    const todayStr = todayISO();
+    if (period === "total") return { from: dataBounds.from, to: dataBounds.to };
+    if (period === "mes") {
+      const from = todayStr.substring(0, 8) + "01";
+      const to = localISO(new Date(new Date(from + "T12:00:00").getFullYear(), new Date(from + "T12:00:00").getMonth() + 1, 0));
+      return { from, to };
+    }
+    if (period === "semana") {
+      const { from, to } = startOfWeekISO();
+      return { from, to };
+    }
+    // "data" - hoje ou dia específico
+    return { from: fromDate || todayStr, to: toDate || todayStr };
+  }, [period, fromDate, toDate, todayStr, dataBounds]);
+
+  const inRange = (d: string) => d >= range.from && d <= range.to;
 
   const filteredRows = useMemo(() => {
-    // Para "liquidadas": filtrar por dueDate (data de vencimento) dentro do período.
-    // Para "andamento": parcelas em aberto (não liquidadas, não vencidas) cujo intervalo
-    //   [abertura, vencimento] intersecta o período selecionado — ou seja, a operação
-    //   está "acontecendo" em algum momento dentro do período.
-    // Para os demais: filtrar por operationDate (data de abertura).
-    const inRange = (d: string) => d >= range.from && d <= range.to;
     if (statusFilter === "liquidadas") {
-      // Para "liquidadas": filtrar pela data efetiva de liquidação dentro do período
       return rows.filter((r) => r.settled && r.settledDate && inRange(r.settledDate));
     }
     if (statusFilter === "andamento") {
-      // Operações em andamento: não foram liquidadas e o ciclo [abertura, vencimento] intersecta o período
       return rows.filter(
         (r) => !r.settled && r.operationDate <= range.to && r.dueDate >= range.from
       );
     }
     if (statusFilter === "a_vencer") {
-      // "A VENCER": parcelas em aberto cujo vencimento cai dentro do período selecionado
       return rows.filter((r) => !r.settled && inRange(r.dueDate));
     }
     if (statusFilter === "todas") {
       return rows.filter((r) => {
-        // Uma operação "todas" relevante é aquela que esteve aberta em algum momento do período.
-        // Ou seja: abriu antes do fim do período E (não liquidou ainda OU liquidou após o início do período)
         const exitDate = r.settled ? (r.settledDate || r.dueDate) : "9999-12-31";
-        return r.operationDate <= range.to && exitDate >= range.from;
+        return r.operationDate <= range.to && exitDate.slice(0, 10) >= range.from;
       });
     }
 
     const base = rows.filter((r) => inRange(r.operationDate));
     if (statusFilter === "vencidas") return base.filter((r) => !r.settled && r.overdue);
-    return base.filter((r) => !r.settled); // iniciadas
+    return base.filter((r) => !r.settled); 
   }, [rows, statusFilter, range.from, range.to]);
 
   const totals = filteredRows.reduce(
@@ -317,38 +316,30 @@ const Historico = () => {
   const factoringSavings = Math.max(0, totals.factoring - totals.cost);
   const factoringEffectiveRate = totals.value > 0 ? (totals.factoring / totals.value) * 100 : 0;
   const settledPresent = filteredRows.reduce((s, r) => s + (r.settled ? r.value : 0), 0);
-  // "Em aberto" deve refletir o saldo do gráfico (valores brutos): entra na operação, sai no vencimento se liquidado
   const openPresent = filteredRows.reduce((s, r) => s + (r.settled ? 0 : r.value), 0);
 
-  // Dias úteis (seg–sex) no período — para média diária do valor em aberto
   const countBusinessDays = (fromISO: string, toISO: string) => {
     const start = new Date(fromISO + "T00:00:00");
     const end = new Date(toISO + "T00:00:00");
     let count = 0;
     const cur = new Date(start);
     while (cur <= end) {
-      const dow = cur.getDay(); // 0=dom, 6=sab
+      const dow = cur.getDay(); 
       if (dow !== 0 && dow !== 6) count++;
       cur.setDate(cur.getDate() + 1);
     }
     return Math.max(1, count);
   };
-  // Dias corridos do período — para exibição no cabeçalho do gráfico
-  // Para "total", limita ao dia de hoje (não conta vencimentos futuros)
   const periodEndForDays = period === "total" && range.to > todayStr ? todayStr : range.to;
   const periodDays = Math.max(1, Math.round(
     (new Date(periodEndForDays + "T00:00:00").getTime() - new Date(range.from + "T00:00:00").getTime()) / 86_400_000
   ) + 1);
 
-  // Para a média diária, considera apenas até hoje (não conta dias úteis futuros do período)
-  // EXCETO se o filtro for "a_vencer", pois aí queremos a média da projeção sobre o período todo.
   const avgEnd = (statusFilter === "a_vencer" || range.to <= todayStr) ? range.to : todayStr;
   const businessDays = countBusinessDays(range.from, avgEnd);
   const dailyAvgOpen = openPresent / businessDays;
   const dailyAvgSettled = settledPresent / businessDays;
 
-  // Chart: "Operações em Transação" — running outstanding balance over time.
-  // Bruto entra na operação; sai no vencimento se liquidado.
   const chartData = useMemo(() => {
     type Ev = { date: string; delta: number };
 
@@ -357,31 +348,28 @@ const Historico = () => {
       return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
     };
 
-    // Pegamos todos os eventos das operações filtradas
     const allEvents: Ev[] = [];
     if (statusFilter === "a_vencer") {
-      // Para "a vencer": começa com o saldo total do período e diminui nos vencimentos (visão contratual)
       for (const r of filteredRows) {
-        allEvents.push({ date: r.dueDate, delta: -r.value });
+        allEvents.push({ date: r.dueDate.slice(0, 10), delta: -r.value });
       }
     } else if (statusFilter === "liquidadas") {
-      // Para "liquidadas": mostra o acúmulo de liquidações (positivo)
       for (const r of filteredRows) {
         if (r.settled) {
-          const setDate = (period === "data" && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : (r.settledDate || r.dueDate);
+          const rawDate = r.settledDate || r.dueDate;
+          const setDate = (period === "data") ? rawDate : rawDate.slice(0, 10);
           allEvents.push({ date: setDate, delta: r.value });
         }
       }
     } else {
-      // Para "todas", "andamento", "vencidas", "iniciadas": mostra o saldo em aberto evolutivo
       for (const r of filteredRows) {
-        const evDate = (period === "data" && r.operationDate === range.from) ? r.createdAt : r.operationDate;
+        const evDate = (period === "data") ? r.createdAt : r.operationDate.slice(0, 10);
         allEvents.push({ date: evDate, delta: r.value });
         if (r.settled) {
-          const setDate = (period === "data" && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : (r.settledDate || r.dueDate);
+          const rawDate = r.settledDate || r.dueDate;
+          const setDate = (period === "data") ? rawDate : rawDate.slice(0, 10);
           allEvents.push({ date: setDate, delta: -r.value });
         }
-      }
       }
     }
 
@@ -441,10 +429,8 @@ const Historico = () => {
       const baseline = localISO(baseDate);
       series.push({ date: baseline, label: fmtDate(baseline), labelShort: fmtDayMonth(baseline), saldo: 0 });
     } else if (period === "total" && includesFirst && statusFilter !== "a_vencer") {
-      // Período total engloba a primeira operação: baseline em zero, uma semana antes
-      const first = new Date(sortedDates[0] + "T00:00:00");
-      first.setDate(first.getDate() - 7);
-      const baseline = localISO(first);
+      // Período total engloba a primeira operação: baseline em zero no mesmo dia
+      const baseline = sortedDates[0];
       series.push({ date: baseline, label: fmtDate(baseline), labelShort: fmtDayMonth(baseline), saldo: 0 });
     } else {
       // Período NÃO é total ou não engloba a primeira operação: começa com o saldo acumulado real
