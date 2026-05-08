@@ -291,16 +291,13 @@ const Historico = () => {
     }
     if (statusFilter === "todas") {
       return rows.filter((r) => {
-        // "andamento" (não liquidadas que intersectam o período)
-        if (!r.settled && r.operationDate <= range.to && r.dueDate >= range.from) return true;
-        // "liquidadas" (se legacy, usa dueDate como fallback)
-        if (r.settled) {
-          const refDate = r.settledDate || r.dueDate;
-          if (inRange(refDate)) return true;
-        }
-        return false;
+        // Uma operação "todas" relevante é aquela que esteve aberta em algum momento do período.
+        // Ou seja: abriu antes do fim do período E (não liquidou ainda OU liquidou após o início do período)
+        const exitDate = r.settled ? (r.settledDate || r.dueDate) : "9999-12-31";
+        return r.operationDate <= range.to && exitDate >= range.from;
       });
     }
+
     const base = rows.filter((r) => inRange(r.operationDate));
     if (statusFilter === "vencidas") return base.filter((r) => !r.settled && r.overdue);
     return base.filter((r) => !r.settled); // iniciadas
@@ -361,25 +358,30 @@ const Historico = () => {
     };
 
     // Pegamos todos os eventos das operações filtradas
-    // Para o filtro "liquidadas": exibimos apenas as saídas (valores negativos),
-    // partindo de zero, pois o gráfico representa apenas as liquidações no período.
     const allEvents: Ev[] = [];
     if (statusFilter === "a_vencer") {
       // Para "a vencer": começa com o saldo total do período e diminui nos vencimentos (visão contratual)
       for (const r of filteredRows) {
         allEvents.push({ date: r.dueDate, delta: -r.value });
       }
-    } else {
+    } else if (statusFilter === "liquidadas") {
+      // Para "liquidadas": mostra o acúmulo de liquidações (positivo)
       for (const r of filteredRows) {
-        if (statusFilter !== "liquidadas") {
-          const evDate = (period === "data" && r.operationDate === range.from) ? r.createdAt : r.operationDate;
-          allEvents.push({ date: evDate, delta: r.value });
+        if (r.settled) {
+          const setDate = (period === "data" && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : (r.settledDate || r.dueDate);
+          allEvents.push({ date: setDate, delta: r.value });
         }
-        // No gráfico principal (Exceto "A Vencer"), o valor só sai do saldo quando é LIQUIDADO.
+      }
+    } else {
+      // Para "todas", "andamento", "vencidas", "iniciadas": mostra o saldo em aberto evolutivo
+      for (const r of filteredRows) {
+        const evDate = (period === "data" && r.operationDate === range.from) ? r.createdAt : r.operationDate;
+        allEvents.push({ date: evDate, delta: r.value });
         if (r.settled) {
           const setDate = (period === "data" && r.dueDate === range.from) ? r.dueDate + "T23:59:59Z" : (r.settledDate || r.dueDate);
           allEvents.push({ date: setDate, delta: -r.value });
         }
+      }
       }
     }
 
