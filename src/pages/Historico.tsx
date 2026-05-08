@@ -552,10 +552,16 @@ const Historico = () => {
     }
 
     // Bridge historical to future points
-    if (!isAVencer) {
-      for (let i = 0; i < series.length - 1; i++) {
-        if (series[i].date <= todayStr && series[i+1].date > todayStr) {
+    for (let i = 0; i < series.length - 1; i++) {
+      if (series[i].date <= todayStr && series[i+1].date > todayStr) {
+        if (!isAVencer) {
           series[i].saldoFuturo = series[i].saldo;
+        } else {
+          // Para A Vencer, se o ponto atual tem saldo (passado/overdue) 
+          // e o próximo tem saldoFuturo, precisamos conectar
+          if (series[i].saldo !== null) {
+            series[i].saldoFuturo = series[i].saldo;
+          }
         }
       }
     }
@@ -1009,7 +1015,7 @@ const Historico = () => {
                 const histIdx = chartData.map((_, i) => i).filter((i) => !isFuture(i));
                 const histN = histIdx.length;
                 const isAVencerFilter = statusFilter === "a_vencer";
-                const stops = isAVencerFilter 
+                const stops = isAVencerFilter && histN === 0
                   ? [{ offset: 0, color: "hsl(var(--muted-foreground))" }, { offset: 100, color: "hsl(var(--muted-foreground))" }]
                   : histIdx.map((origIdx, k) => ({
                       offset: histN <= 1 ? 0 : (k / (histN - 1)) * 100,
@@ -1115,7 +1121,7 @@ const Historico = () => {
                         name="saldo"
                         stroke={`url(#lineGrad-${gradId})`}
                         strokeWidth={2.5}
-                        fill={`url(#areaGradH-${gradId})`}
+                        fill={isAVencerFilter ? "transparent" : `url(#areaGradH-${gradId})`}
                         mask={`url(#areaFadeMask-${gradId})`}
                         connectNulls={false}
                         isAnimationActive={false}
