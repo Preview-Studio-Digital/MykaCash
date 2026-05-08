@@ -1015,7 +1015,7 @@ const Historico = () => {
                 const histIdx = chartData.map((_, i) => i).filter((i) => !isFuture(i));
                 const histN = histIdx.length;
                 const isAVencerFilter = statusFilter === "a_vencer";
-                const stops = isAVencerFilter && histN === 0
+                const stops = histN === 0
                   ? [{ offset: 0, color: "hsl(var(--muted-foreground))" }, { offset: 100, color: "hsl(var(--muted-foreground))" }]
                   : histIdx.map((origIdx, k) => ({
                       offset: histN <= 1 ? 0 : (k / (histN - 1)) * 100,
@@ -1121,7 +1121,7 @@ const Historico = () => {
                         name="saldo"
                         stroke={`url(#lineGrad-${gradId})`}
                         strokeWidth={2.5}
-                        fill={isAVencerFilter ? "transparent" : `url(#areaGradH-${gradId})`}
+                        fill={`url(#areaGradH-${gradId})`}
                         mask={`url(#areaFadeMask-${gradId})`}
                         connectNulls={false}
                         isAnimationActive={false}
@@ -1134,8 +1134,8 @@ const Historico = () => {
                           stroke={isAVencerFilter ? "hsl(var(--muted-foreground))" : "hsl(0 0% 100%)"}
                           strokeWidth={2.5}
                           strokeDasharray="6 4"
-                          fill={isAVencerFilter ? "hsl(var(--muted-foreground))" : "transparent"}
-                          fillOpacity={isAVencerFilter ? 0.35 : 0}
+                          fill="hsl(var(--muted-foreground))"
+                          fillOpacity={0.35}
                           mask={`url(#areaFadeMask-${gradId})`}
                           connectNulls={true}
                           isAnimationActive={false}
