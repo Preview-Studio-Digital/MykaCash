@@ -342,6 +342,7 @@ const Historico = () => {
   const dailyAvgOpen = openPresent / businessDays;
   const dailyAvgSettled = settledPresent / businessDays;
   const dailyAvgBruto = totals.value / businessDays;
+  const dailyAvgNet = totals.presentValue / businessDays;
 
   const chartData = useMemo(() => {
     type Ev = { date: string; delta: number };
@@ -884,9 +885,19 @@ const Historico = () => {
           <div className="relative overflow-hidden rounded-xl bg-gradient-net p-4 text-net-green-foreground panel-glow-net">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
             <div className="relative">
-              <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
-              <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums whitespace-nowrap">
-                {formatBRL(totals.presentValue)}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
+                  <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums whitespace-nowrap">
+                    {formatBRL(totals.presentValue)}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-mono text-[9px] tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
+                  <div className="mt-1 font-display text-xl font-bold tabular-nums text-right opacity-90 whitespace-nowrap md:text-lg">
+                    {formatBRL(dailyAvgNet)}
+                  </div>
+                </div>
               </div>
               <div className="mt-3 h-px bg-white/20" />
               <div className="mt-3 grid grid-cols-2 gap-3">
