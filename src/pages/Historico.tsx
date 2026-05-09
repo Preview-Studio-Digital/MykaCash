@@ -262,7 +262,7 @@ const Historico = () => {
 
   const range = useMemo(() => {
     const todayStr = todayISO();
-    if (period === "total") return { from: dataBounds.from, to: dataBounds.to };
+    if (period === "total") return { from: dataBounds.from, to: todayStr };
     if (period === "mes") return { from: startOfMonthISO(), to: endOfMonthISO() };
     if (period === "semana") return { from: startOfWeekISO(), to: endOfWeekISO() };
     if (period === "data") return { from: from || todayStr, to: from || todayStr };
@@ -287,6 +287,7 @@ const Historico = () => {
     if (statusFilter === "todas") {
       return rows.filter((r) => {
         const exitDate = r.settled ? (r.settledDate || r.dueDate) : "9999-12-31";
+        // Inclui se a operação iniciou até o fim do período E ainda não havia sido liquidada no início do período
         return r.operationDate <= range.to && exitDate.slice(0, 10) >= range.from;
       });
     }
