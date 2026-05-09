@@ -788,7 +788,21 @@ const Historico = () => {
       <div className="flex flex-col items-center gap-2 px-4 py-3">
         {/* Period label */}
         <span className="font-mono text-[9px] tracking-[0.3em] text-muted-foreground/70">
-          {period === "total" ? "TODAS AS OPERAÇÕES ATÉ A DATA DE HOJE" : period !== "periodo" ? (range.from === range.to ? fmtDate(range.from) : `${fmtDate(range.from)} → ${fmtDate(range.to)}`) : null}
+          {period === "total" ? (
+            (() => {
+              const label = {
+                todas: "TODAS AS OPERAÇÕES",
+                iniciadas: "OPERAÇÕES INICIADAS",
+                andamento: "OPERAÇÕES EM ANDAMENTO",
+                vencidas: "OPERAÇÕES VENCIDAS",
+                liquidadas: "OPERAÇÕES LIQUIDADAS",
+                a_vencer: "OPERAÇÕES A VENCER",
+              }[statusFilter] || "OPERAÇÕES";
+              return `${label} ATÉ A DATA DE HOJE`;
+            })()
+          ) : period !== "periodo" ? (
+            range.from === range.to ? fmtDate(range.from) : `${fmtDate(range.from)} → ${fmtDate(range.to)}`
+          ) : null}
         </span>
 
         {/* Custom date range inputs */}
