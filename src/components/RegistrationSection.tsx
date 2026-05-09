@@ -2,13 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Plus, Trash2, UserPlus, Save } from "lucide-react";
 import { useClients } from "@/hooks/useClients";
@@ -52,6 +46,7 @@ export const RegistrationSection = ({
     invoice_value: number;
     operation_date: string;
     monthly_rate: number;
+    ordem: number;
     factoring_monthly_rate: number | null;
     installments: Installment[];
   };
@@ -68,7 +63,7 @@ export const RegistrationSection = ({
   const [operationDate, setOperationDate] = useState<string>(invoiceToEdit?.operation_date || todayISO());
   const [monthlyRate, setMonthlyRate] = useState<number>(invoiceToEdit?.monthly_rate || 3.0);
   const [installments, setInstallments] = useState<Installment[]>(
-    invoiceToEdit?.installments || [{ id: uid(), value: 0, dueDate: addDaysISO(todayISO(), 30) }]
+    invoiceToEdit?.installments || [{ id: uid(), value: 0, dueDate: addDaysISO(todayISO(), 30) }],
   );
 
   const [newClientOpen, setNewClientOpen] = useState(false);
@@ -80,23 +75,16 @@ export const RegistrationSection = ({
   // Single installment mirrors the invoice value and operation date + 30 days
   useEffect(() => {
     if (installments.length === 1 && !invoiceToEdit) {
-      setInstallments([
-        { ...installments[0], value: invoiceValue, dueDate: addDaysISO(operationDate, 30) },
-      ]);
+      setInstallments([{ ...installments[0], value: invoiceValue, dueDate: addDaysISO(operationDate, 30) }]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoiceValue, operationDate]);
 
-  const totalAllocated = useMemo(
-    () => installments.reduce((s, i) => s + (Number(i.value) || 0), 0),
-    [installments]
-  );
+  const totalAllocated = useMemo(() => installments.reduce((s, i) => s + (Number(i.value) || 0), 0), [installments]);
   const remaining = Math.max(0, (invoiceValue || 0) - totalAllocated);
 
   const canAddInstallment =
-    invoiceValue > 0 &&
-    totalAllocated < invoiceValue &&
-    installments.every((i) => (i.value || 0) > 0);
+    invoiceValue > 0 && totalAllocated < invoiceValue && installments.every((i) => (i.value || 0) > 0);
 
   const updateInstallmentValue = (id: string, raw: number) => {
     setInstallments((prev) => {
@@ -163,7 +151,7 @@ export const RegistrationSection = ({
 
   const result = useMemo(
     () => calculate({ invoiceValue, operationDate, monthlyRate, installments }),
-    [invoiceValue, operationDate, monthlyRate, installments]
+    [invoiceValue, operationDate, monthlyRate, installments],
   );
 
   const handleCreateClient = async () => {
@@ -200,11 +188,25 @@ export const RegistrationSection = ({
       });
   }, [user?.id]);
 
-  const [opCount, setOpCount] = useState(0);
+  const [operationNumber, setOperationNumber] = useState<number | null>(invoiceToEdit?.ordem || null);
   useEffect(() => {
-    supabase.from("invoices").select("*", { count: "exact", head: true }).then(({ count }) => {
-      setOpCount((count || 0) + (invoiceToEdit ? 0 : 1));
-    });
+    if (invoiceToEdit?.ordem) {
+      setOperationNumber(invoiceToEdit.ordem);
+    } else {
+      supabase
+        .from("invoices")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .then(({ data }) => {
+          if (data && data.length > 0) {
+            const lastNum = (data[0] as any).ordem;
+            setOperationNumber(lastNum ? lastNum + 1 : 1);
+          } else {
+            setOperationNumber(1);
+          }
+        });
+    }
   }, [invoiceToEdit]);
 
   const monthlyEffectiveRatePct = useMemo(() => {
@@ -214,13 +216,11 @@ export const RegistrationSection = ({
     return (Math.pow(1 + eff, 30 / days) - 1) * 100;
   }, [result.effectiveRatePct, result.averageDays]);
 
-  const generateArchivePng = async (clientName: string) => {
+  const generateArchivePng = async (clientName: string, forcedOpNumber?: number) => {
     const node = archiveRef.current;
     if (!node) return;
 
-    // Fetch count for sequential naming
-    const { count } = await supabase.from("invoices").select("*", { count: "exact", head: true });
-    const seq = count || 0;
+    const seq = forcedOpNumber ?? operationNumber ?? 0;
     const seqStr = String(seq).padStart(4, "0");
 
     // Temporarily make it visible for rendering
@@ -246,7 +246,7 @@ export const RegistrationSection = ({
       return toast.error("Soma das parcelas deve ser igual ao valor da nota");
 
     setSaving(true);
-    
+
     const invoiceData = {
       client_id: clientId,
       invoice_number: invoiceNumber.trim(),
@@ -258,31 +258,46 @@ export const RegistrationSection = ({
     };
 
     let error;
+    let savedOpNumber = operationNumber;
+
     if (invoiceToEdit) {
-      const res = await supabase.from("invoices").update(invoiceData).eq("id", invoiceToEdit.id);
-      error = res.error;
+      const { data, error: updateError } = await supabase
+        .from("invoices")
+        .update(invoiceData)
+        .eq("id", invoiceToEdit.id)
+        .select()
+        .single();
+      error = updateError;
+      if (data) savedOpNumber = (data as any).ordem;
     } else {
-      const res = await supabase.from("invoices").insert({
-        ...invoiceData,
-        created_by: user?.id ?? null,
-      });
-      error = res.error;
+      const { data, error: insertError } = await supabase
+        .from("invoices")
+        .insert({
+          ...invoiceData,
+          created_by: user?.id ?? null,
+        })
+        .select()
+        .single();
+      error = insertError;
+      if (data) savedOpNumber = (data as any).ordem;
     }
 
     if (error) {
       setSaving(false);
       const { friendlyDbError } = await import("@/lib/dbErrors");
-      return toast.error(friendlyDbError(error, invoiceToEdit ? "Erro ao atualizar abertura" : "Erro ao salvar abertura"));
+      return toast.error(
+        friendlyDbError(error, invoiceToEdit ? "Erro ao atualizar abertura" : "Erro ao salvar abertura"),
+      );
     }
     const clientName = clients.find((c) => c.id === clientId)?.name ?? "cliente";
     try {
-      await generateArchivePng(clientName);
+      await generateArchivePng(clientName, savedOpNumber || undefined);
       toast.success(invoiceToEdit ? "Abertura atualizada e arquivo PNG gerado" : "Abertura salva e arquivo PNG gerado");
     } catch (e) {
       toast.success(invoiceToEdit ? "Abertura atualizada (falha ao gerar PNG)" : "Abertura salva (falha ao gerar PNG)");
     }
     setSaving(false);
-    
+
     if (onSaveSuccess) {
       onSaveSuccess({ ...invoiceData, id: invoiceToEdit?.id });
     } else {
@@ -298,7 +313,9 @@ export const RegistrationSection = ({
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
-            <h2 className="font-display text-xl font-semibold tracking-tight">{invoiceToEdit ? "Edição" : "Cadastro"}</h2>
+            <h2 className="font-display text-xl font-semibold tracking-tight">
+              {invoiceToEdit ? "Edição" : "Cadastro"}
+            </h2>
           </div>
           <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
             {invoiceToEdit ? "EDITAR ABERTURA" : "ABERTURA"}
@@ -315,9 +332,7 @@ export const RegistrationSection = ({
                 </SelectTrigger>
                 <SelectContent>
                   {clients.length === 0 ? (
-                    <div className="px-3 py-2 text-xs text-muted-foreground">
-                      Nenhum cliente. Cadastre um ao lado.
-                    </div>
+                    <div className="px-3 py-2 text-xs text-muted-foreground">Nenhum cliente. Cadastre um ao lado.</div>
                   ) : (
                     clients.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
@@ -367,16 +382,11 @@ export const RegistrationSection = ({
                         </Label>
                         <div className="max-h-48 overflow-y-auto rounded-md border border-border/50 divide-y divide-border/40">
                           {clients.map((c) => (
-                            <div
-                              key={c.id}
-                              className="flex items-center justify-between gap-2 px-3 py-2 text-sm"
-                            >
+                            <div key={c.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
                               <div className="min-w-0 flex-1">
                                 <div className="truncate font-medium">{c.name}</div>
                                 {c.document && (
-                                  <div className="truncate text-xs text-muted-foreground font-mono">
-                                    {c.document}
-                                  </div>
+                                  <div className="truncate text-xs text-muted-foreground font-mono">{c.document}</div>
                                 )}
                               </div>
                               <Button
@@ -408,11 +418,7 @@ export const RegistrationSection = ({
 
           <div className="space-y-2">
             <Label>Número da Nota Fiscal</Label>
-            <Input
-              value={invoiceNumber}
-              onChange={(e) => setInvoiceNumber(e.target.value)}
-              placeholder="Ex.: 000123"
-            />
+            <Input value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder="Ex.: 000123" />
           </div>
 
           <div className="space-y-2">
@@ -439,7 +445,7 @@ export const RegistrationSection = ({
           </div>
 
           <div className="space-y-2">
-            <Label>Data da abertura</Label>
+            <Label>Data da Abertura</Label>
             <DateField value={operationDate} onChange={setOperationDate} />
           </div>
 
@@ -467,9 +473,7 @@ export const RegistrationSection = ({
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
-              <Label className="text-xl font-display font-semibold tracking-tight">
-                Pagamento
-              </Label>
+              <Label className="text-xl font-display font-semibold tracking-tight">Pagamento</Label>
             </div>
             <span className="font-mono text-[11px] tracking-widest text-muted-foreground invisible">
               RESTANTE: <span className="text-primary-glow">{formatBRL(remaining)}</span>
@@ -510,10 +514,7 @@ export const RegistrationSection = ({
                   <span className="block font-mono text-[9px] tracking-[0.25em] text-muted-foreground">
                     DATA DE VENCIMENTO
                   </span>
-                  <DateField
-                    value={inst.dueDate}
-                    onChange={(iso) => updateInstallmentDate(inst.id, iso)}
-                  />
+                  <DateField value={inst.dueDate} onChange={(iso) => updateInstallmentDate(inst.id, iso)} />
                 </div>
                 <div className="space-y-1">
                   <span className="block font-mono text-[9px] tracking-[0.25em] text-muted-foreground opacity-0">
@@ -545,30 +546,26 @@ export const RegistrationSection = ({
             <Plus className="mr-1.5 h-3.5 w-3.5" />
             ADICIONAR PARCELA
           </Button>
-
         </div>
       </section>
 
       <ResultPanels result={result} monthlyRate={monthlyRate} />
 
-      <CalcMemory
-        result={result}
-        monthlyRate={monthlyRate}
-        operationDate={operationDate}
-      />
+      <CalcMemory result={result} monthlyRate={monthlyRate} operationDate={operationDate} />
 
       <div className="flex justify-center gap-4">
         {onCancel && (
-          <Button onClick={onCancel} variant="outline" disabled={saving} size="lg" className="font-display tracking-wide">
+          <Button
+            onClick={onCancel}
+            variant="outline"
+            disabled={saving}
+            size="lg"
+            className="font-display tracking-wide"
+          >
             CANCELAR
           </Button>
         )}
-        <Button
-          onClick={handleSaveInvoice}
-          disabled={saving}
-          size="lg"
-          className="font-display tracking-wide"
-        >
+        <Button onClick={handleSaveInvoice} disabled={saving} size="lg" className="font-display tracking-wide">
           <Save className="mr-2 h-4 w-4" />
           {saving ? "Salvando..." : invoiceToEdit ? "SALVAR ALTERAÇÕES" : "CADASTRAR E EXPORTAR"}
         </Button>
@@ -585,8 +582,7 @@ export const RegistrationSection = ({
             padding: "56px",
             color: "#0a0f1c",
             fontFamily: "'Inter', 'Segoe UI', Arial, sans-serif",
-            background:
-              "linear-gradient(135deg, #f6f9ff 0%, #eef3fb 60%, #e6ecf8 100%)",
+            background: "linear-gradient(135deg, #f6f9ff 0%, #eef3fb 60%, #e6ecf8 100%)",
             position: "relative",
             overflow: "hidden",
           }}
@@ -638,7 +634,16 @@ export const RegistrationSection = ({
                 background: "linear-gradient(90deg, transparent, #22d3ee, #10b981, transparent)",
               }}
             />
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%", gap: "8px" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                gap: "8px",
+              }}
+            >
               <div style={{ textAlign: "center" }}>
                 <div
                   style={{
@@ -651,7 +656,15 @@ export const RegistrationSection = ({
                 >
                   MYKACA$H · ADIANTAMENTO DE RECEBÍVEIS
                 </div>
-                <div style={{ fontSize: "30px", fontWeight: 800, letterSpacing: "0.04em", lineHeight: 1, color: "#ffffff" }}>
+                <div
+                  style={{
+                    fontSize: "30px",
+                    fontWeight: 800,
+                    letterSpacing: "0.04em",
+                    lineHeight: 1,
+                    color: "#ffffff",
+                  }}
+                >
                   MYKA COMPRESSORES DO BRASIL
                 </div>
                 <div
@@ -663,7 +676,7 @@ export const RegistrationSection = ({
                     fontWeight: 600,
                   }}
                 >
-                  OPERAÇÃO {String(opCount).padStart(4, "0")}
+                  OPERAÇÃO {String(operationNumber || 0).padStart(4, "0")}
                 </div>
               </div>
             </div>
@@ -754,19 +767,93 @@ export const RegistrationSection = ({
             <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "linear-gradient(90deg, #f1f5f9, #e2e8f0)" }}>
-                  <th style={{ padding: "10px 12px", textAlign: "center", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>#</th>
-                  <th style={{ padding: "10px 12px", textAlign: "center", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>ABERTURA</th>
-                  <th style={{ padding: "10px 12px", textAlign: "center", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>VENCIMENTO</th>
-                  <th style={{ padding: "10px 12px", textAlign: "center", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>DIAS</th>
-                  <th style={{ padding: "10px 12px", textAlign: "center", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>VALOR BRUTO</th>
-                  <th style={{ padding: "10px 12px", textAlign: "center", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>VALOR LÍQUIDO</th>
-                  <th style={{ padding: "10px 12px", textAlign: "center", color: "#475569", letterSpacing: "0.2em", fontSize: "10px" }}>CUSTO</th>
+                  <th
+                    style={{
+                      padding: "10px 12px",
+                      textAlign: "center",
+                      color: "#475569",
+                      letterSpacing: "0.2em",
+                      fontSize: "10px",
+                    }}
+                  >
+                    #
+                  </th>
+                  <th
+                    style={{
+                      padding: "10px 12px",
+                      textAlign: "center",
+                      color: "#475569",
+                      letterSpacing: "0.2em",
+                      fontSize: "10px",
+                    }}
+                  >
+                    ABERTURA
+                  </th>
+                  <th
+                    style={{
+                      padding: "10px 12px",
+                      textAlign: "center",
+                      color: "#475569",
+                      letterSpacing: "0.2em",
+                      fontSize: "10px",
+                    }}
+                  >
+                    VENCIMENTO
+                  </th>
+                  <th
+                    style={{
+                      padding: "10px 12px",
+                      textAlign: "center",
+                      color: "#475569",
+                      letterSpacing: "0.2em",
+                      fontSize: "10px",
+                    }}
+                  >
+                    DIAS
+                  </th>
+                  <th
+                    style={{
+                      padding: "10px 12px",
+                      textAlign: "center",
+                      color: "#475569",
+                      letterSpacing: "0.2em",
+                      fontSize: "10px",
+                    }}
+                  >
+                    VALOR BRUTO
+                  </th>
+                  <th
+                    style={{
+                      padding: "10px 12px",
+                      textAlign: "center",
+                      color: "#475569",
+                      letterSpacing: "0.2em",
+                      fontSize: "10px",
+                    }}
+                  >
+                    VALOR LÍQUIDO
+                  </th>
+                  <th
+                    style={{
+                      padding: "10px 12px",
+                      textAlign: "center",
+                      color: "#475569",
+                      letterSpacing: "0.2em",
+                      fontSize: "10px",
+                    }}
+                  >
+                    CUSTO
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {result.installmentCalcs.map((i, idx) => (
                   <tr key={i.id} style={{ background: idx % 2 === 0 ? "#ffffff" : "#f8fafc" }}>
-                    <td style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700, color: "#0f172a" }}>{String(idx + 1).padStart(2, "0")}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700, color: "#0f172a" }}>
+                      {result.installmentCalcs.length > 1
+                        ? `${String(operationNumber || 0).padStart(4, "0")}${String.fromCharCode(97 + idx)}`
+                        : String(operationNumber || 0).padStart(4, "0")}
+                    </td>
                     <td style={{ padding: "10px 12px", textAlign: "center", color: "#0f172a" }}>
                       {new Date(operationDate + "T00:00:00").toLocaleDateString("pt-BR")}
                     </td>
@@ -859,7 +946,6 @@ export const RegistrationSection = ({
             </div>
           </div>
 
-
           {/* SIGNATURES */}
           <div
             style={{
@@ -922,7 +1008,8 @@ export const RegistrationSection = ({
               position: "relative",
             }}
           >
-            ◆ MYKACA$H · VERSÃO 2.2 · DOCUMENTO GERADO EM {new Date().toLocaleString("pt-BR")}{authorName ? ` · POR ${authorName.toUpperCase()}` : ""} ◆
+            ◆ MYKACA$H · VERSÃO 2.2 · DOCUMENTO GERADO EM {new Date().toLocaleString("pt-BR")}
+            {authorName ? ` · POR ${authorName.toUpperCase()}` : ""} ◆
           </div>
         </div>
       </div>
