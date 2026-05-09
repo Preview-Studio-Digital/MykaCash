@@ -788,7 +788,12 @@ const Historico = () => {
                   <DateField value={to} onChange={setTo} />
                 </div>
               </>
-                 <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+            )}
+          </div>
+        )}
+
+        {/* Filter rows */}
+        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
           {/* Period pills */}
           <div className="flex flex-col items-center gap-1.5">
             <span className="font-mono text-[8px] tracking-[0.2em] text-muted-foreground/60 uppercase">PERÍODO DE TEMPO</span>
@@ -839,10 +844,6 @@ const Historico = () => {
               })}
             </div>
           </div>
-        </div>             );
-            })}
-          </div>
-
         </div>
       </div>
     </div>
