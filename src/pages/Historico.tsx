@@ -353,16 +353,21 @@ const Historico = () => {
         if (r.settled) {
           const rawDate = r.settledDate || r.dueDate;
           const setDate = (period === "data") ? rawDate : rawDate.slice(0, 10);
+          // No gráfico de liquidadas, mostramos o volume acumulado (positivo)
           allEvents.push({ date: setDate, delta: r.value });
         }
       }
     } else {
+      // Para TODAS, INICIADAS, ANDAMENTO e VENCIDAS:
+      // Gráfico de SALDO EM ABERTO: Início (+) e Liquidação (-)
       for (const r of filteredRows) {
         const evDate = (period === "data") ? r.createdAt : r.operationDate.slice(0, 10);
         allEvents.push({ date: evDate, delta: r.value });
+        
         if (r.settled) {
           const rawDate = r.settledDate || r.dueDate;
           const setDate = (period === "data") ? rawDate : rawDate.slice(0, 10);
+          // Liquidação SEMPRE abate do saldo (delta negativo)
           allEvents.push({ date: setDate, delta: -r.value });
         }
       }
@@ -371,13 +376,14 @@ const Historico = () => {
     if (allEvents.length === 0)
       return [] as { date: string; label: string; labelShort: string; saldo: number | null; saldoFuturo?: number }[];
 
-    // Para "andamento", "todas" e "iniciadas", precisamos do saldo anterior para que o gráfico bata com os quadros coloridos
+    // Para filtros de saldo, precisamos do saldo anterior ao início do período
     let carryOver = 0;
-    if (statusFilter === "andamento" || statusFilter === "todas" || statusFilter === "iniciadas") {
+    const balanceFilters: StatusFilter[] = ["todas", "iniciadas", "andamento", "vencidas"];
+    if (balanceFilters.includes(statusFilter)) {
       const pastEvents = allEvents.filter((e) => e.date < range.from);
       carryOver = pastEvents.reduce((sum, e) => sum + e.delta, 0);
     } else if (statusFilter === "a_vencer") {
-      // Saldo inicial é a soma de todos os valores "a vencer" no período (deltas negativos no allEvents)
+      // Saldo inicial é a soma de todos os valores "a vencer" no período
       carryOver = filteredRows.reduce((sum, r) => sum + r.value, 0);
     }
 
