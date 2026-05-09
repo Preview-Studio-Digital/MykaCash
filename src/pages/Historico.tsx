@@ -358,9 +358,9 @@ const Historico = () => {
     } else if (statusFilter === "liquidadas") {
       for (const r of filteredRows) {
         if (r.settled) {
-          const rawDate = r.settledDate || r.dueDate;
+          // No gráfico de liquidadas, usamos a data de vencimento (regra: liq = venc)
+          const rawDate = r.dueDate;
           const setDate = (period === "data") ? rawDate : rawDate.slice(0, 10);
-          // No gráfico de liquidadas, mostramos o volume acumulado (positivo)
           allEvents.push({ date: setDate, delta: r.value });
         }
       }
@@ -372,10 +372,9 @@ const Historico = () => {
         allEvents.push({ date: evDate, delta: r.value });
         
         if (r.settled) {
-          // Usa a data de liquidação real, ou o vencimento se não houver, ou a própria data da operação se for imediata
-          const rawDate = r.settledDate || r.dueDate || r.operationDate;
+          // A liquidação abate do saldo SEMPRE na data de vencimento (regra de negócio: data liq = data venc)
+          const rawDate = r.dueDate;
           const setDate = (period === "data") ? rawDate : rawDate.slice(0, 10);
-          // Liquidação SEMPRE abate do saldo (delta negativo)
           allEvents.push({ date: setDate, delta: -r.value });
         }
       }
