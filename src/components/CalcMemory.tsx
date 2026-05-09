@@ -9,7 +9,8 @@ export const CalcMemory = ({
   monthlyRate: number;
   operationDate: string;
 }) => {
-  const fmtDate = (iso: string) => (iso ? new Date(iso + "T00:00:00").toLocaleDateString("pt-BR") : "-");
+  const fmtDate = (iso: string) =>
+    iso ? new Date(iso + "T00:00:00").toLocaleDateString("pt-BR") : "-";
 
   const rows = result.installmentCalcs.map((i) => {
     const cost = i.value - i.presentValue;
@@ -31,19 +32,26 @@ export const CalcMemory = ({
       presentValue: acc.presentValue + r.presentValue,
       cost: acc.cost + r.cost,
     }),
-    { value: 0, presentValue: 0, cost: 0 },
+    { value: 0, presentValue: 0, cost: 0 }
   );
 
   const showTotals = rows.length > 1;
   const totalEffective = totals.value > 0 ? (totals.cost / totals.value) * 100 : 0;
 
-  const columns = ["DATA DE VENCIMENTO", "DIAS", "VALOR BRUTO", "VALOR LÍQUIDO", "CUSTO", "TAXA EFETIVA"];
+  const columns = [
+    "DATA DE VENCIMENTO",
+    "DIAS",
+    "VALOR BRUTO",
+    "VALOR LÍQUIDO",
+    "CUSTO",
+    "TAXA EFETIVA",
+  ];
 
   return (
     <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 shadow-card animate-fade-up">
       <div className="mb-5 flex items-center gap-3">
         <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary-glow))] animate-pulse-glow" />
-        <h2 className="font-display text-xl font-semibold tracking-tight">Memória de Cálculo</h2>
+        <h2 className="font-display text-xl font-semibold tracking-tight">Memória de cálculo</h2>
       </div>
 
       {/* Mobile: operation summary */}
@@ -64,14 +72,17 @@ export const CalcMemory = ({
 
       <div className="space-y-2 md:hidden">
         {rows.map((r, idx) => (
-          <div key={r.id} className="rounded-lg border border-border/40 bg-muted/20 p-3 space-y-1 text-center">
+          <div
+            key={r.id}
+            className="rounded-lg border border-border/40 bg-muted/20 p-3 space-y-1 text-center"
+          >
             <div className="font-mono text-[10px] tracking-widest text-muted-foreground">
               {showTotals ? `P ${String(idx + 1).padStart(2, "0")}` : "PARCELA ÚNICA"}
             </div>
-            <div className="font-mono text-[10px] tracking-widest text-muted-foreground">DATA DE VENCIMENTO</div>
-            <div className="font-mono text-xs">
-              {fmtDate(r.dueDate)} · {r.days} dias
+            <div className="font-mono text-[10px] tracking-widest text-muted-foreground">
+              DATA DE VENCIMENTO
             </div>
+            <div className="font-mono text-xs">{fmtDate(r.dueDate)} · {r.days} dias</div>
             <div className="grid grid-cols-2 gap-2 pt-2 font-mono text-xs tabular-nums">
               <div>
                 <div className="text-[9px] tracking-widest text-muted-foreground">VALOR BRUTO</div>
@@ -95,7 +106,9 @@ export const CalcMemory = ({
 
         {showTotals && (
           <div className="rounded-lg border border-primary-glow/50 bg-primary-glow/10 p-3 space-y-1 text-center">
-            <div className="font-mono text-[10px] tracking-widest text-primary-glow">TOTAIS</div>
+            <div className="font-mono text-[10px] tracking-widest text-primary-glow">
+              TOTAIS
+            </div>
             <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-xs tabular-nums">
               <div>
                 <div className="text-[9px] tracking-widest text-muted-foreground">VALOR BRUTO</div>
@@ -137,7 +150,9 @@ export const CalcMemory = ({
           <tbody>
             {rows.map((r, idx) => (
               <tr key={r.id} className="border-t border-border/40 font-mono tabular-nums text-center">
-                <td className="px-2 py-2">{showTotals ? String(idx + 1).padStart(2, "0") : "ÚNICA"}</td>
+                <td className="px-2 py-2">
+                  {showTotals ? String(idx + 1).padStart(2, "0") : "ÚNICA"}
+                </td>
                 <td className="px-2 py-2">{fmtDate(operationDate)}</td>
                 <td className="px-2 py-2">{fmtDate(r.dueDate)}</td>
                 <td className="px-2 py-2">{r.days}</td>
