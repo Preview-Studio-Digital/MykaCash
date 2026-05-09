@@ -376,7 +376,7 @@ export const RegistrationSection = () => {
           </div>
 
           <div className="space-y-2">
-            <Label>Taxa mensal (%)</Label>
+            <Label>Taxa Mensal (%)</Label>
             <Input
               inputMode="numeric"
               value={(monthlyRate || 0).toLocaleString("pt-BR", {
