@@ -783,7 +783,11 @@ export const RegistrationSection = ({
               <tbody>
                 {result.installmentCalcs.map((i, idx) => (
                   <tr key={i.id} style={{ background: idx % 2 === 0 ? "#ffffff" : "#f8fafc" }}>
-                    <td style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700, color: "#0f172a" }}>{String(idx + 1).padStart(2, "0")}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700, color: "#0f172a" }}>
+                      {result.installmentCalcs.length > 1
+                        ? `${String(operationNumber || 0).padStart(4, "0")}${String.fromCharCode(97 + idx)}`
+                        : String(operationNumber || 0).padStart(4, "0")}
+                    </td>
                     <td style={{ padding: "10px 12px", textAlign: "center", color: "#0f172a" }}>
                       {new Date(operationDate + "T00:00:00").toLocaleDateString("pt-BR")}
                     </td>

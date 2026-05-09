@@ -175,6 +175,7 @@ const Historico = () => {
       installmentId: string;
       clientName: string;
       operationNumber: number;
+      formattedOrdem: string;
       invoiceNumber: string;
       operationDate: string;
       dueDate: string;
@@ -231,6 +232,9 @@ const Historico = () => {
           installmentId: i.id,
           clientName: inv.clients?.name ?? "—",
           operationNumber: (inv as any).operation_number || 0,
+          formattedOrdem: result.installmentCalcs.length > 1
+            ? `${String((inv as any).operation_number || 0).padStart(4, "0")}${String.fromCharCode(97 + idx)}`
+            : String((inv as any).operation_number || 0).padStart(4, "0"),
           invoiceNumber: inv.invoice_number,
           operationDate: inv.operation_date,
           dueDate: i.dueDate,
@@ -684,7 +688,7 @@ const Historico = () => {
   // Sorting state
   type SortKey =
     | "clientName"
-    | "operationNumber"
+    | "formattedOrdem"
     | "invoiceNumber"
     | "parcelLabel"
     | "operationDate"
@@ -1255,7 +1259,7 @@ const Historico = () => {
                   >
                     <div className="flex items-center justify-between">
                       <div className="font-mono text-[10px] tracking-widest text-primary-glow">
-                        ORDEM {String(r.operationNumber).padStart(4, "0")} · NF {r.invoiceNumber} · P {r.parcelLabel}
+                        ORDEM {r.formattedOrdem} · NF {r.invoiceNumber} · P {r.parcelLabel}
                       </div>
                       <div className="flex items-center gap-2">
                         {r.settled ? (
@@ -1346,7 +1350,7 @@ const Historico = () => {
               <thead className="bg-muted/40 font-mono tracking-widest">
                 <tr className="text-muted-foreground">
                   <th className="px-1.5 py-2 text-center font-medium">STATUS</th>
-                  <SortableTh label="ORDEM" sKey="operationNumber" />
+                  <SortableTh label="ORDEM" sKey="formattedOrdem" />
                   <SortableTh label="CLIENTE" sKey="clientName" />
                   <SortableTh label="NF" sKey="invoiceNumber" />
                   <SortableTh label="PARC." sKey="parcelLabel" />
@@ -1446,7 +1450,7 @@ const Historico = () => {
                         <td className="px-2 py-2 max-w-[160px] truncate" title={r.clientName}>
                           {r.clientName}
                         </td>
-                        <td className="px-1.5 py-2">{String(r.operationNumber).padStart(4, "0")}</td>
+                        <td className="px-1.5 py-2">{r.formattedOrdem}</td>
                         <td className="px-1.5 py-2">{r.invoiceNumber}</td>
                         <td className="px-1.5 py-2">{r.parcelLabel}</td>
                         <td className="px-1.5 py-2">{fmtDateShort(r.operationDate)}</td>
