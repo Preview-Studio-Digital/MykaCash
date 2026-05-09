@@ -430,8 +430,10 @@ const Historico = () => {
       const baseline = localISO(baseDate);
       series.push({ date: baseline, label: fmtDate(baseline), labelShort: fmtDayMonth(baseline), saldo: 0 });
     } else if (period === "total" && includesFirst && statusFilter !== "a_vencer") {
-      // Período total engloba a primeira operação: baseline em zero no mesmo dia
-      const baseline = sortedDates[0];
+      // Começa em zero UM DIA ANTES da primeira operação histórica
+      const d = new Date(sortedDates[0] + "T00:00:00");
+      d.setDate(d.getDate() - 1);
+      const baseline = localISO(d);
       series.push({ date: baseline, label: fmtDate(baseline), labelShort: fmtDayMonth(baseline), saldo: 0 });
     } else {
       // Período NÃO é total ou não engloba a primeira operação: começa com o saldo acumulado real
