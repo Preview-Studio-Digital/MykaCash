@@ -52,7 +52,6 @@ export const RegistrationSection = ({
     invoice_value: number;
     operation_date: string;
     monthly_rate: number;
-    ordem: number;
     factoring_monthly_rate: number | null;
     installments: Installment[];
   };
@@ -201,25 +200,11 @@ export const RegistrationSection = ({
       });
   }, [user?.id]);
 
-  const [operationNumber, setOperationNumber] = useState<number | null>(invoiceToEdit?.ordem || null);
+  const [opCount, setOpCount] = useState(0);
   useEffect(() => {
-    if (invoiceToEdit?.ordem) {
-      setOperationNumber(invoiceToEdit.ordem);
-    } else {
-      supabase
-        .from("invoices")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .then(({ data }) => {
-          if (data && data.length > 0) {
-            const lastNum = (data[0] as any).ordem;
-            setOperationNumber(lastNum ? lastNum + 1 : 1);
-          } else {
-            setOperationNumber(1);
-          }
-        });
-    }
+    supabase.from("invoices").select("*", { count: "exact", head: true }).then(({ count }) => {
+      setOpCount((count || 0) + (invoiceToEdit ? 0 : 1));
+    });
   }, [invoiceToEdit]);
 
   const monthlyEffectiveRatePct = useMemo(() => {
@@ -229,11 +214,13 @@ export const RegistrationSection = ({
     return (Math.pow(1 + eff, 30 / days) - 1) * 100;
   }, [result.effectiveRatePct, result.averageDays]);
 
-  const generateArchivePng = async (clientName: string, forcedOpNumber?: number) => {
+  const generateArchivePng = async (clientName: string) => {
     const node = archiveRef.current;
     if (!node) return;
 
-    const seq = forcedOpNumber ?? operationNumber ?? 0;
+    // Fetch count for sequential naming
+    const { count } = await supabase.from("invoices").select("*", { count: "exact", head: true });
+    const seq = count || 0;
     const seqStr = String(seq).padStart(4, "0");
 
     // Temporarily make it visible for rendering
@@ -243,7 +230,7 @@ export const RegistrationSection = ({
       const canvas = await html2canvas(node, { backgroundColor: "#ffffff", scale: 2 });
       const link = document.createElement("a");
       const safeClient = clientName.replace(/[^a-z0-9]+/gi, "_");
-      link.download = `${seqStr}_${safeClient}_NF-${invoiceNumber.trim()}.png`;
+      link.download = `${seqStr}_${safeClient}_NF-${invoiceNumber.trim()}_${operationDate}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     } finally {
@@ -271,19 +258,15 @@ export const RegistrationSection = ({
     };
 
     let error;
-    let savedOpNumber = operationNumber;
-    
     if (invoiceToEdit) {
-      const { data, error: updateError } = await supabase.from("invoices").update(invoiceData).eq("id", invoiceToEdit.id).select().single();
-      error = updateError;
-      if (data) savedOpNumber = (data as any).ordem;
+      const res = await supabase.from("invoices").update(invoiceData).eq("id", invoiceToEdit.id);
+      error = res.error;
     } else {
-      const { data, error: insertError } = await supabase.from("invoices").insert({
+      const res = await supabase.from("invoices").insert({
         ...invoiceData,
         created_by: user?.id ?? null,
-      }).select().single();
-      error = insertError;
-      if (data) savedOpNumber = (data as any).ordem;
+      });
+      error = res.error;
     }
 
     if (error) {
@@ -293,7 +276,7 @@ export const RegistrationSection = ({
     }
     const clientName = clients.find((c) => c.id === clientId)?.name ?? "cliente";
     try {
-      await generateArchivePng(clientName, savedOpNumber || undefined);
+      await generateArchivePng(clientName);
       toast.success(invoiceToEdit ? "Abertura atualizada e arquivo PNG gerado" : "Abertura salva e arquivo PNG gerado");
     } catch (e) {
       toast.success(invoiceToEdit ? "Abertura atualizada (falha ao gerar PNG)" : "Abertura salva (falha ao gerar PNG)");
@@ -680,7 +663,7 @@ export const RegistrationSection = ({
                     fontWeight: 600,
                   }}
                 >
-                  OPERAÇÃO {String(operationNumber || 0).padStart(4, "0")}
+                  OPERAÇÃO {String(opCount).padStart(4, "0")}
                 </div>
               </div>
             </div>
@@ -783,11 +766,7 @@ export const RegistrationSection = ({
               <tbody>
                 {result.installmentCalcs.map((i, idx) => (
                   <tr key={i.id} style={{ background: idx % 2 === 0 ? "#ffffff" : "#f8fafc" }}>
-                    <td style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700, color: "#0f172a" }}>
-                      {result.installmentCalcs.length > 1
-                        ? `${String(operationNumber || 0).padStart(4, "0")}${String.fromCharCode(97 + idx)}`
-                        : String(operationNumber || 0).padStart(4, "0")}
-                    </td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700, color: "#0f172a" }}>{String(idx + 1).padStart(2, "0")}</td>
                     <td style={{ padding: "10px 12px", textAlign: "center", color: "#0f172a" }}>
                       {new Date(operationDate + "T00:00:00").toLocaleDateString("pt-BR")}
                     </td>

@@ -47,7 +47,6 @@ type InvoiceRow = {
   client_id: string;
   created_at: string;
   created_by: string | null;
-  ordem: number;
   clients?: { name: string } | null;
   profiles?: { display_name: string | null; username: string | null } | null;
 };
@@ -148,7 +147,7 @@ const Historico = () => {
     const { data, error } = await supabase
       .from("invoices")
       .select(
-        "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, created_by, ordem, clients(name), profiles:created_by(display_name, username)"
+        "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, created_by, clients(name), profiles:created_by(display_name, username)"
       )
       .order("operation_date", { ascending: false });
     if (error) {
@@ -174,8 +173,6 @@ const Historico = () => {
       invoiceId: string;
       installmentId: string;
       clientName: string;
-      operationNumber: number;
-      formattedOrdem: string;
       invoiceNumber: string;
       operationDate: string;
       dueDate: string;
@@ -231,10 +228,6 @@ const Historico = () => {
           invoiceId: inv.id,
           installmentId: i.id,
           clientName: inv.clients?.name ?? "—",
-          operationNumber: inv.ordem || 0,
-          formattedOrdem: result.installmentCalcs.length > 1
-            ? `${String(inv.ordem || 0).padStart(4, "0")}${String.fromCharCode(97 + idx)}`
-            : String(inv.ordem || 0).padStart(4, "0"),
           invoiceNumber: inv.invoice_number,
           operationDate: inv.operation_date,
           dueDate: i.dueDate,
@@ -658,7 +651,6 @@ const Historico = () => {
       invoice_value: Number(inv.invoice_value),
       operation_date: inv.operation_date,
       monthly_rate: Number(inv.monthly_rate),
-      operation_number: inv.ordem,
       factoring_monthly_rate: inv.factoring_monthly_rate ? Number(inv.factoring_monthly_rate) : null,
       installments: Array.isArray(inv.installments) ? (inv.installments as Installment[]) : [],
     };
@@ -688,7 +680,6 @@ const Historico = () => {
   // Sorting state
   type SortKey =
     | "clientName"
-    | "formattedOrdem"
     | "invoiceNumber"
     | "parcelLabel"
     | "operationDate"
@@ -1259,7 +1250,7 @@ const Historico = () => {
                   >
                     <div className="flex items-center justify-between">
                       <div className="font-mono text-[10px] tracking-widest text-primary-glow">
-                        ORDEM {r.formattedOrdem} · NF {r.invoiceNumber} · P {r.parcelLabel}
+                        NF {r.invoiceNumber} · P {r.parcelLabel}
                       </div>
                       <div className="flex items-center gap-2">
                         {r.settled ? (
@@ -1350,7 +1341,6 @@ const Historico = () => {
               <thead className="bg-muted/40 font-mono tracking-widest">
                 <tr className="text-muted-foreground">
                   <th className="px-1.5 py-2 text-center font-medium">STATUS</th>
-                  <SortableTh label="ORDEM" sKey="formattedOrdem" />
                   <SortableTh label="CLIENTE" sKey="clientName" />
                   <SortableTh label="NF" sKey="invoiceNumber" />
                   <SortableTh label="PARC." sKey="parcelLabel" />
@@ -1368,13 +1358,13 @@ const Historico = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={14} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
+                    <td colSpan={13} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                       CARREGANDO...
                     </td>
                   </tr>
                 ) : filteredRows.length === 0 ? (
                   <tr>
-                    <td colSpan={14} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
+                    <td colSpan={13} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                       NENHUMA ABERTURA NO PERÍODO
                     </td>
                   </tr>
@@ -1450,7 +1440,6 @@ const Historico = () => {
                         <td className="px-2 py-2 max-w-[160px] truncate" title={r.clientName}>
                           {r.clientName}
                         </td>
-                        <td className="px-1.5 py-2">{r.formattedOrdem}</td>
                         <td className="px-1.5 py-2">{r.invoiceNumber}</td>
                         <td className="px-1.5 py-2">{r.parcelLabel}</td>
                         <td className="px-1.5 py-2">{fmtDateShort(r.operationDate)}</td>
@@ -1473,7 +1462,6 @@ const Historico = () => {
                   <tr className="border-t-2 border-primary-glow/40 bg-primary-glow/[0.07] font-mono tabular-nums text-center font-semibold">
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2 tracking-widest text-primary-glow">TOTAL</td>
-                    <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2">—</td>
