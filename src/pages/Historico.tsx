@@ -372,11 +372,18 @@ const Historico = () => {
         allEvents.push({ date: evDate, delta: r.value });
         
         if (r.settled) {
-          // A liquidação abate do saldo SEMPRE na data de vencimento (regra de negócio: data liq = data venc)
+          // Liquidada: Abate do saldo na data de vencimento (histórico ou futuro)
+          const rawDate = r.dueDate;
+          const setDate = (period === "data") ? rawDate : rawDate.slice(0, 10);
+          allEvents.push({ date: setDate, delta: -r.value });
+        } else if (r.dueDate > todayStr) {
+          // Não liquidada (Iniciada/Andamento): Abate do saldo apenas se o vencimento for FUTURO (projeção tracejada)
           const rawDate = r.dueDate;
           const setDate = (period === "data") ? rawDate : rawDate.slice(0, 10);
           allEvents.push({ date: setDate, delta: -r.value });
         }
+        // Se estiver vencida (não liquidada e vencimento no passado), NÃO adicionamos o evento de abatimento.
+        // Isso mantém o saldo "alto" no histórico até que a operação seja liquidada.
       }
     }
 
