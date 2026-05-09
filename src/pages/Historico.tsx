@@ -341,6 +341,7 @@ const Historico = () => {
   const businessDays = countBusinessDays(range.from, avgEnd);
   const dailyAvgOpen = openPresent / businessDays;
   const dailyAvgSettled = settledPresent / businessDays;
+  const dailyAvgBruto = totals.value / businessDays;
 
   const chartData = useMemo(() => {
     type Ev = { date: string; delta: number };
@@ -888,9 +889,19 @@ const Historico = () => {
                 {formatBRL(totals.presentValue)}
               </div>
               <div className="mt-3 h-px bg-white/20" />
-              <div className="mt-3 font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR BRUTO</div>
-              <div className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap">
-                {formatBRL(totals.value)}
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div>
+                  <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR BRUTO</div>
+                  <div className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap">
+                    {formatBRL(totals.value)}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-mono text-[9px] tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
+                  <div className="mt-1 font-display text-lg font-semibold tabular-nums text-right opacity-90 whitespace-nowrap">
+                    {formatBRL(dailyAvgBruto)}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
