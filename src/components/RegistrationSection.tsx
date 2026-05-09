@@ -208,12 +208,13 @@ export const RegistrationSection = ({
     } else {
       supabase
         .from("invoices")
-        .select("operation_number")
-        .order("operation_number", { ascending: false })
+        .select("*")
+        .order("created_at", { ascending: false })
         .limit(1)
         .then(({ data }) => {
           if (data && data.length > 0) {
-            setOperationNumber(data[0].operation_number + 1);
+            const lastNum = (data[0] as any).operation_number;
+            setOperationNumber(lastNum ? lastNum + 1 : 1);
           } else {
             setOperationNumber(1);
           }
@@ -273,16 +274,16 @@ export const RegistrationSection = ({
     let savedOpNumber = operationNumber;
     
     if (invoiceToEdit) {
-      const { data, error: updateError } = await supabase.from("invoices").update(invoiceData).eq("id", invoiceToEdit.id).select("operation_number").single();
+      const { data, error: updateError } = await supabase.from("invoices").update(invoiceData).eq("id", invoiceToEdit.id).select();
       error = updateError;
-      if (data) savedOpNumber = data.operation_number;
+      if (data?.[0]) savedOpNumber = (data[0] as any).operation_number;
     } else {
       const { data, error: insertError } = await supabase.from("invoices").insert({
         ...invoiceData,
         created_by: user?.id ?? null,
-      }).select("operation_number").single();
+      }).select();
       error = insertError;
-      if (data) savedOpNumber = data.operation_number;
+      if (data?.[0]) savedOpNumber = (data[0] as any).operation_number;
     }
 
     if (error) {

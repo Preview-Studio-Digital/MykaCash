@@ -148,9 +148,9 @@ const Historico = () => {
     const { data, error } = await supabase
       .from("invoices")
       .select(
-        "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, created_by, operation_number, clients(name), profiles:created_by(display_name, username)"
+        "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, created_by, clients(name), profiles:created_by(display_name, username)"
       )
-      .order("operation_number", { ascending: false });
+      .order("operation_date", { ascending: false });
     if (error) {
       toast.error("Erro ao carregar histórico");
       setLoading(false);
@@ -230,7 +230,7 @@ const Historico = () => {
           invoiceId: inv.id,
           installmentId: i.id,
           clientName: inv.clients?.name ?? "—",
-          operationNumber: inv.operation_number,
+          operationNumber: (inv as any).operation_number || 0,
           invoiceNumber: inv.invoice_number,
           operationDate: inv.operation_date,
           dueDate: i.dueDate,
