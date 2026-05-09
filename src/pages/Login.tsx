@@ -60,7 +60,7 @@ const Login = () => {
         <div className="mb-8 text-center flex flex-col items-center">
           <img src="/money-management.ico" alt="Smart Money" className="h-16 w-16 mb-4" />
           <h1 className="font-title font-bold title-gradient text-3xl sm:text-4xl whitespace-nowrap">MYKACA$H</h1>
-          <p className="mt-2 font-mono text-xs tracking-[0.4em] text-muted-foreground">VERSÃO 2.2</p>
+          <p className="mt-2 font-mono text-xs tracking-[0.4em] text-muted-foreground">VERSÃO 2.3</p>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4">
