@@ -52,7 +52,7 @@ export const RegistrationSection = ({
     invoice_value: number;
     operation_date: string;
     monthly_rate: number;
-    operation_number: number;
+    ordem: number;
     factoring_monthly_rate: number | null;
     installments: Installment[];
   };
@@ -201,10 +201,10 @@ export const RegistrationSection = ({
       });
   }, [user?.id]);
 
-  const [operationNumber, setOperationNumber] = useState<number | null>(invoiceToEdit?.operation_number || null);
+  const [operationNumber, setOperationNumber] = useState<number | null>(invoiceToEdit?.ordem || null);
   useEffect(() => {
-    if (invoiceToEdit?.operation_number) {
-      setOperationNumber(invoiceToEdit.operation_number);
+    if (invoiceToEdit?.ordem) {
+      setOperationNumber(invoiceToEdit.ordem);
     } else {
       supabase
         .from("invoices")
@@ -213,7 +213,7 @@ export const RegistrationSection = ({
         .limit(1)
         .then(({ data }) => {
           if (data && data.length > 0) {
-            const lastNum = (data[0] as any).operation_number;
+            const lastNum = (data[0] as any).ordem;
             setOperationNumber(lastNum ? lastNum + 1 : 1);
           } else {
             setOperationNumber(1);
@@ -274,16 +274,16 @@ export const RegistrationSection = ({
     let savedOpNumber = operationNumber;
     
     if (invoiceToEdit) {
-      const { data, error: updateError } = await supabase.from("invoices").update(invoiceData).eq("id", invoiceToEdit.id).select();
+      const { data, error: updateError } = await supabase.from("invoices").update(invoiceData).eq("id", invoiceToEdit.id).select().single();
       error = updateError;
-      if (data?.[0]) savedOpNumber = (data[0] as any).operation_number;
+      if (data) savedOpNumber = (data as any).ordem;
     } else {
       const { data, error: insertError } = await supabase.from("invoices").insert({
         ...invoiceData,
         created_by: user?.id ?? null,
-      }).select();
+      }).select().single();
       error = insertError;
-      if (data?.[0]) savedOpNumber = (data[0] as any).operation_number;
+      if (data) savedOpNumber = (data as any).ordem;
     }
 
     if (error) {

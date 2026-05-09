@@ -47,7 +47,7 @@ type InvoiceRow = {
   client_id: string;
   created_at: string;
   created_by: string | null;
-  operation_number: number;
+  ordem: number;
   clients?: { name: string } | null;
   profiles?: { display_name: string | null; username: string | null } | null;
 };
@@ -148,7 +148,7 @@ const Historico = () => {
     const { data, error } = await supabase
       .from("invoices")
       .select(
-        "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, created_by, clients(name), profiles:created_by(display_name, username)"
+        "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, created_by, ordem, clients(name), profiles:created_by(display_name, username)"
       )
       .order("operation_date", { ascending: false });
     if (error) {
@@ -231,10 +231,10 @@ const Historico = () => {
           invoiceId: inv.id,
           installmentId: i.id,
           clientName: inv.clients?.name ?? "—",
-          operationNumber: (inv as any).operation_number || 0,
+          operationNumber: inv.ordem || 0,
           formattedOrdem: result.installmentCalcs.length > 1
-            ? `${String((inv as any).operation_number || 0).padStart(4, "0")}${String.fromCharCode(97 + idx)}`
-            : String((inv as any).operation_number || 0).padStart(4, "0"),
+            ? `${String(inv.ordem || 0).padStart(4, "0")}${String.fromCharCode(97 + idx)}`
+            : String(inv.ordem || 0).padStart(4, "0"),
           invoiceNumber: inv.invoice_number,
           operationDate: inv.operation_date,
           dueDate: i.dueDate,
@@ -658,7 +658,7 @@ const Historico = () => {
       invoice_value: Number(inv.invoice_value),
       operation_date: inv.operation_date,
       monthly_rate: Number(inv.monthly_rate),
-      operation_number: inv.operation_number,
+      operation_number: inv.ordem,
       factoring_monthly_rate: inv.factoring_monthly_rate ? Number(inv.factoring_monthly_rate) : null,
       installments: Array.isArray(inv.installments) ? (inv.installments as Installment[]) : [],
     };

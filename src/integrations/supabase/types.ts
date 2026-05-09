@@ -53,7 +53,7 @@ export type Database = {
           invoice_value: number
           monthly_rate: number
           operation_date: string
-          operation_number: number
+          ordem: number
           settled_installments: Json
           updated_at: string
         }
@@ -68,7 +68,7 @@ export type Database = {
           invoice_value: number
           monthly_rate: number
           operation_date: string
-          operation_number?: number
+          ordem?: number
           settled_installments?: Json
           updated_at?: string
         }
@@ -83,7 +83,7 @@ export type Database = {
           invoice_value?: number
           monthly_rate?: number
           operation_date?: string
-          operation_number?: number
+          ordem?: number
           settled_installments?: Json
           updated_at?: string
         }
