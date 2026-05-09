@@ -255,9 +255,18 @@ const Historico = () => {
 
   const dataBounds = useMemo(() => {
     if (rows.length === 0) return { from: todayStr, to: todayStr };
-    const minOp = rows.reduce((min, r) => r.operationDate < min ? r.operationDate : min, rows[0].operationDate);
-    const maxDue = rows.reduce((max, r) => r.dueDate > max ? r.dueDate : max, rows[0].dueDate);
-    return { from: minOp, to: maxDue };
+    let min = todayStr;
+    let max = todayStr;
+    for (const r of rows) {
+      if (r.operationDate < min) min = r.operationDate;
+      const cDate = r.createdAt.slice(0, 10);
+      if (cDate < min) min = cDate;
+      if (r.settled && r.settledDate && r.settledDate < min) min = r.settledDate;
+      
+      if (r.dueDate > max) max = r.dueDate;
+      if (r.settled && r.settledDate && r.settledDate > max) max = r.settledDate;
+    }
+    return { from: min, to: max };
   }, [rows, todayStr]);
 
   const range = useMemo(() => {
@@ -285,11 +294,9 @@ const Historico = () => {
       return rows.filter((r) => !r.settled && inRange(r.dueDate));
     }
     if (statusFilter === "todas") {
-      return rows.filter((r) => {
-        const exitDate = r.settled ? (r.settledDate || r.dueDate) : "9999-12-31";
-        // Inclui se a operação iniciou até o fim do período E ainda não havia sido liquidada no início do período
-        return r.operationDate <= range.to && exitDate.slice(0, 10) >= range.from;
-      });
+      // Para "todas", incluímos tudo que começou até o fim do período.
+      // A lógica de carryOver e eventos cuidará de abater o que já foi liquidado.
+      return rows.filter((r) => r.operationDate <= range.to);
     }
 
     const base = rows.filter((r) => inRange(r.operationDate));
@@ -365,7 +372,8 @@ const Historico = () => {
         allEvents.push({ date: evDate, delta: r.value });
         
         if (r.settled) {
-          const rawDate = r.settledDate || r.dueDate;
+          // Usa a data de liquidação real, ou o vencimento se não houver, ou a própria data da operação se for imediata
+          const rawDate = r.settledDate || r.dueDate || r.operationDate;
           const setDate = (period === "data") ? rawDate : rawDate.slice(0, 10);
           // Liquidação SEMPRE abate do saldo (delta negativo)
           allEvents.push({ date: setDate, delta: -r.value });
