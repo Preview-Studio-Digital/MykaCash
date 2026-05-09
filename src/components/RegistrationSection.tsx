@@ -52,6 +52,7 @@ export const RegistrationSection = ({
     invoice_value: number;
     operation_date: string;
     monthly_rate: number;
+    operation_number: number;
     factoring_monthly_rate: number | null;
     installments: Installment[];
   };
@@ -200,11 +201,24 @@ export const RegistrationSection = ({
       });
   }, [user?.id]);
 
-  const [opCount, setOpCount] = useState(0);
+  const [operationNumber, setOperationNumber] = useState<number | null>(invoiceToEdit?.operation_number || null);
   useEffect(() => {
-    supabase.from("invoices").select("*", { count: "exact", head: true }).then(({ count }) => {
-      setOpCount((count || 0) + (invoiceToEdit ? 0 : 1));
-    });
+    if (invoiceToEdit?.operation_number) {
+      setOperationNumber(invoiceToEdit.operation_number);
+    } else {
+      supabase
+        .from("invoices")
+        .select("operation_number")
+        .order("operation_number", { ascending: false })
+        .limit(1)
+        .then(({ data }) => {
+          if (data && data.length > 0) {
+            setOperationNumber(data[0].operation_number + 1);
+          } else {
+            setOperationNumber(1);
+          }
+        });
+    }
   }, [invoiceToEdit]);
 
   const monthlyEffectiveRatePct = useMemo(() => {
@@ -214,13 +228,11 @@ export const RegistrationSection = ({
     return (Math.pow(1 + eff, 30 / days) - 1) * 100;
   }, [result.effectiveRatePct, result.averageDays]);
 
-  const generateArchivePng = async (clientName: string) => {
+  const generateArchivePng = async (clientName: string, forcedOpNumber?: number) => {
     const node = archiveRef.current;
     if (!node) return;
 
-    // Fetch count for sequential naming
-    const { count } = await supabase.from("invoices").select("*", { count: "exact", head: true });
-    const seq = count || 0;
+    const seq = forcedOpNumber ?? operationNumber ?? 0;
     const seqStr = String(seq).padStart(4, "0");
 
     // Temporarily make it visible for rendering
@@ -258,15 +270,19 @@ export const RegistrationSection = ({
     };
 
     let error;
+    let savedOpNumber = operationNumber;
+    
     if (invoiceToEdit) {
-      const res = await supabase.from("invoices").update(invoiceData).eq("id", invoiceToEdit.id);
-      error = res.error;
+      const { data, error: updateError } = await supabase.from("invoices").update(invoiceData).eq("id", invoiceToEdit.id).select("operation_number").single();
+      error = updateError;
+      if (data) savedOpNumber = data.operation_number;
     } else {
-      const res = await supabase.from("invoices").insert({
+      const { data, error: insertError } = await supabase.from("invoices").insert({
         ...invoiceData,
         created_by: user?.id ?? null,
-      });
-      error = res.error;
+      }).select("operation_number").single();
+      error = insertError;
+      if (data) savedOpNumber = data.operation_number;
     }
 
     if (error) {
@@ -276,7 +292,7 @@ export const RegistrationSection = ({
     }
     const clientName = clients.find((c) => c.id === clientId)?.name ?? "cliente";
     try {
-      await generateArchivePng(clientName);
+      await generateArchivePng(clientName, savedOpNumber || undefined);
       toast.success(invoiceToEdit ? "Abertura atualizada e arquivo PNG gerado" : "Abertura salva e arquivo PNG gerado");
     } catch (e) {
       toast.success(invoiceToEdit ? "Abertura atualizada (falha ao gerar PNG)" : "Abertura salva (falha ao gerar PNG)");
@@ -663,7 +679,7 @@ export const RegistrationSection = ({
                     fontWeight: 600,
                   }}
                 >
-                  OPERAÇÃO {String(opCount).padStart(4, "0")}
+                  OPERAÇÃO {String(operationNumber || 0).padStart(4, "0")}
                 </div>
               </div>
             </div>
