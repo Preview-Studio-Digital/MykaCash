@@ -642,7 +642,7 @@ const Historico = () => {
     { id: "data", label: "DATA" },
     { id: "semana", label: "SEMANA" },
     { id: "mes", label: "MÊS" },
-    { id: "periodo", label: "PERÍODO" },
+    { id: "periodo", label: "INTERVALO" },
   ];
 
   const statusOptions: { id: StatusFilter; label: string }[] = [
@@ -788,54 +788,58 @@ const Historico = () => {
                   <DateField value={to} onChange={setTo} />
                 </div>
               </>
-            )}
-          </div>
-        )}
-
-        {/* Filter rows */}
-        <div className="flex flex-wrap items-center justify-center gap-2">
+                 <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
           {/* Period pills */}
-          <div className="inline-flex flex-wrap justify-center rounded-full border border-border/50 bg-background/60 p-1 gap-1 shadow-panel">
-            {periodOptions.map((opt) => {
-              const active = period === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  onClick={() => setPeriod(opt.id)}
-                  className={
-                    "inline-flex items-center rounded-full px-3 py-1 font-mono text-[9px] tracking-[0.25em] transition-all whitespace-nowrap " +
-                    (active
-                      ? "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.5)]"
-                      : "text-muted-foreground hover:text-foreground")
-                  }
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="font-mono text-[8px] tracking-[0.2em] text-muted-foreground/60 uppercase">PERÍODO DE TEMPO</span>
+            <div className="inline-flex flex-wrap justify-center rounded-full border border-border/50 bg-background/60 p-1 gap-1 shadow-panel">
+              {periodOptions.map((opt) => {
+                const active = period === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    onClick={() => setPeriod(opt.id)}
+                    className={
+                      "inline-flex items-center rounded-full px-3 py-1 font-mono text-[9px] tracking-[0.25em] transition-all whitespace-nowrap " +
+                      (active
+                        ? "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.5)]"
+                        : "text-muted-foreground hover:text-foreground")
+                    }
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Divider */}
-          <div className="h-5 w-px bg-border/50 hidden sm:block" />
+          <div className="h-10 w-px bg-border/30 hidden sm:block mt-3" />
 
           {/* Status pills */}
-          <div className="inline-flex flex-wrap justify-center rounded-full border border-border/50 bg-background/60 p-1 gap-1 shadow-panel">
-            {statusOptions.map((opt) => {
-              const active = statusFilter === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  onClick={() => setStatusFilter(opt.id)}
-                  className={
-                    "inline-flex items-center rounded-full px-3 py-1 font-mono text-[9px] tracking-[0.25em] transition-all whitespace-nowrap " +
-                    (active
-                      ? "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.5)]"
-                      : "text-muted-foreground hover:text-foreground")
-                  }
-                >
-                  {opt.label}
-                </button>
-              );
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="font-mono text-[8px] tracking-[0.2em] text-muted-foreground/60 uppercase">STATUS DAS OPERAÇÕES</span>
+            <div className="inline-flex flex-wrap justify-center rounded-full border border-border/50 bg-background/60 p-1 gap-1 shadow-panel">
+              {statusOptions.map((opt) => {
+                const active = statusFilter === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    onClick={() => setStatusFilter(opt.id)}
+                    className={
+                      "inline-flex items-center rounded-full px-3 py-1 font-mono text-[9px] tracking-[0.25em] transition-all whitespace-nowrap " +
+                      (active
+                        ? "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.5)]"
+                        : "text-muted-foreground hover:text-foreground")
+                    }
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>             );
             })}
           </div>
 
