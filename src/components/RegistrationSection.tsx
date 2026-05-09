@@ -208,8 +208,8 @@ export const RegistrationSection = ({
     } else {
       supabase
         .from("invoices")
-        .select("*")
-        .order("created_at", { ascending: false })
+        .select("ordem")
+        .order("ordem", { ascending: false })
         .limit(1)
         .then(({ data }) => {
           if (data && data.length > 0) {
@@ -236,20 +236,39 @@ export const RegistrationSection = ({
     const seq = forcedOpNumber ?? operationNumber ?? 0;
     const seqStr = String(seq).padStart(4, "0");
 
-    // Temporarily make it visible for rendering
-    const prev = node.style.cssText;
-    node.style.cssText = "position:fixed;left:-10000px;top:0;width:1100px;background:#0b0f1a;";
+    // Clear styles and prepare for high-res export
+    const prevStyle = node.style.cssText;
+    node.style.cssText = "position:fixed;left:-10000px;top:0;width:1100px;background:#030712;";
+    
     try {
-      const canvas = await html2canvas(node, { backgroundColor: "#ffffff", scale: 2 });
+      const canvas = await html2canvas(node, { 
+        backgroundColor: "#030712", 
+        scale: 2,
+        logging: false,
+        useCORS: true
+      });
+      
+      const safeClient = clientName
+        .toUpperCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // Remove accents
+        .replace(/[^A-Z0-9]/g, "_")      // Only A-Z and 0-9
+        .replace(/_+/g, "_")             // Remove multiple underscores
+        .trim();
+
+      const fileName = `${seqStr}_${safeClient}_NF-${String(invoiceNumber).trim()}.png`;
+      
       const link = document.createElement("a");
-      const safeClient = clientName.replace(/[^a-z0-9]+/gi, "_");
-      const fileName = `${seqStr}_${safeClient}_NF-${invoiceNumber.trim()}.png`;
-      console.log("Generating export:", fileName);
       link.download = fileName;
       link.href = canvas.toDataURL("image/png");
       link.click();
+      
+      console.log("Exported successfully:", fileName);
+    } catch (err) {
+      console.error("Export failed:", err);
+      throw err;
     } finally {
-      node.style.cssText = prev;
+      node.style.cssText = prevStyle;
     }
   };
 
@@ -639,12 +658,12 @@ export const RegistrationSection = ({
             style={{
               position: "relative",
               borderRadius: "20px",
-              padding: "20px 32px",
-              background: "#4b5563",
+              padding: "24px 32px",
+              background: "#1e293b",
               color: "#ffffff",
-              boxShadow: "0 18px 40px -20px rgba(10, 15, 28, 0.6)",
+              boxShadow: "0 20px 50px -12px rgba(0, 0, 0, 0.5)",
               marginBottom: "32px",
-              border: "1px solid rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.08)",
             }}
           >
             <div
