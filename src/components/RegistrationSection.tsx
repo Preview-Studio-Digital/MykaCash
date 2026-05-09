@@ -243,7 +243,7 @@ export const RegistrationSection = ({
       const canvas = await html2canvas(node, { backgroundColor: "#ffffff", scale: 2 });
       const link = document.createElement("a");
       const safeClient = clientName.replace(/[^a-z0-9]+/gi, "_");
-      link.download = `${seqStr}_${safeClient}_NF-${invoiceNumber.trim()}_${operationDate}.png`;
+      link.download = `${seqStr}_${safeClient}_NF-${invoiceNumber.trim()}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     } finally {
