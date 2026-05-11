@@ -49,6 +49,7 @@ type InvoiceRow = {
   created_by: string | null;
   clients?: { name: string } | null;
   profiles?: { display_name: string | null; username: string | null } | null;
+  ordem?: number | null;
 };
 
 const settledIdOf = (e: SettledEntry): string => (typeof e === "string" ? e : e.id);
@@ -655,6 +656,7 @@ const Historico = () => {
       monthly_rate: Number(inv.monthly_rate),
       factoring_monthly_rate: inv.factoring_monthly_rate ? Number(inv.factoring_monthly_rate) : null,
       installments: Array.isArray(inv.installments) ? (inv.installments as Installment[]) : [],
+      ordem: inv.ordem,
     };
   }, [editingId, invoices]);
 
