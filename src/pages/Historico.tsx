@@ -49,6 +49,7 @@ type InvoiceRow = {
   created_by: string | null;
   clients?: { name: string } | null;
   profiles?: { display_name: string | null; username: string | null } | null;
+  ordem?: number | null;
 };
 
 const settledIdOf = (e: SettledEntry): string => (typeof e === "string" ? e : e.id);
