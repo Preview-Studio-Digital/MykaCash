@@ -655,6 +655,7 @@ const Historico = () => {
       monthly_rate: Number(inv.monthly_rate),
       factoring_monthly_rate: inv.factoring_monthly_rate ? Number(inv.factoring_monthly_rate) : null,
       installments: Array.isArray(inv.installments) ? (inv.installments as Installment[]) : [],
+      ordem: inv.ordem,
     };
   }, [editingId, invoices]);
 
