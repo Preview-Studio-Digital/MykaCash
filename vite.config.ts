@@ -1,6 +1,5 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
-// @ts-expect-error - Some environments may have issues with default exports
 const reactPlugin = (react as any).default || react;
 import path from "path";
 import { componentTagger } from "lovable-tagger";
