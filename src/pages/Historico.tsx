@@ -300,8 +300,11 @@ const Historico = () => {
       return rows.filter((r) => r.operationDate <= range.to);
     }
 
+    if (statusFilter === "vencidas") {
+      return rows.filter((r) => !r.settled && r.overdue && r.operationDate <= range.to);
+    }
+
     const base = rows.filter((r) => inRange(r.operationDate));
-    if (statusFilter === "vencidas") return base.filter((r) => !r.settled && r.overdue);
     return base.filter((r) => !r.settled); 
   }, [rows, statusFilter, range.from, range.to]);
 
