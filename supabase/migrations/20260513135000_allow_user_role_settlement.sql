@@ -16,16 +16,15 @@ BEGIN
     RAISE EXCEPTION 'invalid settled_ids format';
   END IF;
 
-  -- Allow admins OR any user with the 'user' role OR the creator of the invoice
-  IF NOT (
-    public.has_role(auth.uid(), 'admin'::app_role)
-    OR public.has_role(auth.uid(), 'user'::app_role)
-    OR EXISTS (
-      SELECT 1 FROM public.invoices
-      WHERE id = _invoice_id AND created_by = auth.uid()
-    )
-  ) THEN
-    RAISE EXCEPTION 'permission denied';
+  -- Allow ANY authenticated user to toggle settlement
+  -- This ensures users like Michely can mark operations as settled even without special roles
+  -- provided they are logged into the system.
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'not authenticated';
+  END IF;
+
+  IF jsonb_typeof(_settled_ids) <> 'array' THEN
+    RAISE EXCEPTION 'invalid settled_ids format';
   END IF;
 
   UPDATE public.invoices

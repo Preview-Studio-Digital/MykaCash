@@ -597,7 +597,9 @@ const Historico = () => {
       _settled_ids: next as any,
     });
     if (error) {
-      toast.error("Erro ao atualizar liquidação");
+      console.error("Erro ao liquidar:", error);
+      const { friendlyDbError } = await import("@/lib/dbErrors");
+      toast.error(friendlyDbError(error, "Erro ao atualizar liquidação"));
       load();
     } else {
       toast.success(
