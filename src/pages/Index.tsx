@@ -6,7 +6,7 @@ const Index = () => {
   return (
     <div className="min-h-screen">
       <AppHeader />
-      <main className="container mx-auto max-w-6xl px-4 py-10 md:py-14">
+      <main className="mx-auto w-full max-w-[1600px] px-4 md:px-8 lg:px-12 py-10 md:py-14">
         <PageNav />
         <RegistrationSection />
       </main>

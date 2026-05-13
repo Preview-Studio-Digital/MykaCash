@@ -898,7 +898,7 @@ const Historico = () => {
   return (
     <div className="min-h-screen">
       <AppHeader />
-      <main className="container mx-auto max-w-6xl px-4 py-10 md:py-14 pb-36 space-y-8">
+      <main className="mx-auto w-full max-w-[1600px] px-4 md:px-8 lg:px-12 py-10 md:py-14 pb-36 space-y-8">
         <PageNav />
 
         {/* Summary panels — reflect selected period */}
