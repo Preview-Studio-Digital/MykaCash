@@ -182,7 +182,7 @@ const Admin = () => {
         <span />
       </header>
 
-      <main className="container mx-auto max-w-4xl px-4 py-10 space-y-10">
+      <main className="mx-auto w-full max-w-[1600px] px-4 md:px-8 lg:px-12 py-10 space-y-10">
         <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 shadow-panel">
           <h2 className="font-display text-lg mb-4">Criar novo usuário</h2>
           <form onSubmit={onCreate} className="grid gap-4 md:grid-cols-2">
