@@ -551,7 +551,9 @@ export const RegistrationSection = ({
 
       <ResultPanels result={result} monthlyRate={monthlyRate} />
 
-      <CalcMemory result={result} monthlyRate={monthlyRate} operationDate={operationDate} />
+      {clientId && invoiceNumber.trim() && invoiceValue > 0 && installments.every((i) => i.value > 0 && i.dueDate) && (
+        <CalcMemory result={result} monthlyRate={monthlyRate} operationDate={operationDate} />
+      )}
 
       <div className="flex justify-center gap-4">
         {onCancel && (
