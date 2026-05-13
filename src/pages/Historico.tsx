@@ -301,7 +301,7 @@ const Historico = () => {
     }
 
     if (statusFilter === "vencidas") {
-      return rows.filter((r) => !r.settled && r.overdue && r.operationDate <= range.to);
+      return rows.filter((r) => !r.settled && r.overdue && inRange(r.dueDate));
     }
 
     const base = rows.filter((r) => inRange(r.operationDate));
