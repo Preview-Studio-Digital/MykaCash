@@ -608,6 +608,8 @@ const Historico = () => {
       toast.success(
         !isSettled ? "Parcela marcada como liquidada" : "Liquidação removida"
       );
+      // Recarrega para refletir a nova autoria (created_by passa para quem liquidou)
+      load();
     }
   };
 
