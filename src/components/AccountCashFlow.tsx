@@ -99,14 +99,20 @@ export const AccountCashFlow = () => {
         supabase.from("invoices").select("*, clients(name)").order("operation_date", { ascending: false })
       ]);
 
-      if (manualRes.error) throw manualRes.error;
-      if (invoicesRes.error) throw invoicesRes.error;
+      if (manualRes.error) {
+        console.error("Error loading manual transactions:", manualRes.error);
+        // Don't throw, just log and continue with empty array if needed
+      }
+      if (invoicesRes.error) {
+        console.error("Error loading invoices:", invoicesRes.error);
+        toast.error("Erro ao carregar operações registradas");
+      }
 
       setManualTransactions(manualRes.data || []);
       setInvoices(invoicesRes.data || []);
     } catch (error: any) {
-      console.error("Error loading data:", error);
-      toast.error("Erro ao carregar dados financeiros");
+      console.error("Critical error loading data:", error);
+      toast.error("Erro fatal ao carregar dados financeiros");
     } finally {
       setLoading(false);
     }
@@ -132,22 +138,26 @@ export const AccountCashFlow = () => {
 
     // 2. Operations and Installments
     invoices.forEach(inv => {
+      const installments = Array.isArray(inv.installments) ? inv.installments : [];
+      
       const calc = calculate({
-        invoiceValue: Number(inv.invoice_value),
+        invoiceValue: Number(inv.invoice_value) || 0,
         operationDate: inv.operation_date,
-        monthlyRate: Number(inv.monthly_rate),
-        installments: inv.installments as Installment[]
+        monthlyRate: Number(inv.monthly_rate) || 0,
+        installments: installments as Installment[]
       });
 
       // Saída: Valor Líquido da Operação
-      data.push({
-        id: `op-out-${inv.id}`,
-        type: "operation_out",
-        amount: calc.netValue,
-        date: inv.operation_date,
-        description: `Saída Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number}`,
-        reference_id: inv.id
-      });
+      if (inv.operation_date) {
+        data.push({
+          id: `op-out-${inv.id}`,
+          type: "operation_out",
+          amount: calc.netValue,
+          date: inv.operation_date,
+          description: `Saída Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}`,
+          reference_id: inv.id
+        });
+      }
 
       // Entradas: Parcelas Liquidadas
       const settledEntries = Array.isArray(inv.settled_installments) ? inv.settled_installments : [];
@@ -159,8 +169,8 @@ export const AccountCashFlow = () => {
             id: `inst-in-${inst.id}`,
             type: "installment_in",
             amount: inst.value,
-            date: inst.dueDate, // User specified: Entradas são registradas na data de vencimento quando liquidadas
-            description: `Entrada Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number} (${idx + 1}/${calc.installmentCalcs.length})`,
+            date: inst.dueDate, // Entradas são registradas na data de vencimento quando liquidadas
+            description: `Entrada Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'} (${idx + 1}/${calc.installmentCalcs.length})`,
             reference_id: inv.id
           });
         }
@@ -174,11 +184,13 @@ export const AccountCashFlow = () => {
   const openInstallmentsValue = useMemo(() => {
     let total = 0;
     invoices.forEach(inv => {
+      const installments = Array.isArray(inv.installments) ? inv.installments : [];
+      
       const calc = calculate({
-        invoiceValue: Number(inv.invoice_value),
+        invoiceValue: Number(inv.invoice_value) || 0,
         operationDate: inv.operation_date,
-        monthlyRate: Number(inv.monthly_rate),
-        installments: inv.installments as Installment[]
+        monthlyRate: Number(inv.monthly_rate) || 0,
+        installments: installments as Installment[]
       });
       
       const settledEntries = Array.isArray(inv.settled_installments) ? inv.settled_installments : [];
