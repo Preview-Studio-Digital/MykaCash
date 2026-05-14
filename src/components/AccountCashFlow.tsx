@@ -653,10 +653,10 @@ export const AccountCashFlow = () => {
                   key={date}
                   x={date}
                   yAxisId="left"
-                  stroke="hsl(var(--border))"
+                  stroke="hsl(var(--muted-foreground))"
                   strokeDasharray="4 4"
-                  strokeWidth={1}
-                  opacity={0.5}
+                  strokeWidth={2.5}
+                  opacity={0.9}
                 />
               ))}
 
