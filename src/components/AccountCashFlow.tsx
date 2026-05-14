@@ -463,7 +463,7 @@ export const AccountCashFlow = () => {
         <div>
           <h2 className="text-2xl font-bold font-display tracking-tight text-foreground/90 flex items-center gap-2">
             <Wallet className="h-6 w-6 text-primary" />
-            Fluxo de Caixa da Conta
+            Fluxo de Caixa da Conta Inter
           </h2>
           <p className="text-muted-foreground text-sm">Gerencie entradas, saídas e acompanhe o saldo operacional.</p>
         </div>
@@ -584,7 +584,7 @@ export const AccountCashFlow = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        <div className="relative group overflow-hidden rounded-2xl border border-net-green/20 bg-gradient-to-br from-card to-card/50 p-6 shadow-[0_0_20px_-5px_hsl(var(--net-green)/0.3)] transition-all hover:shadow-[0_0_30px_-5px_hsl(var(--net-green)/0.4)]">
+        <div className="relative group overflow-hidden rounded-2xl border border-net-green/20 bg-gradient-to-br from-card to-card/50 p-6 shadow-[0_0_20px_-5px_hsl(var(--net-green)/0.3)] transition-all hover:shadow-[0_0_40px_-2px_hsl(var(--net-green)/0.6)]">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <ArrowUpCircle className="h-12 w-12 text-net-green" />
           </div>
@@ -594,7 +594,7 @@ export const AccountCashFlow = () => {
           </h3>
         </div>
 
-        <div className="relative group overflow-hidden rounded-2xl border border-cost-red/20 bg-gradient-to-br from-card to-card/50 p-6 shadow-[0_0_20px_-5px_hsl(var(--cost-red)/0.3)] transition-all hover:shadow-[0_0_30px_-5px_hsl(var(--cost-red)/0.4)]">
+        <div className="relative group overflow-hidden rounded-2xl border border-cost-red/20 bg-gradient-to-br from-card to-card/50 p-6 shadow-[0_0_20px_-5px_hsl(var(--cost-red)/0.3)] transition-all hover:shadow-[0_0_40px_-2px_hsl(var(--cost-red)/0.6)]">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <ArrowDownCircle className="h-12 w-12 text-cost-red" />
           </div>
@@ -604,7 +604,7 @@ export const AccountCashFlow = () => {
           </h3>
         </div>
 
-        <div className="relative group overflow-hidden rounded-2xl border border-factoring-amber/20 bg-gradient-to-br from-card to-card/50 p-6 shadow-[0_0_20px_-5px_hsl(var(--factoring-amber)/0.3)] transition-all hover:shadow-[0_0_30px_-5px_hsl(var(--factoring-amber)/0.4)]">
+        <div className="relative group overflow-hidden rounded-2xl border border-factoring-amber/20 bg-gradient-to-br from-card to-card/50 p-6 shadow-[0_0_20px_-5px_hsl(var(--factoring-amber)/0.3)] transition-all hover:shadow-[0_0_40px_-2px_hsl(var(--factoring-amber)/0.6)]">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <History className="h-12 w-12 text-factoring-amber" />
           </div>
@@ -614,7 +614,7 @@ export const AccountCashFlow = () => {
           </h3>
         </div>
 
-        <div className="relative group overflow-hidden rounded-2xl border border-net-green/20 bg-gradient-to-br from-card to-card/50 p-6 shadow-[0_0_20px_-5px_hsl(var(--net-green)/0.3)] transition-all hover:shadow-[0_0_30px_-5px_hsl(var(--net-green)/0.4)]">
+        <div className="relative group overflow-hidden rounded-2xl border border-net-green/20 bg-gradient-to-br from-card to-card/50 p-6 shadow-[0_0_20px_-5px_hsl(var(--net-green)/0.3)] transition-all hover:shadow-[0_0_40px_-2px_hsl(var(--net-green)/0.6)]">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <TrendingUp className="h-12 w-12 text-net-green" />
           </div>
@@ -626,8 +626,8 @@ export const AccountCashFlow = () => {
 
         <div className={`relative group overflow-hidden rounded-2xl border bg-gradient-to-br from-card to-card/50 p-6 transition-all ${
           stats.cumulativeBalance >= 0 
-            ? 'border-primary/20 shadow-[0_0_20px_-5px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_30px_-5px_hsl(var(--primary)/0.4)]' 
-            : 'border-cost-red/20 shadow-[0_0_20px_-5px_hsl(var(--cost-red)/0.3)] hover:shadow-[0_0_30px_-5px_hsl(var(--cost-red)/0.4)]'
+            ? 'border-primary/20 shadow-[0_0_20px_-5px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_40px_-2px_hsl(var(--primary)/0.6)]' 
+            : 'border-cost-red/20 shadow-[0_0_20px_-5px_hsl(var(--cost-red)/0.3)] hover:shadow-[0_0_40px_-2px_hsl(var(--cost-red)/0.6)]'
         }`}>
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <Wallet className={`h-12 w-12 ${stats.cumulativeBalance >= 0 ? 'text-primary' : 'text-cost-red'}`} />
