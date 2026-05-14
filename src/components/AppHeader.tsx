@@ -33,7 +33,7 @@ export const AppHeader = () => {
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/80 to-transparent" />
 
       {/* User bar */}
-      <div className="relative z-10 flex items-center justify-between px-6 pt-5 text-xs font-mono tracking-widest text-muted-foreground">
+      <div className="relative z-10 flex items-center justify-between px-6 pt-4 text-xs font-mono tracking-widest text-muted-foreground">
         <span className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-net-green shadow-[0_0_10px_hsl(var(--net-green))] animate-pulse-glow" />
           SISTEMA ONLINE
@@ -66,7 +66,7 @@ export const AppHeader = () => {
       </div>
 
       {/* Hero title block */}
-      <div className="relative z-10 flex flex-col items-center justify-center px-6 pt-2 pb-4 text-center">
+      <div className="relative z-10 flex flex-col items-center justify-center px-6 pt-1 pb-4 text-center">
         <h1 className="font-title title-gradient title-shimmer font-extrabold leading-[0.9] tracking-tighter animate-fade-up text-3xl lg:text-5xl">
           MYKACA$H
         </h1>
