@@ -297,14 +297,22 @@ export const AccountCashFlow = () => {
       });
     });
 
+    const cumulativeBalance = unifiedData.reduce((acc, t) => {
+      if (t.date <= end) {
+        if (t.type === "deposit" || t.type === "installment_in") return acc + t.amount;
+        return acc - t.amount;
+      }
+      return acc;
+    }, 0);
+
     return {
-      periodBalance,
+      cumulativeBalance,
       periodDeposits,
       periodWithdrawals,
       periodProfit,
       periodOpen
     };
-  }, [filteredData, invoices, period, fromDate, toDate]);
+  }, [unifiedData, filteredData, invoices, period, fromDate, toDate]);
 
   const chartData = useMemo(() => {
     if (unifiedData.length === 0) return [];
@@ -576,17 +584,17 @@ export const AccountCashFlow = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        <div className="relative group overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card to-card/50 p-6 shadow-sm transition-all hover:shadow-md">
+        <div className="relative group overflow-hidden rounded-2xl border border-net-green/20 bg-gradient-to-br from-card to-card/50 p-6 shadow-[0_0_20px_-5px_hsl(var(--net-green)/0.3)] transition-all hover:shadow-[0_0_30px_-5px_hsl(var(--net-green)/0.4)]">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <ArrowUpCircle className="h-12 w-12 text-blue-500" />
+            <ArrowUpCircle className="h-12 w-12 text-net-green" />
           </div>
           <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Valor Depositado</p>
-          <h3 className="text-2xl font-bold mt-2 text-blue-500">
+          <h3 className="text-2xl font-bold mt-2 text-net-green">
             {formatBRL(stats.periodDeposits)}
           </h3>
         </div>
 
-        <div className="relative group overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card to-card/50 p-6 shadow-sm transition-all hover:shadow-md">
+        <div className="relative group overflow-hidden rounded-2xl border border-cost-red/20 bg-gradient-to-br from-card to-card/50 p-6 shadow-[0_0_20px_-5px_hsl(var(--cost-red)/0.3)] transition-all hover:shadow-[0_0_30px_-5px_hsl(var(--cost-red)/0.4)]">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <ArrowDownCircle className="h-12 w-12 text-cost-red" />
           </div>
@@ -596,17 +604,17 @@ export const AccountCashFlow = () => {
           </h3>
         </div>
 
-        <div className="relative group overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card to-card/50 p-6 shadow-sm transition-all hover:shadow-md">
+        <div className="relative group overflow-hidden rounded-2xl border border-factoring-amber/20 bg-gradient-to-br from-card to-card/50 p-6 shadow-[0_0_20px_-5px_hsl(var(--factoring-amber)/0.3)] transition-all hover:shadow-[0_0_30px_-5px_hsl(var(--factoring-amber)/0.4)]">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <History className="h-12 w-12 text-orange-500" />
+            <History className="h-12 w-12 text-factoring-amber" />
           </div>
           <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Saldo Aberto</p>
-          <h3 className="text-2xl font-bold mt-2 text-orange-500">
+          <h3 className="text-2xl font-bold mt-2 text-factoring-amber">
             {formatBRL(stats.periodOpen)}
           </h3>
         </div>
 
-        <div className="relative group overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card to-card/50 p-6 shadow-sm transition-all hover:shadow-md">
+        <div className="relative group overflow-hidden rounded-2xl border border-net-green/20 bg-gradient-to-br from-card to-card/50 p-6 shadow-[0_0_20px_-5px_hsl(var(--net-green)/0.3)] transition-all hover:shadow-[0_0_30px_-5px_hsl(var(--net-green)/0.4)]">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <TrendingUp className="h-12 w-12 text-net-green" />
           </div>
@@ -616,13 +624,17 @@ export const AccountCashFlow = () => {
           </h3>
         </div>
 
-        <div className="relative group overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card to-card/50 p-6 shadow-sm transition-all hover:shadow-md">
+        <div className={`relative group overflow-hidden rounded-2xl border bg-gradient-to-br from-card to-card/50 p-6 transition-all ${
+          stats.cumulativeBalance >= 0 
+            ? 'border-primary/20 shadow-[0_0_20px_-5px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_30px_-5px_hsl(var(--primary)/0.4)]' 
+            : 'border-cost-red/20 shadow-[0_0_20px_-5px_hsl(var(--cost-red)/0.3)] hover:shadow-[0_0_30px_-5px_hsl(var(--cost-red)/0.4)]'
+        }`}>
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Wallet className="h-12 w-12 text-primary" />
+            <Wallet className={`h-12 w-12 ${stats.cumulativeBalance >= 0 ? 'text-primary' : 'text-cost-red'}`} />
           </div>
-          <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Saldo do Período</p>
-          <h3 className={`text-2xl font-bold mt-2 ${stats.periodBalance >= 0 ? 'text-primary' : 'text-cost-red'}`}>
-            {formatBRL(stats.periodBalance)}
+          <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Saldo em conta</p>
+          <h3 className={`text-2xl font-bold mt-2 ${stats.cumulativeBalance >= 0 ? 'text-primary' : 'text-cost-red'}`}>
+            {formatBRL(stats.cumulativeBalance)}
           </h3>
         </div>
       </div>
