@@ -1,12 +1,17 @@
 import { Link, useLocation } from "react-router-dom";
-import { FilePlus2, History } from "lucide-react";
+import { FilePlus2, History, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+import { useAuth } from "@/hooks/useAuth";
 
 export const PageNav = () => {
   const { pathname } = useLocation();
+  const { isAdmin } = useAuth();
+
   const items = [
     { to: "/", label: "CADASTRO", icon: FilePlus2 },
     { to: "/historico", label: "HISTÓRICO", icon: History },
+    ...(isAdmin ? [{ to: "/financeiro", label: "FINANCEIRO", icon: Wallet }] : []),
   ];
   return (
     <nav className="mb-8 flex items-center justify-center gap-2 animate-fade-up">
