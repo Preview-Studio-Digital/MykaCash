@@ -172,34 +172,34 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-border/60 px-6 py-4 flex items-center justify-between">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 font-mono text-xs tracking-widest text-muted-foreground hover:text-primary"
-        >
-          <ArrowLeft className="h-4 w-4" /> VOLTAR
-        </Link>
-        <h1 className="font-title title-gradient text-xl font-bold">PAINEL ADMINISTRADOR</h1>
-        <span />
+    <Tabs defaultValue="cashflow" className="min-h-screen">
+      <header className="border-b border-border/60 px-6 py-3 flex items-center justify-between bg-background/50 backdrop-blur-md sticky top-0 z-50">
+        <div className="flex items-center gap-6">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 font-mono text-[10px] tracking-widest text-muted-foreground hover:text-primary transition-colors"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> VOLTAR
+          </Link>
+          <h1 className="font-title title-gradient text-lg font-bold tracking-tight">PAINEL ADMINISTRADOR</h1>
+        </div>
+
+        <TabsList className="bg-muted/40 p-1 border border-border/40 rounded-xl h-9">
+          <TabsTrigger value="cashflow" className="gap-2 rounded-lg text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+            <Wallet className="h-3.5 w-3.5" /> Fluxo de Caixa
+          </TabsTrigger>
+          <TabsTrigger value="users" className="gap-2 rounded-lg text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+            <Users className="h-3.5 w-3.5" /> Gestão de Usuários
+          </TabsTrigger>
+        </TabsList>
       </header>
 
       <main className="mx-auto w-full max-w-[1600px] px-4 md:px-8 lg:px-12 py-10 space-y-10">
-        <Tabs defaultValue="cashflow" className="space-y-8">
-          <TabsList className="bg-muted/40 p-1 border border-border/40 rounded-xl">
-            <TabsTrigger value="cashflow" className="gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              <Wallet className="h-4 w-4" /> Fluxo de Caixa
-            </TabsTrigger>
-            <TabsTrigger value="users" className="gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              <Users className="h-4 w-4" /> Gestão de Usuários
-            </TabsTrigger>
-          </TabsList>
+        <TabsContent value="cashflow" className="space-y-10 focus-visible:outline-none mt-0">
+          <AccountCashFlow />
+        </TabsContent>
 
-          <TabsContent value="cashflow" className="space-y-10 focus-visible:outline-none">
-            <AccountCashFlow />
-          </TabsContent>
-
-          <TabsContent value="users" className="space-y-10 focus-visible:outline-none">
+        <TabsContent value="users" className="space-y-10 focus-visible:outline-none mt-0">
             <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 shadow-panel">
               <h2 className="font-display text-lg mb-4">Criar novo usuário</h2>
               <form onSubmit={onCreate} className="grid gap-4 md:grid-cols-2">
@@ -383,7 +383,7 @@ const Admin = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </Tabs>
   );
 };
 

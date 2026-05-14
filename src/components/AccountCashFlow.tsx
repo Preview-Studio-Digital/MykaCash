@@ -704,11 +704,16 @@ export const AccountCashFlow = () => {
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="hsl(var(--border)/0.8)" strokeOpacity={1} />
               <XAxis 
-                dataKey="date" 
+                dataKey="rawDate" 
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
                 dy={10}
+                tickFormatter={(val) => {
+                  const parts = val.split("-");
+                  if (parts.length === 3) return parts[2];
+                  return val;
+                }}
               />
               <YAxis 
                 axisLine={false}
@@ -725,6 +730,16 @@ export const AccountCashFlow = () => {
                   boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
                   fontSize: '12px'
                 }}
+                labelFormatter={(value, payload) => {
+                  if (payload && payload.length > 0) {
+                    const rawDate = payload[0].payload.rawDate;
+                    const d = new Date(rawDate + "T00:00:00");
+                    const day = d.getDate();
+                    const month = d.toLocaleDateString('pt-BR', { month: 'long' });
+                    return `Data: ${day} de ${month}`;
+                  }
+                  return value;
+                }}
                 formatter={(value: number) => [formatBRL(value), 'Saldo']}
               />
               <Area 
@@ -739,6 +754,55 @@ export const AccountCashFlow = () => {
             </AreaChart>
           </ResponsiveContainer>
         </div>
+
+        {chartData.length > 0 && (() => {
+          const MONTHS_PT = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
+          const monthSegs: { key: string; label: string; count: number }[] = [];
+          for (const p of chartData) {
+            const [y, m] = p.rawDate.split("-");
+            const key = `${y}-${m}`;
+            const label = MONTHS_PT[parseInt(m, 10) - 1] || m;
+            const last = monthSegs[monthSegs.length - 1];
+            if (last && last.key === key) last.count += 1;
+            else monthSegs.push({ key, label, count: 1 });
+          }
+          const total = chartData.length;
+          // Agrupa anos consecutivos
+          const yearSegs: { year: string; count: number }[] = [];
+          for (const p of chartData) {
+            const y = p.rawDate.substring(0, 4);
+            const last = yearSegs[yearSegs.length - 1];
+            if (last && last.year === y) last.count += 1;
+            else yearSegs.push({ year: y, count: 1 });
+          }
+
+          return (
+            <>
+              <div className="mt-4 flex bg-muted/20 rounded-sm" style={{ marginLeft: 50, marginRight: 10 }}>
+                {monthSegs.map((s, i) => (
+                  <div
+                    key={i}
+                    className="text-center font-mono text-[9px] tracking-[0.2em] text-muted-foreground/70 py-1 overflow-hidden whitespace-nowrap border-x border-border/10 first:border-l-0 last:border-r-0"
+                    style={{ flex: s.count / total }}
+                  >
+                    {s.label}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-1 flex" style={{ marginLeft: 50, marginRight: 10 }}>
+                {yearSegs.map((s, i) => (
+                  <div
+                    key={i}
+                    className="text-center font-mono text-[10px] tracking-[0.25em] text-muted-foreground/50"
+                    style={{ flex: s.count / total }}
+                  >
+                    {s.year}
+                  </div>
+                ))}
+              </div>
+            </>
+          );
+        })()}
       </section>
 
       {/* Transactions Table */}
@@ -761,23 +825,23 @@ export const AccountCashFlow = () => {
           <Table>
             <TableHeader className="bg-muted/30">
               <TableRow className="hover:bg-transparent border-border/40">
-                <TableHead className="w-[120px] text-[10px] tracking-widest uppercase font-mono">Data</TableHead>
-                <TableHead className="text-[10px] tracking-widest uppercase font-mono">Descrição</TableHead>
-                <TableHead className="text-[10px] tracking-widest uppercase font-mono">Tipo</TableHead>
-                <TableHead className="text-right text-[10px] tracking-widest uppercase font-mono">Valor</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
+                <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Data</TableHead>
+                <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Descrição</TableHead>
+                <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Tipo</TableHead>
+                <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Valor</TableHead>
+                <TableHead className="text-center w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredData.map((t) => (
                 <TableRow key={t.id} className="border-border/20 hover:bg-muted/20 transition-colors group">
-                  <TableCell className="font-mono text-xs">
+                  <TableCell className="text-center font-mono text-xs">
                     {new Date(t.date + "T00:00:00").toLocaleDateString('pt-BR')}
                   </TableCell>
-                  <TableCell className="text-sm font-medium">
+                  <TableCell className="text-center text-sm font-medium">
                     {t.description}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-center">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-tight uppercase ${
                       t.type === 'deposit' ? 'bg-[#bef264]/10 text-[#bef264] border border-[#bef264]/20' :
                       t.type === 'withdrawal' ? 'bg-[#f472b6]/10 text-[#f472b6] border border-[#f472b6]/20' :
@@ -790,12 +854,12 @@ export const AccountCashFlow = () => {
                       {t.type === 'operation_out' && <><ArrowDownCircle className="h-3 w-3" /> Saída</>}
                     </span>
                   </TableCell>
-                  <TableCell className={`text-right font-mono font-bold ${
+                  <TableCell className={`text-center font-mono font-bold ${
                     (t.type === 'deposit' || t.type === 'installment_in') ? 'text-net-green' : 'text-cost-red'
                   }`}>
                     {(t.type === 'deposit' || t.type === 'installment_in') ? '+' : '-'} {formatBRL(t.amount)}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-center">
                     {(t.type === 'deposit' || t.type === 'withdrawal') && (
                       <Button
                         variant="ghost"
