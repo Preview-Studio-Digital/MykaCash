@@ -49,6 +49,7 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  ReferenceLine,
 } from "recharts";
 
 type TransactionType = "deposit" | "withdrawal" | "operation_out" | "installment_in";
@@ -456,6 +457,20 @@ export const AccountCashFlow = () => {
     setIsDialogOpen(true);
   };
 
+  const monthBoundaries = useMemo(() => {
+    const boundaries: string[] = [];
+    if (chartData.length > 0) {
+      for (let i = 1; i < chartData.length; i++) {
+        const prevM = chartData[i - 1].rawDate.substring(0, 7);
+        const currM = chartData[i].rawDate.substring(0, 7);
+        if (prevM !== currM) {
+          boundaries.push(chartData[i].rawDate);
+        }
+      }
+    }
+    return boundaries;
+  }, [chartData]);
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Header & Main Actions */}
@@ -691,11 +706,11 @@ export const AccountCashFlow = () => {
 
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 10, right: 45, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="splitColor" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset={gradientOffset} stopColor="hsl(var(--net-green))" stopOpacity={0.4} />
-                  <stop offset={gradientOffset} stopColor="hsl(var(--cost-red))" stopOpacity={0.4} />
+                  <stop offset={gradientOffset} stopColor="hsl(var(--net-green))" stopOpacity={0.3} />
+                  <stop offset={gradientOffset} stopColor="hsl(var(--cost-red))" stopOpacity={0.3} />
                 </linearGradient>
                 <linearGradient id="strokeColor" x1="0" y1="0" x2="0" y2="1">
                   <stop offset={gradientOffset} stopColor="hsl(var(--net-green))" stopOpacity={1} />
@@ -716,12 +731,14 @@ export const AccountCashFlow = () => {
                 }}
               />
               <YAxis 
+                yAxisId="left"
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
                 tickFormatter={(v) => `R$ ${Math.abs(v) >= 1000 ? (v/1000).toFixed(0) + 'k' : v}`}
               />
               <YAxis 
+                yAxisId="right"
                 orientation="right"
                 axisLine={false}
                 tickLine={false}
@@ -749,7 +766,20 @@ export const AccountCashFlow = () => {
                 }}
                 formatter={(value: number) => [formatBRL(value), 'Saldo']}
               />
+              
+              {monthBoundaries.map((date) => (
+                <ReferenceLine
+                  key={date}
+                  x={date}
+                  stroke="hsl(var(--border))"
+                  strokeDasharray="4 4"
+                  strokeWidth={1}
+                  opacity={0.5}
+                />
+              ))}
+
               <Area 
+                yAxisId="left"
                 type="monotone" 
                 dataKey="balance" 
                 stroke="url(#strokeColor)" 
