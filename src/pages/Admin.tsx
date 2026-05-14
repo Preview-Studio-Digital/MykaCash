@@ -300,7 +300,6 @@ const Admin = () => {
               </div>
             </section>
           </TabsContent>
-        </Tabs>
       </main>
 
       {/* Edit dialog */}
