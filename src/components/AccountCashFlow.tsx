@@ -250,32 +250,64 @@ export const AccountCashFlow = () => {
   }, [unifiedData, period, fromDate, toDate]);
 
   const stats = useMemo(() => {
-    // Current balance is calculated from ALL time up to now (or selected period?)
-    // User asked for "saldo atual" and "valor em aberto".
-    // Usually, current balance is everything that happened.
-    
     const allTimeBalance = unifiedData.reduce((acc, t) => {
       if (t.type === "deposit" || t.type === "installment_in") return acc + t.amount;
       return acc - t.amount;
     }, 0);
 
-    const periodIn = filteredData.reduce((acc, t) => {
-      if (t.type === "deposit" || t.type === "installment_in") return acc + t.amount;
+    // Period specific filter range
+    let start = "1900-01-01";
+    let end = "2100-12-31";
+    if (period !== "total") {
+      if (period === "dia") {
+        start = fromDate;
+        end = fromDate;
+      } else if (period === "semana") {
+        const d = new Date(fromDate + "T00:00:00");
+        const day = d.getDay();
+        const diff = day === 0 ? -6 : 1 - day;
+        d.setDate(d.getDate() + diff);
+        start = localISO(d);
+        d.setDate(d.getDate() + 6);
+        end = localISO(d);
+      } else if (period === "mes") {
+        const d = new Date(fromDate + "T00:00:00");
+        d.setDate(1);
+        start = localISO(d);
+        const nextMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+        end = localISO(nextMonth);
+      } else if (period === "periodo") {
+        start = fromDate;
+        end = toDate;
+      }
+    }
+
+    const periodDeposits = filteredData.reduce((acc, t) => {
+      if (t.type === "deposit") return acc + t.amount;
       return acc;
     }, 0);
 
-    const periodOut = filteredData.reduce((acc, t) => {
-      if (t.type === "withdrawal" || t.type === "operation_out") return acc + t.amount;
-      return acc;
-    }, 0);
+    let periodProfit = 0;
+    invoices.forEach(inv => {
+      if (inv.operation_date >= start && inv.operation_date <= end) {
+        const installments = Array.isArray(inv.installments) ? inv.installments : [];
+        const calc = calculate({
+          invoiceValue: Number(inv.invoice_value) || 0,
+          operationDate: inv.operation_date,
+          monthlyRate: Number(inv.monthly_rate) || 0,
+          installments: installments as Installment[]
+        });
+        periodProfit += calc.operationCost;
+      }
+    });
 
     return {
       currentBalance: allTimeBalance,
-      periodIn,
-      periodOut,
+      periodDeposits,
+      periodProfit,
       openValue: openInstallmentsValue
     };
-  }, [unifiedData, filteredData, openInstallmentsValue]);
+  }, [unifiedData, filteredData, openInstallmentsValue, invoices, period, fromDate, toDate]);
 
   const chartData = useMemo(() => {
     if (unifiedData.length === 0) return [];
@@ -527,23 +559,20 @@ export const AccountCashFlow = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="relative group overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card to-card/50 p-6 shadow-sm transition-all hover:shadow-md">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Wallet className="h-12 w-12 text-primary" />
+            <ArrowUpCircle className="h-12 w-12 text-blue-500" />
           </div>
-          <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Saldo Atual</p>
-          <h3 className={`text-2xl font-bold mt-2 ${stats.currentBalance >= 0 ? 'text-primary' : 'text-cost-red'}`}>
-            {formatBRL(stats.currentBalance)}
+          <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Valor Depositado</p>
+          <h3 className="text-2xl font-bold mt-2 text-blue-500">
+            {formatBRL(stats.periodDeposits)}
           </h3>
-          <div className="mt-4 flex items-center gap-1.5">
-            <div className={`h-1.5 w-1.5 rounded-full ${stats.currentBalance >= 0 ? 'bg-primary' : 'bg-cost-red'}`} />
-            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Conta Corrente</span>
-          </div>
+          <p className="mt-4 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">No intervalo selecionado</p>
         </div>
 
         <div className="relative group overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card to-card/50 p-6 shadow-sm transition-all hover:shadow-md">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <History className="h-12 w-12 text-orange-500" />
           </div>
-          <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Em Aberto (Total)</p>
+          <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Saldo Aberto</p>
           <h3 className="text-2xl font-bold mt-2 text-orange-500">
             {formatBRL(stats.openValue)}
           </h3>
@@ -554,24 +583,27 @@ export const AccountCashFlow = () => {
 
         <div className="relative group overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card to-card/50 p-6 shadow-sm transition-all hover:shadow-md">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <ArrowUpCircle className="h-12 w-12 text-net-green" />
+            <TrendingUp className="h-12 w-12 text-net-green" />
           </div>
-          <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Entradas (Período)</p>
+          <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Ganho Total</p>
           <h3 className="text-2xl font-bold mt-2 text-net-green">
-            {formatBRL(stats.periodIn)}
+            {formatBRL(stats.periodProfit)}
           </h3>
-          <p className="mt-4 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">No intervalo selecionado</p>
+          <p className="mt-4 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Lucro no período</p>
         </div>
 
         <div className="relative group overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card to-card/50 p-6 shadow-sm transition-all hover:shadow-md">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <ArrowDownCircle className="h-12 w-12 text-cost-red" />
+            <Wallet className="h-12 w-12 text-primary" />
           </div>
-          <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Saídas (Período)</p>
-          <h3 className="text-2xl font-bold mt-2 text-cost-red">
-            {formatBRL(stats.periodOut)}
+          <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Saldo em Conta</p>
+          <h3 className={`text-2xl font-bold mt-2 ${stats.currentBalance >= 0 ? 'text-primary' : 'text-cost-red'}`}>
+            {formatBRL(stats.currentBalance)}
           </h3>
-          <p className="mt-4 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">No intervalo selecionado</p>
+          <div className="mt-4 flex items-center gap-1.5">
+            <div className={`h-1.5 w-1.5 rounded-full ${stats.currentBalance >= 0 ? 'bg-primary' : 'bg-cost-red'}`} />
+            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Histórico Total</span>
+          </div>
         </div>
       </div>
 
