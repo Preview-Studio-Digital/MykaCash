@@ -732,6 +732,7 @@ export const AccountCashFlow = () => {
               />
               <YAxis 
                 yAxisId="left"
+                width={50}
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
@@ -740,6 +741,7 @@ export const AccountCashFlow = () => {
               <YAxis 
                 yAxisId="right"
                 orientation="right"
+                width={50}
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
@@ -788,6 +790,14 @@ export const AccountCashFlow = () => {
                 fillOpacity={1} 
                 fill="url(#splitColor)" 
                 animationDuration={1500}
+              />
+              <Area 
+                yAxisId="right"
+                type="monotone" 
+                dataKey="balance" 
+                stroke="transparent" 
+                fill="transparent" 
+                isAnimationActive={false}
               />
             </AreaChart>
           </ResponsiveContainer>
