@@ -771,6 +771,7 @@ export const AccountCashFlow = () => {
                 <ReferenceLine
                   key={date}
                   x={date}
+                  yAxisId="left"
                   stroke="hsl(var(--border))"
                   strokeDasharray="4 4"
                   strokeWidth={1}
