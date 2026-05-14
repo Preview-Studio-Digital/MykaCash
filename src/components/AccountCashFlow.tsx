@@ -385,15 +385,27 @@ export const AccountCashFlow = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="amount">Valor (R$)</Label>
-                <Input 
-                  id="amount" 
-                  type="number" 
-                  step="0.01" 
-                  value={formAmount} 
-                  onChange={e => setFormAmount(e.target.value)} 
-                  placeholder="0,00"
-                  required
-                />
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">
+                    R$
+                  </span>
+                  <Input 
+                    id="amount" 
+                    inputMode="numeric"
+                    value={(() => {
+                      const n = parseFloat(formAmount || "0");
+                      return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    })()} 
+                    onChange={e => {
+                      const digits = e.target.value.replace(/\D/g, "");
+                      const n = digits ? parseInt(digits, 10) / 100 : 0;
+                      setFormAmount(n.toString());
+                    }} 
+                    placeholder="0,00"
+                    className="pl-10 font-mono"
+                    required
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="date">Data</Label>
@@ -415,7 +427,15 @@ export const AccountCashFlow = () => {
                 />
               </div>
               <DialogFooter className="pt-4">
-                <Button type="submit" disabled={isSubmitting} className="w-full">
+                <Button 
+                  type="submit" 
+                  disabled={isSubmitting} 
+                  className={`w-full font-display tracking-wide shadow-lg transition-all ${
+                    formType === 'deposit' 
+                      ? 'bg-net-green hover:bg-net-green/90 shadow-net-green/20' 
+                      : 'bg-cost-red hover:bg-cost-red/90 shadow-cost-red/20'
+                  }`}
+                >
                   {isSubmitting ? "Registrando..." : "Confirmar Registro"}
                 </Button>
               </DialogFooter>
