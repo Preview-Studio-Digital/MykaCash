@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { calculate, formatBRL, type Installment } from "@/lib/calc";
 import { toast } from "sonner";
