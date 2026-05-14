@@ -638,7 +638,7 @@ export const AccountCashFlow = () => {
                   <stop offset={gradientOffset} stopColor="hsl(var(--cost-red))" stopOpacity={1} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border)/0.6)" strokeOpacity={0.8} />
+              <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="hsl(var(--border)/0.8)" strokeOpacity={1} />
               <XAxis 
                 dataKey="date" 
                 axisLine={false}
@@ -653,6 +653,7 @@ export const AccountCashFlow = () => {
                 tickFormatter={(v) => `R$ ${Math.abs(v) >= 1000 ? (v/1000).toFixed(0) + 'k' : v}`}
               />
               <Tooltip 
+                cursor={false}
                 contentStyle={{ 
                   backgroundColor: 'hsl(var(--background))', 
                   borderColor: 'hsl(var(--border)/0.5)',
