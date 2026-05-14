@@ -435,10 +435,10 @@ export const AccountCashFlow = () => {
                   <Button 
                     type="button"
                     variant={formType === 'deposit' ? 'default' : 'outline'}
-                    className={`flex-1 gap-2 transition-all ${
+                    className={`flex-1 gap-2 transition-all hover:text-white ${
                       formType === 'deposit' 
                         ? 'bg-net-green hover:bg-net-green/90 text-white' 
-                        : 'hover:text-net-green hover:border-net-green'
+                        : 'hover:bg-net-green/80 hover:text-white hover:border-net-green'
                     }`}
                     onClick={() => setFormType('deposit')}
                   >
@@ -447,10 +447,10 @@ export const AccountCashFlow = () => {
                   <Button 
                     type="button"
                     variant={formType === 'withdrawal' ? 'default' : 'outline'}
-                    className={`flex-1 gap-2 transition-all ${
+                    className={`flex-1 gap-2 transition-all hover:text-white ${
                       formType === 'withdrawal' 
                         ? 'bg-cost-red hover:bg-cost-red/90 text-white' 
-                        : 'hover:text-cost-red hover:border-cost-red'
+                        : 'hover:bg-cost-red/80 hover:text-white hover:border-cost-red'
                     }`}
                     onClick={() => setFormType('withdrawal')}
                   >
@@ -458,42 +458,44 @@ export const AccountCashFlow = () => {
                   </Button>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="amount">Valor (R$)</Label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">
-                    R$
-                  </span>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Valor (R$)</Label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">
+                      R$
+                    </span>
+                    <Input 
+                      id="amount" 
+                      inputMode="numeric"
+                      value={(() => {
+                        const n = parseFloat(formAmount || "0");
+                        return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                      })()} 
+                      onChange={e => {
+                        const digits = e.target.value.replace(/\D/g, "");
+                        const n = digits ? parseInt(digits, 10) / 100 : 0;
+                        setFormAmount(n.toString());
+                      }} 
+                      placeholder="0,00"
+                      className="pl-10 font-mono"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="date">Data</Label>
                   <Input 
-                    id="amount" 
-                    inputMode="numeric"
-                    value={(() => {
-                      const n = parseFloat(formAmount || "0");
-                      return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                    })()} 
-                    onChange={e => {
-                      const digits = e.target.value.replace(/\D/g, "");
-                      const n = digits ? parseInt(digits, 10) / 100 : 0;
-                      setFormAmount(n.toString());
-                    }} 
-                    placeholder="0,00"
-                    className="pl-10 font-mono"
+                    id="date" 
+                    type="date" 
+                    value={formDate} 
+                    onChange={e => setFormDate(e.target.value)} 
                     required
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="date">Data</Label>
-                <Input 
-                  id="date" 
-                  type="date" 
-                  value={formDate} 
-                  onChange={e => setFormDate(e.target.value)} 
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="desc">Descrição (Opcional)</Label>
+                <Label htmlFor="desc">Descrição</Label>
                 <Input 
                   id="desc" 
                   value={formDescription} 
