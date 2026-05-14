@@ -706,7 +706,7 @@ export const AccountCashFlow = () => {
 
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 10, right: 45, left: 0, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="splitColor" x1="0" y1="0" x2="0" y2="1">
                   <stop offset={gradientOffset} stopColor="hsl(var(--net-green))" stopOpacity={0.3} />
@@ -826,7 +826,7 @@ export const AccountCashFlow = () => {
 
           return (
             <>
-              <div className="mt-4 flex bg-muted/20 rounded-sm" style={{ marginLeft: 50, marginRight: 10 }}>
+              <div className="mt-4 flex bg-muted/20 rounded-sm" style={{ marginLeft: 50, marginRight: 50 }}>
                 {monthSegs.map((s, i) => (
                   <div
                     key={i}
@@ -837,7 +837,7 @@ export const AccountCashFlow = () => {
                   </div>
                 ))}
               </div>
-              <div className="mt-1 flex" style={{ marginLeft: 50, marginRight: 10 }}>
+              <div className="mt-1 flex" style={{ marginLeft: 50, marginRight: 50 }}>
                 {yearSegs.map((s, i) => (
                   <div
                     key={i}
