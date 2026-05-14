@@ -276,42 +276,78 @@ export const AccountCashFlow = () => {
   }, [unifiedData, filteredData, openInstallmentsValue]);
 
   const chartData = useMemo(() => {
-    // Calculate cumulative balance over time for the filtered range
-    if (filteredData.length === 0) return [];
+    if (unifiedData.length === 0) return [];
 
-    const sorted = [...filteredData].sort((a, b) => a.date.localeCompare(b.date));
+    const sortedAll = [...unifiedData].sort((a, b) => a.date.localeCompare(b.date));
+    const firstDate = sortedAll[0].date;
     
-    // We need the balance BEFORE the first date in the filtered range
-    const firstDate = sorted[0].date;
-    const preBalance = unifiedData
-      .filter(t => t.date < firstDate)
-      .reduce((acc, t) => {
-        if (t.type === "deposit" || t.type === "installment_in") return acc + t.amount;
-        return acc - t.amount;
-      }, 0);
+    // Create baseline point (0 balance) one day before the first record
+    const d = new Date(firstDate + "T00:00:00");
+    d.setDate(d.getDate() - 1);
+    const baselineDate = localISO(d);
 
-    const dailyData: Record<string, number> = {};
-    let current = preBalance;
+    let current = 0;
+    const dailyBalances: Record<string, number> = {
+      [baselineDate]: 0
+    };
 
-    // Fill all days in range if period is not total
-    const result: any[] = [];
-    
-    // Simplification: just plot the points where transactions happened
-    sorted.forEach(t => {
+    sortedAll.forEach(t => {
       const delta = (t.type === "deposit" || t.type === "installment_in") ? t.amount : -t.amount;
       current += delta;
-      dailyData[t.date] = current;
+      dailyBalances[t.date] = current;
     });
 
-    Object.keys(dailyData).sort().forEach(date => {
-      result.push({
-        date: new Date(date + "T00:00:00").toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-        balance: dailyData[date]
+    // Filter by selected range
+    let start = fromDate;
+    let end = toDate;
+    if (period === "total") {
+      start = baselineDate;
+      end = todayISO();
+    } else if (period === "dia") {
+      start = fromDate;
+      end = fromDate;
+    } else if (period === "semana") {
+      const d = new Date(fromDate + "T00:00:00");
+      const day = d.getDay();
+      const diff = day === 0 ? -6 : 1 - day;
+      d.setDate(d.getDate() + diff);
+      start = localISO(d);
+      d.setDate(d.getDate() + 6);
+      end = localISO(d);
+    } else if (period === "mes") {
+      const d = new Date(fromDate + "T00:00:00");
+      d.setDate(1);
+      start = localISO(d);
+      const nextMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+      end = localISO(nextMonth);
+    }
+
+    const result: any[] = [];
+    Object.keys(dailyBalances)
+      .sort()
+      .forEach(date => {
+        if (date >= start && date <= end) {
+          result.push({
+            date: new Date(date + "T00:00:00").toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+            balance: dailyBalances[date],
+            rawDate: date
+          });
+        }
       });
-    });
 
     return result;
-  }, [filteredData, unifiedData]);
+  }, [unifiedData, period, fromDate, toDate]);
+
+  // Gradient offset for positive/negative colors
+  const gradientOffset = useMemo(() => {
+    const dataMax = Math.max(...chartData.map((i) => i.balance));
+    const dataMin = Math.min(...chartData.map((i) => i.balance));
+
+    if (dataMax <= 0) return 0;
+    if (dataMin >= 0) return 1;
+
+    return dataMax / (dataMax - dataMin);
+  }, [chartData]);
 
   const handleAddTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -368,7 +404,11 @@ export const AccountCashFlow = () => {
                   <Button 
                     type="button"
                     variant={formType === 'deposit' ? 'default' : 'outline'}
-                    className="flex-1 gap-2"
+                    className={`flex-1 gap-2 transition-all ${
+                      formType === 'deposit' 
+                        ? 'bg-net-green hover:bg-net-green/90 text-white' 
+                        : 'hover:text-net-green hover:border-net-green'
+                    }`}
                     onClick={() => setFormType('deposit')}
                   >
                     <ArrowUpCircle className="h-4 w-4" /> Depósito
@@ -376,7 +416,11 @@ export const AccountCashFlow = () => {
                   <Button 
                     type="button"
                     variant={formType === 'withdrawal' ? 'default' : 'outline'}
-                    className="flex-1 gap-2"
+                    className={`flex-1 gap-2 transition-all ${
+                      formType === 'withdrawal' 
+                        ? 'bg-cost-red hover:bg-cost-red/90 text-white' 
+                        : 'hover:text-cost-red hover:border-cost-red'
+                    }`}
                     onClick={() => setFormType('withdrawal')}
                   >
                     <ArrowDownCircle className="h-4 w-4" /> Saque
@@ -436,7 +480,7 @@ export const AccountCashFlow = () => {
                       : 'bg-cost-red hover:bg-cost-red/90 shadow-cost-red/20'
                   }`}
                 >
-                  {isSubmitting ? "Registrando..." : "Confirmar Registro"}
+                  {isSubmitting ? "Registrando..." : (formType === 'deposit' ? "Confirmar Depósito" : "Confirmar Saque")}
                 </Button>
               </DialogFooter>
             </form>
@@ -550,9 +594,13 @@ export const AccountCashFlow = () => {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>
-                <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                <linearGradient id="splitColor" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset={gradientOffset} stopColor="hsl(var(--net-green))" stopOpacity={0.4} />
+                  <stop offset={gradientOffset} stopColor="hsl(var(--cost-red))" stopOpacity={0.4} />
+                </linearGradient>
+                <linearGradient id="strokeColor" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset={gradientOffset} stopColor="hsl(var(--net-green))" stopOpacity={1} />
+                  <stop offset={gradientOffset} stopColor="hsl(var(--cost-red))" stopOpacity={1} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border)/0.3)" />
@@ -567,7 +615,7 @@ export const AccountCashFlow = () => {
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                tickFormatter={(v) => `R$ ${v >= 1000 ? (v/1000).toFixed(0) + 'k' : v}`}
+                tickFormatter={(v) => `R$ ${Math.abs(v) >= 1000 ? (v/1000).toFixed(0) + 'k' : v}`}
               />
               <Tooltip 
                 contentStyle={{ 
@@ -582,10 +630,10 @@ export const AccountCashFlow = () => {
               <Area 
                 type="monotone" 
                 dataKey="balance" 
-                stroke="hsl(var(--primary))" 
+                stroke="url(#strokeColor)" 
                 strokeWidth={3}
                 fillOpacity={1} 
-                fill="url(#colorBalance)" 
+                fill="url(#splitColor)" 
                 animationDuration={1500}
               />
             </AreaChart>
@@ -630,18 +678,20 @@ export const AccountCashFlow = () => {
                   </TableCell>
                   <TableCell>
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-tight uppercase ${
-                      (t.type === 'deposit' || t.type === 'installment_in') 
-                        ? 'bg-net-green/10 text-net-green border border-net-green/20' 
-                        : 'bg-cost-red/10 text-cost-red border border-cost-red/20'
+                      t.type === 'deposit' ? 'bg-[#bef264]/10 text-[#bef264] border border-[#bef264]/20' :
+                      t.type === 'withdrawal' ? 'bg-[#f472b6]/10 text-[#f472b6] border border-[#f472b6]/20' :
+                      t.type === 'installment_in' ? 'bg-net-green/10 text-net-green border border-net-green/20' :
+                      'bg-cost-red/10 text-cost-red border border-cost-red/20'
                     }`}>
-                      {(t.type === 'deposit' || t.type === 'installment_in') ? (
-                        <><ArrowUpCircle className="h-3 w-3" /> Entrada</>
-                      ) : (
-                        <><ArrowDownCircle className="h-3 w-3" /> Saída</>
-                      )}
+                      {t.type === 'deposit' && <><ArrowUpCircle className="h-3 w-3" /> Depósito</>}
+                      {t.type === 'withdrawal' && <><ArrowDownCircle className="h-3 w-3" /> Saque</>}
+                      {t.type === 'installment_in' && <><ArrowUpCircle className="h-3 w-3" /> Entrada</>}
+                      {t.type === 'operation_out' && <><ArrowDownCircle className="h-3 w-3" /> Saída</>}
                     </span>
                   </TableCell>
-                  <TableCell className={`text-right font-mono font-bold ${(t.type === 'deposit' || t.type === 'installment_in') ? 'text-net-green' : 'text-cost-red'}`}>
+                  <TableCell className={`text-right font-mono font-bold ${
+                    (t.type === 'deposit' || t.type === 'installment_in') ? 'text-net-green' : 'text-cost-red'
+                  }`}>
                     {(t.type === 'deposit' || t.type === 'installment_in') ? '+' : '-'} {formatBRL(t.amount)}
                   </TableCell>
                 </TableRow>
