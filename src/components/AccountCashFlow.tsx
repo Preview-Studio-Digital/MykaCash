@@ -94,25 +94,39 @@ export const AccountCashFlow = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [manualRes, invoicesRes] = await Promise.all([
-        supabase.from("account_transactions").select("*").order("date", { ascending: false }),
-        supabase.from("invoices").select("*, clients(name)").order("operation_date", { ascending: false })
-      ]);
+      // We fetch separately to handle the case where account_transactions doesn't exist yet
+      const { data: invoicesData, error: invoicesError } = await supabase
+        .from("invoices")
+        .select("*, clients(name)")
+        .order("operation_date", { ascending: false });
 
-      if (manualRes.error) {
-        console.error("Error loading manual transactions:", manualRes.error);
-        // Don't throw, just log and continue with empty array if needed
-      }
-      if (invoicesRes.error) {
-        console.error("Error loading invoices:", invoicesRes.error);
+      if (invoicesError) {
+        console.error("Error loading invoices:", invoicesError);
         toast.error("Erro ao carregar operações registradas");
+      } else {
+        setInvoices(invoicesData || []);
       }
 
-      setManualTransactions(manualRes.data || []);
-      setInvoices(invoicesRes.data || []);
+      const { data: manualData, error: manualError } = await supabase
+        .from("account_transactions")
+        .select("*")
+        .order("date", { ascending: false });
+
+      if (manualError) {
+        // If table doesn't exist, just log it and keep an empty array
+        if (manualError.code === 'PGRST116' || manualError.message?.includes('not found')) {
+          console.warn("Table 'account_transactions' not found. It might need to be created in Supabase.");
+          setManualTransactions([]);
+        } else {
+          console.error("Error loading manual transactions:", manualError);
+        }
+      } else {
+        setManualTransactions(manualData || []);
+      }
+
     } catch (error: any) {
       console.error("Critical error loading data:", error);
-      toast.error("Erro fatal ao carregar dados financeiros");
+      toast.error("Erro ao carregar dados financeiros");
     } finally {
       setLoading(false);
     }
