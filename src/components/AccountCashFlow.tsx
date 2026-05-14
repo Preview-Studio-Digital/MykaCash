@@ -196,30 +196,6 @@ export const AccountCashFlow = () => {
     return data.sort((a, b) => b.date.localeCompare(a.date));
   }, [manualTransactions, invoices]);
 
-  // All installments not yet settled (to calculate "valor em aberto")
-  const openInstallmentsValue = useMemo(() => {
-    let total = 0;
-    invoices.forEach(inv => {
-      const installments = Array.isArray(inv.installments) ? inv.installments : [];
-      
-      const calc = calculate({
-        invoiceValue: Number(inv.invoice_value) || 0,
-        operationDate: inv.operation_date,
-        monthlyRate: Number(inv.monthly_rate) || 0,
-        installments: installments as Installment[]
-      });
-      
-      const settledEntries = Array.isArray(inv.settled_installments) ? inv.settled_installments : [];
-      const settledIds = new Set(settledEntries.map((e: any) => typeof e === 'string' ? e : e.id));
-
-      calc.installmentCalcs.forEach(inst => {
-        if (!settledIds.has(inst.id)) {
-          total += inst.value;
-        }
-      });
-    });
-    return total;
-  }, [invoices]);
 
   const filteredData = useMemo(() => {
     if (period === "total") return unifiedData;
@@ -250,10 +226,6 @@ export const AccountCashFlow = () => {
   }, [unifiedData, period, fromDate, toDate]);
 
   const stats = useMemo(() => {
-    const allTimeBalance = unifiedData.reduce((acc, t) => {
-      if (t.type === "deposit" || t.type === "installment_in") return acc + t.amount;
-      return acc - t.amount;
-    }, 0);
 
     // Period specific filter range
     let start = "1900-01-01";
@@ -287,27 +259,52 @@ export const AccountCashFlow = () => {
       return acc;
     }, 0);
 
+    const periodWithdrawals = filteredData.reduce((acc, t) => {
+      if (t.type === "withdrawal") return acc + t.amount;
+      return acc;
+    }, 0);
+
+    const periodBalance = filteredData.reduce((acc, t) => {
+      if (t.type === "deposit" || t.type === "installment_in") return acc + t.amount;
+      return acc - t.amount;
+    }, 0);
+
     let periodProfit = 0;
+    let periodOpen = 0;
+
     invoices.forEach(inv => {
+      const installments = Array.isArray(inv.installments) ? inv.installments : [];
+      const calc = calculate({
+        invoiceValue: Number(inv.invoice_value) || 0,
+        operationDate: inv.operation_date,
+        monthlyRate: Number(inv.monthly_rate) || 0,
+        installments: installments as Installment[]
+      });
+
+      // Profit for operations started in period
       if (inv.operation_date >= start && inv.operation_date <= end) {
-        const installments = Array.isArray(inv.installments) ? inv.installments : [];
-        const calc = calculate({
-          invoiceValue: Number(inv.invoice_value) || 0,
-          operationDate: inv.operation_date,
-          monthlyRate: Number(inv.monthly_rate) || 0,
-          installments: installments as Installment[]
-        });
         periodProfit += calc.operationCost;
       }
+
+      // Open installments due in period
+      const settledEntries = Array.isArray(inv.settled_installments) ? inv.settled_installments : [];
+      const settledIds = new Set(settledEntries.map((e: any) => typeof e === 'string' ? e : e.id));
+
+      calc.installmentCalcs.forEach(inst => {
+        if (inst.dueDate >= start && inst.dueDate <= end && !settledIds.has(inst.id)) {
+          periodOpen += inst.value;
+        }
+      });
     });
 
     return {
-      currentBalance: allTimeBalance,
+      periodBalance,
       periodDeposits,
+      periodWithdrawals,
       periodProfit,
-      openValue: openInstallmentsValue
+      periodOpen
     };
-  }, [unifiedData, filteredData, openInstallmentsValue, invoices, period, fromDate, toDate]);
+  }, [filteredData, invoices, period, fromDate, toDate]);
 
   const chartData = useMemo(() => {
     if (unifiedData.length === 0) return [];
@@ -331,12 +328,27 @@ export const AccountCashFlow = () => {
       dailyBalances[t.date] = current;
     });
 
-    // Filter by selected range
+    // Ensure today is included in the balance map
+    const today = todayISO();
+    const sortedDates = Object.keys(dailyBalances).sort();
+    if (sortedDates.length > 0) {
+      const lastDate = sortedDates[sortedDates.length - 1];
+      // If the last transaction was before today, carry the balance to today
+      if (lastDate < today) {
+        dailyBalances[today] = dailyBalances[lastDate];
+      }
+    } else {
+      // If no transactions at all, today is 0
+      dailyBalances[today] = 0;
+    }
+
+    // Filter by selected range, capped by today
     let start = fromDate;
-    let end = toDate;
+    let end = today; // Default end to today as per request "até o dia de hoje"
+
     if (period === "total") {
       start = baselineDate;
-      end = todayISO();
+      end = today;
     } else if (period === "dia") {
       start = fromDate;
       end = fromDate;
@@ -346,14 +358,21 @@ export const AccountCashFlow = () => {
       const diff = day === 0 ? -6 : 1 - day;
       d.setDate(d.getDate() + diff);
       start = localISO(d);
-      d.setDate(d.getDate() + 6);
-      end = localISO(d);
+      
+      const lastDay = new Date(d);
+      lastDay.setDate(lastDay.getDate() + 6);
+      const weekEnd = localISO(lastDay);
+      end = weekEnd < today ? weekEnd : today; // Cap at today
     } else if (period === "mes") {
       const d = new Date(fromDate + "T00:00:00");
       d.setDate(1);
       start = localISO(d);
+      
       const nextMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-      end = localISO(nextMonth);
+      const monthEnd = localISO(nextMonth);
+      end = monthEnd < today ? monthEnd : today; // Cap at today
+    } else if (period === "periodo") {
+      end = toDate < today ? toDate : today; // Cap at today
     }
 
     const result: any[] = [];
@@ -556,7 +575,7 @@ export const AccountCashFlow = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <div className="relative group overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card to-card/50 p-6 shadow-sm transition-all hover:shadow-md">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <ArrowUpCircle className="h-12 w-12 text-blue-500" />
@@ -565,7 +584,16 @@ export const AccountCashFlow = () => {
           <h3 className="text-2xl font-bold mt-2 text-blue-500">
             {formatBRL(stats.periodDeposits)}
           </h3>
-          <p className="mt-4 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">No intervalo selecionado</p>
+        </div>
+
+        <div className="relative group overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card to-card/50 p-6 shadow-sm transition-all hover:shadow-md">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <ArrowDownCircle className="h-12 w-12 text-cost-red" />
+          </div>
+          <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Valor Sacado</p>
+          <h3 className="text-2xl font-bold mt-2 text-cost-red">
+            {formatBRL(stats.periodWithdrawals)}
+          </h3>
         </div>
 
         <div className="relative group overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card to-card/50 p-6 shadow-sm transition-all hover:shadow-md">
@@ -574,11 +602,8 @@ export const AccountCashFlow = () => {
           </div>
           <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Saldo Aberto</p>
           <h3 className="text-2xl font-bold mt-2 text-orange-500">
-            {formatBRL(stats.openValue)}
+            {formatBRL(stats.periodOpen)}
           </h3>
-          <p className="mt-4 text-[10px] text-muted-foreground font-medium uppercase tracking-wider flex items-center gap-1">
-             Considerando período total
-          </p>
         </div>
 
         <div className="relative group overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card to-card/50 p-6 shadow-sm transition-all hover:shadow-md">
@@ -589,21 +614,16 @@ export const AccountCashFlow = () => {
           <h3 className="text-2xl font-bold mt-2 text-net-green">
             {formatBRL(stats.periodProfit)}
           </h3>
-          <p className="mt-4 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Lucro no período</p>
         </div>
 
         <div className="relative group overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card to-card/50 p-6 shadow-sm transition-all hover:shadow-md">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <Wallet className="h-12 w-12 text-primary" />
           </div>
-          <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Saldo em Conta</p>
-          <h3 className={`text-2xl font-bold mt-2 ${stats.currentBalance >= 0 ? 'text-primary' : 'text-cost-red'}`}>
-            {formatBRL(stats.currentBalance)}
+          <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Saldo do Período</p>
+          <h3 className={`text-2xl font-bold mt-2 ${stats.periodBalance >= 0 ? 'text-primary' : 'text-cost-red'}`}>
+            {formatBRL(stats.periodBalance)}
           </h3>
-          <div className="mt-4 flex items-center gap-1.5">
-            <div className={`h-1.5 w-1.5 rounded-full ${stats.currentBalance >= 0 ? 'bg-primary' : 'bg-cost-red'}`} />
-            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Histórico Total</span>
-          </div>
         </div>
       </div>
 
