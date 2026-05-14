@@ -12,7 +12,8 @@ import {
   Filter,
   Calendar as CalendarIcon,
   Search,
-  Download
+  Download,
+  Pencil
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,6 +90,7 @@ export const AccountCashFlow = () => {
   const [formAmount, setFormAmount] = useState("");
   const [formDate, setFormDate] = useState(todayISO());
   const [formDescription, setFormDescription] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadData = async () => {
@@ -349,30 +351,50 @@ export const AccountCashFlow = () => {
     return dataMax / (dataMax - dataMin);
   }, [chartData]);
 
-  const handleAddTransaction = async (e: React.FormEvent) => {
+  const handleSaveTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from("account_transactions").insert({
+      const payload = {
         type: formType,
         amount: parseFloat(formAmount),
         date: formDate,
         description: formDescription,
         created_by: (await supabase.auth.getUser()).data.user?.id
-      });
+      };
+
+      let error;
+      if (editingId) {
+        const res = await supabase.from("account_transactions").update(payload).eq("id", editingId);
+        error = res.error;
+      } else {
+        const res = await supabase.from("account_transactions").insert(payload);
+        error = res.error;
+      }
 
       if (error) throw error;
 
-      toast.success("Movimentação registrada com sucesso!");
+      toast.success(editingId ? "Movimentação atualizada!" : "Movimentação registrada!");
       setIsDialogOpen(false);
+      setEditingId(null);
       setFormAmount("");
       setFormDescription("");
       loadData();
     } catch (error: any) {
-      toast.error("Erro ao registrar movimentação: " + error.message);
+      toast.error("Erro ao salvar movimentação: " + error.message);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const openEdit = (t: UnifiedTransaction) => {
+    if (t.type !== 'deposit' && t.type !== 'withdrawal') return;
+    setEditingId(t.id);
+    setFormType(t.type as any);
+    setFormAmount(t.amount.toString());
+    setFormDate(t.date);
+    setFormDescription(t.description);
+    setIsDialogOpen(true);
   };
 
   return (
@@ -387,7 +409,14 @@ export const AccountCashFlow = () => {
           <p className="text-muted-foreground text-sm">Gerencie entradas, saídas e acompanhe o saldo operacional.</p>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) {
+            setEditingId(null);
+            setFormAmount("");
+            setFormDescription("");
+          }
+        }}>
           <DialogTrigger asChild>
             <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 gap-2">
               <Plus className="h-4 w-4" /> Nova Movimentação
@@ -395,9 +424,11 @@ export const AccountCashFlow = () => {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px] bg-background/95 backdrop-blur-xl border-border/50">
             <DialogHeader>
-              <DialogTitle className="font-display">Registrar Movimentação</DialogTitle>
+              <DialogTitle className="font-display">
+                {editingId ? "Editar Movimentação" : "Registrar Movimentação"}
+              </DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleAddTransaction} className="space-y-4 py-4">
+            <form onSubmit={handleSaveTransaction} className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label>Tipo</Label>
                 <div className="flex gap-2">
@@ -480,7 +511,9 @@ export const AccountCashFlow = () => {
                       : 'bg-cost-red hover:bg-cost-red/90 shadow-cost-red/20'
                   }`}
                 >
-                  {isSubmitting ? "Registrando..." : (formType === 'deposit' ? "Confirmar Depósito" : "Confirmar Saque")}
+                  {isSubmitting ? "Salvando..." : (
+                    editingId ? "Salvar Alterações" : (formType === 'deposit' ? "Confirmar Depósito" : "Confirmar Saque")
+                  )}
                 </Button>
               </DialogFooter>
             </form>
@@ -665,6 +698,7 @@ export const AccountCashFlow = () => {
                 <TableHead className="text-[10px] tracking-widest uppercase font-mono">Descrição</TableHead>
                 <TableHead className="text-[10px] tracking-widest uppercase font-mono">Tipo</TableHead>
                 <TableHead className="text-right text-[10px] tracking-widest uppercase font-mono">Valor</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -693,6 +727,23 @@ export const AccountCashFlow = () => {
                     (t.type === 'deposit' || t.type === 'installment_in') ? 'text-net-green' : 'text-cost-red'
                   }`}>
                     {(t.type === 'deposit' || t.type === 'installment_in') ? '+' : '-'} {formatBRL(t.amount)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {(t.type === 'deposit' || t.type === 'withdrawal') && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-8 w-8 transition-colors ${
+                          t.type === 'deposit' 
+                            ? 'text-blue-400 hover:text-blue-300' 
+                            : 'text-muted-foreground hover:text-primary'
+                        }`}
+                        onClick={() => openEdit(t)}
+                        title="Editar lançamento manual"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
