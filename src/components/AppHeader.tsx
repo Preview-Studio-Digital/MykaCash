@@ -66,11 +66,11 @@ export const AppHeader = () => {
       </div>
 
       {/* Hero title block */}
-      <div className="relative z-10 flex flex-col items-center justify-center px-6 pt-4 pb-6 text-center">
+      <div className="relative z-10 flex flex-col items-center justify-center px-6 pt-2 pb-4 text-center">
         <h1 className="font-title title-gradient title-shimmer font-extrabold leading-[0.9] tracking-tighter animate-fade-up text-3xl lg:text-5xl">
           MYKACA$H
         </h1>
-        <p className="mt-2 font-mono text-xs tracking-[0.4em] text-muted-foreground animate-fade-up">VERSÃO 2.3</p>
+        <p className="mt-1 font-mono text-[10px] tracking-[0.4em] text-muted-foreground animate-fade-up uppercase">VERSÃO 2.3</p>
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />

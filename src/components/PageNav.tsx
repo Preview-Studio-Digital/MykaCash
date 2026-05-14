@@ -14,7 +14,7 @@ export const PageNav = () => {
     ...(isAdmin ? [{ to: "/financeiro", label: "FINANCEIRO", icon: Wallet }] : []),
   ];
   return (
-    <nav className="mb-8 flex items-center justify-center gap-2 animate-fade-up">
+    <nav className="mb-6 flex items-center justify-center gap-2 animate-fade-up">
       <div className="inline-flex rounded-full border border-border/60 bg-background/40 p-1 backdrop-blur-sm">
         {items.map((it) => {
           const active = pathname === it.to;

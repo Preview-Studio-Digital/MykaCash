@@ -14,7 +14,7 @@ const Financeiro = () => {
   return (
     <div className="min-h-screen">
       <AppHeader />
-      <main className="mx-auto w-full max-w-[1600px] px-4 md:px-8 lg:px-12 py-10 md:py-14">
+      <main className="mx-auto w-full max-w-[1600px] px-4 md:px-8 lg:px-12 py-4 md:py-6">
         <PageNav />
         <AccountCashFlow />
       </main>
