@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { calculate, formatBRL, type Installment } from "@/lib/calc";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { 
   Plus, 
   ArrowUpCircle, 
@@ -595,7 +596,7 @@ export const AccountCashFlow = () => {
                   <stop offset={gradientOffset} stopColor="hsl(var(--cost-red))" stopOpacity={1} />
                 </linearGradient>
               </defs>
-              <CartesianGrid vertical={true} stroke="hsl(var(--border))" strokeOpacity={0.8} strokeWidth={1} />
+              <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--muted-foreground))" opacity={0.4} vertical={true} horizontal={true} />
               <XAxis 
                 dataKey="rawDate" 
                 axisLine={false}
@@ -872,7 +873,16 @@ export const AccountCashFlow = () => {
             </TableHeader>
             <TableBody>
               {filteredData.map((t) => (
-                <TableRow key={t.id} className="border-border/20 hover:bg-muted/20 transition-colors group">
+                <TableRow 
+                  key={t.id} 
+                  className={cn(
+                    "border-border/20 transition-colors group",
+                    t.type === 'deposit' ? 'bg-[#bef264]/5 hover:bg-[#bef264]/10' :
+                    t.type === 'withdrawal' ? 'bg-[#f472b6]/5 hover:bg-[#f472b6]/10' :
+                    t.type === 'installment_in' ? 'bg-net-green/5 hover:bg-net-green/10' :
+                    'bg-cost-red/5 hover:bg-cost-red/10'
+                  )}
+                >
                   <TableCell className="text-center font-mono text-xs">
                     {new Date(t.date + "T00:00:00").toLocaleDateString('pt-BR')}
                   </TableCell>
