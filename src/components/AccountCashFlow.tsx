@@ -448,6 +448,42 @@ export const AccountCashFlow = () => {
     }
   };
 
+  const handleExport = () => {
+    if (filteredData.length === 0) {
+      toast.error("Não há dados para exportar no período selecionado.");
+      return;
+    }
+
+    const headers = ["Data", "Descrição", "Tipo", "Valor (R$)"];
+    const rows = filteredData.map(t => [
+      new Date(t.date + "T00:00:00").toLocaleDateString('pt-BR'),
+      t.description.replace(/;/g, ","), // Avoid breaking CSV
+      t.type === 'deposit' ? 'Depósito' : 
+      t.type === 'withdrawal' ? 'Saque' : 
+      t.type === 'installment_in' ? 'Entrada' : 'Saída',
+      t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    ]);
+
+    const csvContent = [
+      headers.join(";"),
+      ...rows.map(row => row.join(";"))
+    ].join("\n");
+
+    const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const filename = `movimentacoes_${period}_${fromDate}${period === 'periodo' ? '_a_' + toDate : ''}.csv`;
+    
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success("Relatório exportado com sucesso!");
+  };
+
   const openEdit = (t: UnifiedTransaction) => {
     if (t.type !== 'deposit' && t.type !== 'withdrawal') return;
     setEditingId(t.id);
@@ -854,7 +890,10 @@ export const AccountCashFlow = () => {
                 </form>
               </DialogContent>
             </Dialog>
-            <Button className="rounded-full px-6 h-9 font-mono text-[11px] tracking-[0.3em] bg-muted/50 text-muted-foreground shadow-[0_0_20px_rgba(0,0,0,0.2)] hover:bg-muted/80 hover:text-foreground transition-all gap-2 border border-border/40">
+            <Button 
+              className="rounded-full px-6 h-9 font-mono text-[11px] tracking-[0.3em] bg-muted/50 text-muted-foreground shadow-[0_0_20px_rgba(0,0,0,0.2)] hover:bg-muted/80 hover:text-foreground transition-all gap-2 border border-border/40"
+              onClick={handleExport}
+            >
               <Download className="h-3.5 w-3.5" /> EXPORTAR
             </Button>
           </div>
