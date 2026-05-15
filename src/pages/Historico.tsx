@@ -1387,7 +1387,7 @@ const Historico = () => {
             <table className="w-full table-auto text-[10px] lg:text-[11px]">
               <thead className="bg-muted/40 font-mono tracking-widest">
                 <tr className="text-muted-foreground">
-                  <th className="px-1.5 py-2 text-center font-medium">Nº REG</th>
+                  <th className="px-1.5 py-2 text-center font-medium">REGISTRO</th>
                   <th className="px-1.5 py-2 text-center font-medium">STATUS</th>
                   <SortableTh label="CLIENTE" sKey="clientName" />
                   <SortableTh label="NF" sKey="invoiceNumber" />
