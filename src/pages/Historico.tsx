@@ -196,10 +196,6 @@ const Historico = () => {
       withinEditWindow: boolean;
     };
     const out: Row[] = [];
-    const opNumberMap = new Map<string, number>();
-    [...invoices]
-      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-      .forEach((inv, idx) => opNumberMap.set(inv.id, idx + 1));
     for (const inv of invoices) {
       const installments = Array.isArray(inv.installments) ? inv.installments : [];
       const settledEntries: SettledEntry[] = Array.isArray(inv.settled_installments)
@@ -231,7 +227,7 @@ const Historico = () => {
         const savings = factoringCost - cost;
         out.push({
           key: `${inv.id}-${i.id}`,
-          opNumber: opNumberMap.get(inv.id) ?? 0,
+          opNumber: Number((inv as any).ordem) || 0,
           invoiceId: inv.id,
           installmentId: i.id,
           clientName: inv.clients?.name ?? "—",

@@ -195,8 +195,8 @@ export const RegistrationSection = ({
     } else {
       supabase
         .from("invoices")
-        .select("*")
-        .order("created_at", { ascending: false })
+        .select("ordem")
+        .order("ordem", { ascending: false })
         .limit(1)
         .then(({ data }) => {
           if (data && data.length > 0) {
