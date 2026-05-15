@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import html2canvas from "html2canvas";
 import { supabase } from "@/integrations/supabase/client";
 import { calculate, formatBRL, type Installment } from "@/lib/calc";
 import { toast } from "sonner";
@@ -460,33 +459,196 @@ export const AccountCashFlow = () => {
     const node = reportRef.current;
     if (!node) return;
 
-    toast.info("Gerando relatório visual...");
+    toast.info("Preparando documento para impressão...");
 
-    // Temporarily show for rendering
-    const prevStyle = node.style.cssText;
-    node.style.cssText = "position:fixed;left:-10000px;top:0;width:1200px;display:block;background:hsl(var(--background));";
-    
-    try {
-      const canvas = await html2canvas(node, {
-        backgroundColor: null,
-        scale: 2,
-        useCORS: true,
-        logging: false
-      });
-
-      const link = document.createElement("a");
-      const dateStr = new Date().toISOString().split('T')[0];
-      link.download = `relatorio_financeiro_${period}_${dateStr}.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-      
-      toast.success("Relatório exportado com sucesso!");
-    } catch (error) {
-      console.error("Export error:", error);
-      toast.error("Erro ao gerar o relatório visual.");
-    } finally {
-      node.style.cssText = prevStyle;
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank', 'width=1200,height=800');
+    if (!printWindow) {
+      toast.error("Por favor, permita pop-ups para exportar o PDF.");
+      return;
     }
+
+    const htmlContent = `
+      <html>
+        <head>
+          <title>Relatório Financeiro - MYKACA$H</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+            @page {
+              size: A4;
+              margin: 20mm;
+            }
+            body {
+              font-family: 'Inter', sans-serif;
+              background: white;
+              color: black;
+              margin: 0;
+              padding: 0;
+            }
+            .container {
+              width: 100%;
+            }
+            .header {
+              text-align: center;
+              border-bottom: 2px solid #e2e8f0;
+              padding-bottom: 20px;
+              margin-bottom: 30px;
+            }
+            .header-small {
+              font-size: 10px;
+              letter-spacing: 0.3em;
+              color: #64748b;
+              font-weight: bold;
+              margin-bottom: 5px;
+            }
+            .header-title {
+              font-size: 24px;
+              font-weight: bold;
+              margin: 10px 0;
+            }
+            .header-meta {
+              font-size: 10px;
+              color: #94a3b8;
+              letter-spacing: 0.1em;
+            }
+            .stats-grid {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 20px;
+              margin-bottom: 40px;
+            }
+            .stat-card {
+              border: 1px solid #e2e8f0;
+              border-radius: 12px;
+              padding: 15px;
+              text-align: center;
+            }
+            .stat-label {
+              font-size: 9px;
+              color: #64748b;
+              text-transform: uppercase;
+              letter-spacing: 0.1em;
+              margin-bottom: 5px;
+            }
+            .stat-value {
+              font-size: 16px;
+              font-weight: bold;
+            }
+            .table-container {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 20px;
+            }
+            .table-container th {
+              background: #f8fafc;
+              border-bottom: 2px solid #e2e8f0;
+              padding: 12px;
+              font-size: 10px;
+              text-transform: uppercase;
+              letter-spacing: 0.1em;
+              color: #475569;
+            }
+            .table-container td {
+              border-bottom: 1px solid #f1f5f9;
+              padding: 12px;
+              font-size: 11px;
+              text-align: center;
+            }
+            .type-badge {
+              font-weight: bold;
+              font-size: 9px;
+              text-transform: uppercase;
+            }
+            .text-green { color: #16a34a; }
+            .text-red { color: #dc2626; }
+            .footer {
+              margin-top: 50px;
+              padding-top: 20px;
+              border-top: 1px solid #e2e8f0;
+              text-align: center;
+              font-size: 9px;
+              color: #94a3b8;
+              letter-spacing: 0.2em;
+            }
+            .page-break {
+              page-break-before: always;
+            }
+            tr {
+              page-break-inside: avoid;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="header-small">MYKACA$H · SISTEMA FINANCEIRO</div>
+              <div class="header-title">RELATÓRIO DE MOVIMENTAÇÕES</div>
+              <div class="header-meta">
+                PERÍODO: ${period.toUpperCase()} | GERADO EM: ${new Date().toLocaleDateString('pt-BR')}
+              </div>
+            </div>
+
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-label">Total Entradas</div>
+                <div class="stat-value text-green">${formatBRL(stats.periodDeposits)}</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Total Saídas</div>
+                <div class="stat-value text-red">${formatBRL(stats.periodWithdrawals)}</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Saldo Final</div>
+                <div class="stat-value">${formatBRL(stats.cumulativeBalance)}</div>
+              </div>
+            </div>
+
+            <h4 style="font-size: 14px; margin-bottom: 10px;">Detalhamento das Operações</h4>
+            <table class="table-container">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Descrição</th>
+                  <th>Tipo</th>
+                  <th>Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filteredData.map(t => `
+                  <tr>
+                    <td>${new Date(t.date + "T00:00:00").toLocaleDateString('pt-BR')}</td>
+                    <td style="text-align: left;">${t.description}</td>
+                    <td>
+                      <span class="type-badge ${ (t.type === 'deposit' || t.type === 'installment_in') ? 'text-green' : 'text-red' }">
+                        ${t.type === 'deposit' ? 'Depósito' : t.type === 'withdrawal' ? 'Saque' : t.type === 'installment_in' ? 'Entrada' : 'Saída'}
+                      </span>
+                    </td>
+                    <td class="stat-value ${ (t.type === 'deposit' || t.type === 'installment_in') ? 'text-green' : 'text-red' }">
+                      ${(t.type === 'deposit' || t.type === 'installment_in') ? '+' : '-'} ${formatBRL(t.amount)}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+
+            <div class="footer">
+              DOCUMENTO GERADO PELO SISTEMA MYKACA$H · ${new Date().getFullYear()}
+            </div>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              // Optionally close window after print
+              // window.onafterprint = function() { window.close(); };
+            };
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    toast.success("Documento pronto para exportação!");
   };
 
   const openEdit = (t: UnifiedTransaction) => {
@@ -981,95 +1143,6 @@ export const AccountCashFlow = () => {
           </Table>
         </div>
       </section>
-
-      {/* Hidden Report Template */}
-      <div 
-        ref={reportRef} 
-        style={{ display: 'none' }}
-        className="p-12 bg-background text-foreground"
-      >
-        <div className="space-y-10">
-          {/* Header */}
-          <div className="flex flex-col items-center justify-center text-center space-y-4 border-b border-border/40 pb-10">
-            <div className="text-primary font-mono text-sm tracking-[0.4em] font-bold">MYKACA$H · SISTEMA FINANCEIRO</div>
-            <h1 className="text-4xl font-display font-bold tracking-tight">RELATÓRIO DE MOVIMENTAÇÕES</h1>
-            <div className="flex gap-4 font-mono text-xs text-muted-foreground tracking-widest uppercase">
-              <span>Período: {period.toUpperCase()}</span>
-              <span>•</span>
-              <span>Gerado em: {new Date().toLocaleDateString('pt-BR')}</span>
-            </div>
-          </div>
-
-          {/* Stats Summary */}
-          <div className="grid grid-cols-3 gap-6">
-            <div className="rounded-2xl border border-net-green/20 bg-net-green/5 p-6 text-center">
-              <p className="text-[10px] font-mono tracking-widest text-muted-foreground uppercase mb-2">Total Entradas</p>
-              <p className="text-2xl font-bold text-net-green">{formatBRL(stats.periodDeposits)}</p>
-            </div>
-            <div className="rounded-2xl border border-cost-red/20 bg-cost-red/5 p-6 text-center">
-              <p className="text-[10px] font-mono tracking-widest text-muted-foreground uppercase mb-2">Total Saídas</p>
-              <p className="text-2xl font-bold text-cost-red">{formatBRL(stats.periodWithdrawals)}</p>
-            </div>
-            <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6 text-center">
-              <p className="text-[10px] font-mono tracking-widest text-muted-foreground uppercase mb-2">Saldo Final</p>
-              <p className="text-2xl font-bold text-primary">{formatBRL(stats.cumulativeBalance)}</p>
-            </div>
-          </div>
-
-          {/* Data Table */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="h-2 w-2 rounded-full bg-primary" />
-              <h4 className="font-display text-lg font-bold">Detalhamento das Operações</h4>
-            </div>
-            <div className="rounded-2xl border border-border/40 overflow-hidden">
-              <Table>
-                <TableHeader className="bg-muted/50">
-                  <TableRow className="border-border/40">
-                    <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Data</TableHead>
-                    <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Descrição</TableHead>
-                    <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Tipo</TableHead>
-                    <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Valor</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredData.map((t) => (
-                    <TableRow key={t.id} className="border-border/20">
-                      <TableCell className="text-center font-mono text-xs">
-                        {new Date(t.date + "T00:00:00").toLocaleDateString('pt-BR')}
-                      </TableCell>
-                      <TableCell className="text-center text-sm font-medium">
-                        {t.description}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <span className={`text-[10px] font-bold uppercase ${
-                          (t.type === 'deposit' || t.type === 'installment_in') ? 'text-net-green' : 'text-cost-red'
-                        }`}>
-                          {t.type === 'deposit' ? 'Depósito' : 
-                           t.type === 'withdrawal' ? 'Saque' : 
-                           t.type === 'installment_in' ? 'Entrada' : 'Saída'}
-                        </span>
-                      </TableCell>
-                      <TableCell className={`text-center font-mono font-bold ${
-                        (t.type === 'deposit' || t.type === 'installment_in') ? 'text-net-green' : 'text-cost-red'
-                      }`}>
-                        {(t.type === 'deposit' || t.type === 'installment_in') ? '+' : '-'} {formatBRL(t.amount)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="pt-10 border-t border-border/40 text-center">
-            <p className="font-mono text-[10px] tracking-[0.4em] text-muted-foreground/60">
-              DOCUMENTO GERADO PELO SISTEMA MYKACA$H · {new Date().getFullYear()}
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
