@@ -1,6 +1,5 @@
 import { AppHeader } from "@/components/AppHeader";
 import { PageNav } from "@/components/PageNav";
-import { BibleVerse } from "@/components/BibleVerse";
 import { AccountCashFlow } from "@/components/AccountCashFlow";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,7 +15,6 @@ const Financeiro = () => {
     <div className="min-h-screen">
       <AppHeader />
       <main className="mx-auto w-full max-w-[1600px] px-4 md:px-8 lg:px-12 py-4 md:py-6">
-        <BibleVerse />
         <PageNav />
         <AccountCashFlow />
       </main>
