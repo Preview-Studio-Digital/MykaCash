@@ -540,7 +540,6 @@ export const AccountCashFlow = () => {
             <span className="h-2 w-2 rounded-full animate-color-cycle" />
             <h4 className="font-display text-lg">Evolução do Saldo</h4>
           </div>
-          <p className="text-xs text-muted-foreground ml-5">Variação do saldo da conta por dia</p>
 
           {/* Filters Bar */}
           <div className="flex flex-wrap items-center gap-2">
