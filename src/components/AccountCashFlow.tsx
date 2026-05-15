@@ -178,16 +178,22 @@ export const AccountCashFlow = () => {
       }
 
       // Entradas: Parcelas Liquidadas
-      const settledEntries = Array.isArray(inv.settled_installments) ? inv.settled_installments : [];
-      const settledIds = new Set(settledEntries.map((e: any) => typeof e === 'string' ? e : e.id));
+      const settledEntries: any[] = Array.isArray(inv.settled_installments) ? inv.settled_installments : [];
+      const settledMap = new Map<string, string | null>();
+      settledEntries.forEach((e) => {
+        const id = typeof e === 'string' ? e : e.id;
+        const date = typeof e === 'string' ? null : e.date;
+        settledMap.set(id, date);
+      });
 
       calc.installmentCalcs.forEach((inst, idx) => {
-        if (settledIds.has(inst.id)) {
+        if (settledMap.has(inst.id)) {
+          const actualSettledDate = settledMap.get(inst.id) || inst.dueDate;
           data.push({
             id: `inst-in-${inst.id}`,
             type: "installment_in",
             amount: inst.value,
-            date: inst.dueDate, // Entradas são registradas na data de vencimento quando liquidadas
+            date: actualSettledDate, 
             description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${calc.installmentCalcs.length > 1 ? String.fromCharCode(96 + (idx + 1)) : ""}` : "—"} · Entrada Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'} (${idx + 1}/${calc.installmentCalcs.length})`,
             reference_id: inv.id
           });
