@@ -854,8 +854,8 @@ export const AccountCashFlow = () => {
                 </form>
               </DialogContent>
             </Dialog>
-            <Button variant="outline" size="sm" className="h-8 text-[10px] tracking-widest font-mono border-border/40">
-              <Download className="h-3 w-3 mr-1" /> EXPORTAR
+            <Button className="rounded-full px-6 h-9 font-mono text-[11px] tracking-[0.3em] bg-muted/50 text-muted-foreground shadow-[0_0_20px_rgba(0,0,0,0.2)] hover:bg-muted/80 hover:text-foreground transition-all gap-2 border border-border/40">
+              <Download className="h-3.5 w-3.5" /> EXPORTAR
             </Button>
           </div>
         </div>
