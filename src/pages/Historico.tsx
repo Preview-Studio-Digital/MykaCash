@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageNav } from "@/components/PageNav";
+import { BibleVerse } from "@/components/BibleVerse";
 import { RegistrationSection } from "@/components/RegistrationSection";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/DateField";
@@ -901,6 +902,7 @@ const Historico = () => {
     <div className="min-h-screen">
       <AppHeader />
       <main className="mx-auto w-full max-w-[1600px] px-4 md:px-8 lg:px-12 py-4 md:py-6 pb-36 space-y-8">
+        <BibleVerse />
         <PageNav />
 
         {/* Summary panels — reflect selected period */}

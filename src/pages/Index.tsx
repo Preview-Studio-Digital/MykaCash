@@ -1,4 +1,5 @@
 import { AppHeader } from "@/components/AppHeader";
+import { BibleVerse } from "@/components/BibleVerse";
 import { PageNav } from "@/components/PageNav";
 import { RegistrationSection } from "@/components/RegistrationSection";
 
@@ -7,6 +8,7 @@ const Index = () => {
     <div className="min-h-screen">
       <AppHeader />
       <main className="mx-auto w-full max-w-[1600px] px-4 md:px-8 lg:px-12 py-4 md:py-6">
+        <BibleVerse />
         <PageNav />
         <RegistrationSection />
       </main>
