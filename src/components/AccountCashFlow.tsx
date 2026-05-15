@@ -94,6 +94,16 @@ export const AccountCashFlow = () => {
   const [formDescription, setFormDescription] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [initialBalance, setInitialBalance] = useState(() => {
+    const saved = localStorage.getItem("mykacash_initial_balance");
+    return saved ? parseFloat(saved) : 0;
+  });
+
+  const saveInitialBalance = (val: number) => {
+    setInitialBalance(val);
+    localStorage.setItem("mykacash_initial_balance", val.toString());
+    toast.success("Saldo inicial atualizado!");
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -305,8 +315,9 @@ export const AccountCashFlow = () => {
       });
     });
 
+    const today = todayISO();
     const cumulativeBalance = unifiedData.reduce((acc, t) => {
-      if (t.date <= end) {
+      if (t.date <= today) {
         if (t.type === "deposit" || t.type === "installment_in") return acc + t.amount;
         return acc - t.amount;
       }
@@ -320,7 +331,15 @@ export const AccountCashFlow = () => {
       periodProfit,
       periodOpen
     };
-  }, [unifiedData, filteredData, invoices, period, fromDate, toDate]);
+  }, [unifiedData, filteredData, invoices, period, fromDate, toDate, initialBalance]);
+
+  // Update cumulativeBalance to include initialBalance
+  const statsWithInitial = useMemo(() => {
+    return {
+      ...stats,
+      cumulativeBalance: stats.cumulativeBalance + initialBalance
+    };
+  }, [stats, initialBalance]);
 
   const chartData = useMemo(() => {
     if (unifiedData.length === 0) return [];
@@ -728,17 +747,44 @@ export const AccountCashFlow = () => {
         </div>
 
         <div className={`relative group overflow-hidden rounded-2xl border bg-gradient-to-br from-card to-card/50 p-6 transition-all ${
-          stats.cumulativeBalance >= 0 
+          statsWithInitial.cumulativeBalance >= 0 
             ? 'border-primary/20 shadow-[0_0_20px_-5px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_40px_-2px_hsl(var(--primary)/0.6)]' 
             : 'border-cost-red/20 shadow-[0_0_20px_-5px_hsl(var(--cost-red)/0.3)] hover:shadow-[0_0_40px_-2px_hsl(var(--cost-red)/0.6)]'
         }`}>
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Wallet className={`h-12 w-12 ${stats.cumulativeBalance >= 0 ? 'text-primary' : 'text-cost-red'}`} />
+            <Wallet className={`h-12 w-12 ${statsWithInitial.cumulativeBalance >= 0 ? 'text-primary' : 'text-cost-red'}`} />
           </div>
-          <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Saldo em conta</p>
-          <h3 className={`text-2xl font-bold mt-2 ${stats.cumulativeBalance >= 0 ? 'text-primary' : 'text-cost-red'}`}>
-            {formatBRL(stats.cumulativeBalance)}
-          </h3>
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Saldo em conta</p>
+              <h3 className={`text-2xl font-bold mt-2 ${statsWithInitial.cumulativeBalance >= 0 ? 'text-primary' : 'text-cost-red'}`}>
+                {formatBRL(statsWithInitial.cumulativeBalance)}
+              </h3>
+            </div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-primary">
+                  <Pencil className="h-3 w-3" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[300px]">
+                <DialogHeader>
+                  <DialogTitle className="text-sm font-mono uppercase tracking-widest">Saldo Inicial</DialogTitle>
+                </DialogHeader>
+                <div className="py-4 space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-mono text-muted-foreground">Valor que já estava no banco</Label>
+                    <Input 
+                      type="number" 
+                      defaultValue={initialBalance}
+                      onBlur={(e) => saveInitialBalance(parseFloat(e.target.value) || 0)}
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </div>
 
