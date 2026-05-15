@@ -1514,6 +1514,7 @@ const Historico = () => {
                 {!loading && filteredRows.length > 0 && (
                   <tr className="border-t-2 border-primary-glow/40 bg-primary-glow/[0.07] font-mono tabular-nums text-center font-semibold">
                     <td className="px-2 py-2">—</td>
+                    <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2 tracking-widest text-primary-glow">TOTAL</td>
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2">—</td>
