@@ -171,6 +171,7 @@ const Historico = () => {
   const rows = useMemo(() => {
     type Row = {
       key: string;
+      opNumber: number;
       invoiceId: string;
       installmentId: string;
       clientName: string;
