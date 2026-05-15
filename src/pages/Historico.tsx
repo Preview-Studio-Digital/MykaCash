@@ -227,7 +227,7 @@ const Historico = () => {
         const savings = factoringCost - cost;
         out.push({
           key: `${inv.id}-${i.id}`,
-          opNumber: opNumberMap.get(inv.id) ?? 0,
+          opNumber: Number((inv as any).ordem) || 0,
           invoiceId: inv.id,
           installmentId: i.id,
           clientName: inv.clients?.name ?? "—",
