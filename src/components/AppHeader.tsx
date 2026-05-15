@@ -35,7 +35,7 @@ export const AppHeader = () => {
       {/* User bar */}
       <div className="relative z-10 flex items-center justify-between px-6 pt-4 text-xs font-mono tracking-widest text-muted-foreground">
         <span className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-net-green shadow-[0_0_10px_hsl(var(--net-green))] animate-pulse-glow" />
+          <span className="h-2 w-2 rounded-full animate-color-cycle" />
           SISTEMA ONLINE
         </span>
         <div className="flex items-center gap-4">

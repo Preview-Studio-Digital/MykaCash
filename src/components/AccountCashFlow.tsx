@@ -537,14 +537,10 @@ export const AccountCashFlow = () => {
       <section className="rounded-2xl border border-border/40 bg-card/30 backdrop-blur-sm p-6 shadow-panel">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <TrendingUp className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h4 className="font-display text-lg">Evolução do Saldo</h4>
-              <p className="text-xs text-muted-foreground">Variação do saldo da conta por dia</p>
-            </div>
+            <span className="h-2 w-2 rounded-full animate-color-cycle" />
+            <h4 className="font-display text-lg">Evolução do Saldo</h4>
           </div>
+          <p className="text-xs text-muted-foreground ml-5">Variação do saldo da conta por dia</p>
 
           {/* Filters Bar */}
           <div className="flex flex-wrap items-center gap-2">
@@ -736,9 +732,7 @@ export const AccountCashFlow = () => {
       <section className="rounded-2xl border border-border/40 bg-card/30 backdrop-blur-sm overflow-hidden shadow-panel">
         <div className="p-6 border-b border-border/40 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <History className="h-5 w-5 text-primary" />
-            </div>
+            <span className="h-2 w-2 rounded-full animate-color-cycle" />
             <h4 className="font-display text-lg">Histórico de Movimentações</h4>
           </div>
           <div className="flex items-center gap-2">

@@ -312,7 +312,7 @@ export const RegistrationSection = ({
       <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
+            <span className="h-2 w-2 rounded-full animate-color-cycle" />
             <h2 className="font-display text-xl font-semibold tracking-tight">
               {invoiceToEdit ? "Edição" : "Cadastro"}
             </h2>
@@ -472,7 +472,7 @@ export const RegistrationSection = ({
         <div className="mt-8">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
+              <span className="h-2 w-2 rounded-full animate-color-cycle" />
               <Label className="text-xl font-display font-semibold tracking-tight">Pagamento</Label>
             </div>
             <span className="font-mono text-[11px] tracking-widest text-muted-foreground invisible">

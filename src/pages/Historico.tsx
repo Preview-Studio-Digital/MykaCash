@@ -1017,7 +1017,7 @@ const Historico = () => {
         <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
+              <span className="h-2 w-2 rounded-full animate-color-cycle" />
               <h2 className="font-display text-xl font-semibold tracking-tight">
                 Gráfico Evolutivo
               </h2>
@@ -1259,7 +1259,7 @@ const Historico = () => {
         <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <span className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
+              <span className="h-2 w-2 rounded-full animate-color-cycle" />
               <h2 className="font-display text-xl font-semibold tracking-tight">Histórico de Operações</h2>
             </div>
             <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
