@@ -180,17 +180,29 @@ export const AccountCashFlow = () => {
 
       // Saída: Valor Líquido da Operação
       if (inv.operation_date) {
-        calc.installmentCalcs.forEach((inst, idx) => {
+        if (calc.installmentCalcs.length > 0) {
+          calc.installmentCalcs.forEach((inst, idx) => {
+            data.push({
+              id: `op-out-${inv.id}-${inst.id}`,
+              type: "operation_out",
+              amount: inst.presentValue,
+              date: inv.operation_date,
+              description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${calc.installmentCalcs.length > 1 ? String.fromCharCode(96 + (idx + 1)) : ""}` : "—"} · Saída Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'} (${idx + 1}/${calc.installmentCalcs.length})`,
+              reference_id: inv.id,
+              created_at: inv.created_at
+            });
+          });
+        } else {
           data.push({
-            id: `op-out-${inv.id}-${inst.id}`,
+            id: `op-out-${inv.id}`,
             type: "operation_out",
-            amount: inst.presentValue,
+            amount: calc.netValue,
             date: inv.operation_date,
-            description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${calc.installmentCalcs.length > 1 ? String.fromCharCode(96 + (idx + 1)) : ""}` : "—"} · Saída Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'} (${idx + 1}/${calc.installmentCalcs.length})`,
+            description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}` : "—"} · Saída Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}`,
             reference_id: inv.id,
             created_at: inv.created_at
           });
-        });
+        }
       }
 
       // Entradas: Parcelas Liquidadas
