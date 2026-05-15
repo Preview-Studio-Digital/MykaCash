@@ -180,14 +180,16 @@ export const AccountCashFlow = () => {
 
       // Saída: Valor Líquido da Operação
       if (inv.operation_date) {
-        data.push({
-          id: `op-out-${inv.id}`,
-          type: "operation_out",
-          amount: calc.netValue,
-          date: inv.operation_date,
-          description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${calc.installmentCalcs.length > 1 ? "a" : ""}` : "—"} · Saída Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}`,
-          reference_id: inv.id,
-          created_at: inv.created_at
+        calc.installmentCalcs.forEach((inst, idx) => {
+          data.push({
+            id: `op-out-${inv.id}-${inst.id}`,
+            type: "operation_out",
+            amount: inst.presentValue,
+            date: inv.operation_date,
+            description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${calc.installmentCalcs.length > 1 ? String.fromCharCode(96 + (idx + 1)) : ""}` : "—"} · Saída Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'} (${idx + 1}/${calc.installmentCalcs.length})`,
+            reference_id: inv.id,
+            created_at: inv.created_at
+          });
         });
       }
 
@@ -220,7 +222,9 @@ export const AccountCashFlow = () => {
     const sortedAsc = [...data].sort((a, b) => {
       const dateCompare = a.date.localeCompare(b.date);
       if (dateCompare !== 0) return dateCompare;
-      return (a.created_at || "").localeCompare(b.created_at || "");
+      const timeCompare = (a.created_at || "").localeCompare(b.created_at || "");
+      if (timeCompare !== 0) return timeCompare;
+      return a.description.localeCompare(b.description);
     });
 
     let current = initialBalance;
@@ -233,7 +237,9 @@ export const AccountCashFlow = () => {
     return withBalance.sort((a, b) => {
       const dateCompare = b.date.localeCompare(a.date);
       if (dateCompare !== 0) return dateCompare;
-      return (b.created_at || "").localeCompare(a.created_at || "");
+      const timeCompare = (b.created_at || "").localeCompare(a.created_at || "");
+      if (timeCompare !== 0) return timeCompare;
+      return b.description.localeCompare(a.description);
     });
   }, [manualTransactions, invoices, initialBalance]);
 
