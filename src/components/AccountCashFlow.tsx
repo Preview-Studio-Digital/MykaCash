@@ -536,13 +536,13 @@ export const AccountCashFlow = () => {
       {/* Chart Section */}
       <section className="rounded-2xl border border-border/40 bg-card/30 backdrop-blur-sm p-6 shadow-panel">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-          <div className="flex items-center gap-3 md:w-1/3">
+          <div className="flex items-center gap-3">
             <span className="h-2 w-2 rounded-full animate-color-cycle" />
             <h4 className="font-display text-lg">Evolução do Saldo</h4>
           </div>
 
           {/* Filters Bar */}
-          <div className="flex flex-wrap items-center justify-end gap-2 md:w-1/3">
+          <div className="flex flex-wrap md:flex-nowrap items-center justify-end gap-2">
             <Select value={period} onValueChange={(v: any) => setPeriod(v)}>
               <SelectTrigger className="w-[140px] h-9 bg-background/50 border-border/40">
                 <SelectValue placeholder="Período" />
@@ -556,24 +556,31 @@ export const AccountCashFlow = () => {
               </SelectContent>
             </Select>
 
-            {(period === 'periodo' || period === 'dia') && (
+            {period === 'dia' && (
               <Input 
                 type="date" 
-                className="h-9 w-[140px] bg-background/50 border-border/40" 
+                className="h-9 w-[130px] bg-background/50 border-border/40 font-mono text-xs" 
                 value={fromDate}
                 onChange={e => setFromDate(e.target.value)}
               />
             )}
+            
             {period === 'periodo' && (
-              <>
-                <span className="text-muted-foreground text-xs font-mono">ATÉ</span>
+              <div className="flex items-center gap-2">
                 <Input 
                   type="date" 
-                  className="h-9 w-[140px] bg-background/50 border-border/40" 
+                  className="h-9 w-[130px] bg-background/50 border-border/40 font-mono text-xs" 
+                  value={fromDate}
+                  onChange={e => setFromDate(e.target.value)}
+                />
+                <span className="text-muted-foreground text-[10px] font-mono shrink-0">ATÉ</span>
+                <Input 
+                  type="date" 
+                  className="h-9 w-[130px] bg-background/50 border-border/40 font-mono text-xs" 
                   value={toDate}
                   onChange={e => setToDate(e.target.value)}
                 />
-              </>
+              </div>
             )}
           </div>
         </div>
