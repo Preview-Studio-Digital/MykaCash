@@ -9,7 +9,7 @@ const Financeiro = () => {
 
   if (loading) return null;
   if (!session) return <Navigate to="/login" replace />;
-  if (!isAdmin) return <Navigate to="/" replace />;
+  // if (!isAdmin) return <Navigate to="/" replace />;
 
   return (
     <div className="min-h-screen">
