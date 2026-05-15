@@ -1297,7 +1297,7 @@ const Historico = () => {
                   >
                     <div className="flex items-center justify-between">
                       <div className="font-mono text-[10px] tracking-widest text-primary-glow">
-                        REG {r.opNumber ? String(r.opNumber).padStart(4, "0") : "—"} · NF {r.invoiceNumber} · P {r.parcelLabel}
+                        REG {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"} · NF {r.invoiceNumber} · P {r.parcelLabel}
                       </div>
                       <div className="flex items-center gap-2">
                         {r.settled ? (
@@ -1427,7 +1427,7 @@ const Historico = () => {
                           rowClass(r)
                         }
                       >
-                        <td className="px-1.5 py-2 text-muted-foreground">{r.opNumber ? String(r.opNumber).padStart(4, "0") : "—"}</td>
+                        <td className="px-1.5 py-2 text-muted-foreground">{r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"}</td>
                         <td className="relative px-2 py-2">
                           <div className="inline-flex items-center justify-center">
                             <button

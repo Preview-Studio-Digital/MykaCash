@@ -172,7 +172,7 @@ export const AccountCashFlow = () => {
           type: "operation_out",
           amount: calc.netValue,
           date: inv.operation_date,
-          description: `REG ${inv.ordem ? String(inv.ordem).padStart(4, "0") : "—"} · Saída Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}`,
+          description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${calc.installmentCalcs.length > 1 ? "a" : ""}` : "—"} · Saída Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}`,
           reference_id: inv.id
         });
       }
@@ -188,7 +188,7 @@ export const AccountCashFlow = () => {
             type: "installment_in",
             amount: inst.value,
             date: inst.dueDate, // Entradas são registradas na data de vencimento quando liquidadas
-            description: `REG ${inv.ordem ? String(inv.ordem).padStart(4, "0") : "—"} · Entrada Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'} (${idx + 1}/${calc.installmentCalcs.length})`,
+            description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${calc.installmentCalcs.length > 1 ? String.fromCharCode(96 + (idx + 1)) : ""}` : "—"} · Entrada Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'} (${idx + 1}/${calc.installmentCalcs.length})`,
             reference_id: inv.id
           });
         }
