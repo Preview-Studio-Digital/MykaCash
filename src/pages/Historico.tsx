@@ -148,7 +148,7 @@ const Historico = () => {
     const { data, error } = await supabase
       .from("invoices")
       .select(
-        "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, created_by, clients(name), profiles:created_by(display_name, username)"
+        "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, created_by, ordem, clients(name), profiles:created_by(display_name, username)"
       )
       .order("operation_date", { ascending: false });
     if (error) {
@@ -1297,7 +1297,7 @@ const Historico = () => {
                   >
                     <div className="flex items-center justify-between">
                       <div className="font-mono text-[10px] tracking-widest text-primary-glow">
-                        NF {r.invoiceNumber} · P {r.parcelLabel}
+                        REG {r.opNumber ? String(r.opNumber).padStart(4, "0") : "—"} · NF {r.invoiceNumber} · P {r.parcelLabel}
                       </div>
                       <div className="flex items-center gap-2">
                         {r.settled ? (
@@ -1427,7 +1427,7 @@ const Historico = () => {
                           rowClass(r)
                         }
                       >
-                        <td className="px-1.5 py-2 text-muted-foreground">{r.parcelLabel === "ÚNICA" ? r.opNumber : `${r.opNumber}${String.fromCharCode(96 + Number(r.parcelLabel))}`}</td>
+                        <td className="px-1.5 py-2 text-muted-foreground">{r.opNumber ? String(r.opNumber).padStart(4, "0") : "—"}</td>
                         <td className="relative px-2 py-2">
                           <div className="inline-flex items-center justify-center">
                             <button
