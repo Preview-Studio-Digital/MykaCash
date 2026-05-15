@@ -541,121 +541,6 @@ export const AccountCashFlow = () => {
             <h4 className="font-display text-lg">Evolução do Saldo</h4>
           </div>
 
-          <div className="flex justify-center flex-1">
-            <Dialog open={isDialogOpen} onOpenChange={(open) => {
-              setIsDialogOpen(open);
-              if (!open) {
-                setEditingId(null);
-                setFormAmount("");
-                setFormDescription("");
-              }
-            }}>
-              <DialogTrigger asChild>
-                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 gap-2 font-display tracking-wide px-6">
-                  <Plus className="h-4 w-4" /> NOVA MOVIMENTAÇÃO
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px] bg-background/95 backdrop-blur-xl border-border/50">
-                <DialogHeader>
-                  <DialogTitle className="font-display">
-                    {editingId ? "Editar Movimentação" : "Registrar Movimentação"}
-                  </DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSaveTransaction} className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label>Tipo</Label>
-                    <div className="flex gap-2">
-                      <Button 
-                        type="button"
-                        variant={formType === 'deposit' ? 'default' : 'outline'}
-                        className={`flex-1 gap-2 transition-all hover:text-white ${
-                          formType === 'deposit' 
-                            ? 'bg-net-green hover:bg-net-green/90 text-white' 
-                            : 'hover:bg-net-green/80 hover:text-white hover:border-net-green'
-                        }`}
-                        onClick={() => setFormType('deposit')}
-                      >
-                        <ArrowUpCircle className="h-4 w-4" /> Depósito
-                      </Button>
-                      <Button 
-                        type="button"
-                        variant={formType === 'withdrawal' ? 'default' : 'outline'}
-                        className={`flex-1 gap-2 transition-all hover:text-white ${
-                          formType === 'withdrawal' 
-                            ? 'bg-cost-red hover:bg-cost-red/90 text-white' 
-                            : 'hover:bg-cost-red/80 hover:text-white hover:border-cost-red'
-                        }`}
-                        onClick={() => setFormType('withdrawal')}
-                      >
-                        <ArrowDownCircle className="h-4 w-4" /> Saque
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="amount">Valor (R$)</Label>
-                      <div className="relative">
-                        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">
-                          R$
-                        </span>
-                        <Input 
-                          id="amount" 
-                          inputMode="numeric"
-                          value={(() => {
-                            const n = parseFloat(formAmount || "0");
-                            return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                          })()} 
-                          onChange={e => {
-                            const digits = e.target.value.replace(/\D/g, "");
-                            const n = digits ? parseInt(digits, 10) / 100 : 0;
-                            setFormAmount(n.toString());
-                          }} 
-                          placeholder="0,00"
-                          className="pl-10 font-mono"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="date">Data</Label>
-                      <Input 
-                        id="date" 
-                        type="date" 
-                        value={formDate} 
-                        onChange={e => setFormDate(e.target.value)} 
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="desc">Descrição</Label>
-                    <Input 
-                      id="desc" 
-                      value={formDescription} 
-                      onChange={e => setFormDescription(e.target.value)} 
-                      placeholder="Ex: Reforço de caixa"
-                    />
-                  </div>
-                  <DialogFooter className="pt-4">
-                    <Button 
-                      type="submit" 
-                      disabled={isSubmitting} 
-                      className={`w-full font-display tracking-wide shadow-lg transition-all ${
-                        formType === 'deposit' 
-                          ? 'bg-net-green hover:bg-net-green/90 shadow-net-green/20' 
-                          : 'bg-cost-red hover:bg-cost-red/90 shadow-cost-red/20'
-                      }`}
-                    >
-                      {isSubmitting ? "Salvando..." : (
-                        editingId ? "Salvar Alterações" : (formType === 'deposit' ? "Confirmar Depósito" : "Confirmar Saque")
-                      )}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-
           {/* Filters Bar */}
           <div className="flex flex-wrap items-center justify-end gap-2 md:w-1/3">
             <Select value={period} onValueChange={(v: any) => setPeriod(v)}>
@@ -850,6 +735,118 @@ export const AccountCashFlow = () => {
             <h4 className="font-display text-lg">Histórico de Movimentações</h4>
           </div>
           <div className="flex items-center gap-2">
+            <Dialog open={isDialogOpen} onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              if (!open) {
+                setEditingId(null);
+                setFormAmount("");
+                setFormDescription("");
+              }
+            }}>
+              <DialogTrigger asChild>
+                <Button className="rounded-full px-6 h-9 font-mono text-[11px] tracking-[0.3em] bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.4)] hover:bg-primary/90 transition-all gap-2 border-0">
+                  <Plus className="h-3.5 w-3.5" /> NOVA MOVIMENTAÇÃO
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px] bg-background/95 backdrop-blur-xl border-border/50">
+                <DialogHeader>
+                  <DialogTitle className="font-display">
+                    {editingId ? "Editar Movimentação" : "Registrar Movimentação"}
+                  </DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSaveTransaction} className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label>Tipo</Label>
+                    <div className="flex gap-2">
+                      <Button 
+                        type="button"
+                        variant={formType === 'deposit' ? 'default' : 'outline'}
+                        className={`flex-1 gap-2 transition-all hover:text-white ${
+                          formType === 'deposit' 
+                            ? 'bg-net-green hover:bg-net-green/90 text-white' 
+                            : 'hover:bg-net-green/80 hover:text-white hover:border-net-green'
+                        }`}
+                        onClick={() => setFormType('deposit')}
+                      >
+                        <ArrowUpCircle className="h-4 w-4" /> Depósito
+                      </Button>
+                      <Button 
+                        type="button"
+                        variant={formType === 'withdrawal' ? 'default' : 'outline'}
+                        className={`flex-1 gap-2 transition-all hover:text-white ${
+                          formType === 'withdrawal' 
+                            ? 'bg-cost-red hover:bg-cost-red/90 text-white' 
+                            : 'hover:bg-cost-red/80 hover:text-white hover:border-cost-red'
+                        }`}
+                        onClick={() => setFormType('withdrawal')}
+                      >
+                        <ArrowDownCircle className="h-4 w-4" /> Saque
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="amount">Valor (R$)</Label>
+                      <div className="relative">
+                        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">
+                          R$
+                        </span>
+                        <Input 
+                          id="amount" 
+                          inputMode="numeric"
+                          value={(() => {
+                            const n = parseFloat(formAmount || "0");
+                            return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                          })()} 
+                          onChange={e => {
+                            const digits = e.target.value.replace(/\D/g, "");
+                            const n = digits ? parseInt(digits, 10) / 100 : 0;
+                            setFormAmount(n.toString());
+                          }} 
+                          placeholder="0,00"
+                          className="pl-10 font-mono"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="date">Data</Label>
+                      <Input 
+                        id="date" 
+                        type="date" 
+                        value={formDate} 
+                        onChange={e => setFormDate(e.target.value)} 
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="desc">Descrição</Label>
+                    <Input 
+                      id="desc" 
+                      value={formDescription} 
+                      onChange={e => setFormDescription(e.target.value)} 
+                      placeholder="Ex: Reforço de caixa"
+                    />
+                  </div>
+                  <DialogFooter className="pt-4">
+                    <Button 
+                      type="submit" 
+                      disabled={isSubmitting} 
+                      className={`w-full font-display tracking-wide shadow-lg transition-all ${
+                        formType === 'deposit' 
+                          ? 'bg-net-green hover:bg-net-green/90 shadow-net-green/20' 
+                          : 'bg-cost-red hover:bg-cost-red/90 shadow-cost-red/20'
+                      }`}
+                    >
+                      {isSubmitting ? "Salvando..." : (
+                        editingId ? "Salvar Alterações" : (formType === 'deposit' ? "Confirmar Depósito" : "Confirmar Saque")
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
             <Button variant="outline" size="sm" className="h-8 text-[10px] tracking-widest font-mono border-border/40">
               <Download className="h-3 w-3 mr-1" /> EXPORTAR
             </Button>
