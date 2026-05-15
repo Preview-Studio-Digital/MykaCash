@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          date: string
+          description: string | null
+          id: string
+          type: Database["public"]["Enums"]["transaction_type"]
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          date: string
+          description?: string | null
+          id?: string
+          type: Database["public"]["Enums"]["transaction_type"]
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          description?: string | null
+          id?: string
+          type?: Database["public"]["Enums"]["transaction_type"]
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           created_at: string
@@ -165,6 +195,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      transaction_type: "deposit" | "withdrawal"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -293,6 +324,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      transaction_type: ["deposit", "withdrawal"],
     },
   },
 } as const

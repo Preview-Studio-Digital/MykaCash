@@ -171,6 +171,7 @@ const Historico = () => {
   const rows = useMemo(() => {
     type Row = {
       key: string;
+      opNumber: number;
       invoiceId: string;
       installmentId: string;
       clientName: string;
@@ -195,6 +196,10 @@ const Historico = () => {
       withinEditWindow: boolean;
     };
     const out: Row[] = [];
+    const opNumberMap = new Map<string, number>();
+    [...invoices]
+      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+      .forEach((inv, idx) => opNumberMap.set(inv.id, idx + 1));
     for (const inv of invoices) {
       const installments = Array.isArray(inv.installments) ? inv.installments : [];
       const settledEntries: SettledEntry[] = Array.isArray(inv.settled_installments)
@@ -226,6 +231,7 @@ const Historico = () => {
         const savings = factoringCost - cost;
         out.push({
           key: `${inv.id}-${i.id}`,
+          opNumber: opNumberMap.get(inv.id) ?? 0,
           invoiceId: inv.id,
           installmentId: i.id,
           clientName: inv.clients?.name ?? "—",
@@ -1385,6 +1391,7 @@ const Historico = () => {
             <table className="w-full table-auto text-[10px] lg:text-[11px]">
               <thead className="bg-muted/40 font-mono tracking-widest">
                 <tr className="text-muted-foreground">
+                  <th className="px-1.5 py-2 text-center font-medium">#</th>
                   <th className="px-1.5 py-2 text-center font-medium">STATUS</th>
                   <SortableTh label="CLIENTE" sKey="clientName" />
                   <SortableTh label="NF" sKey="invoiceNumber" />
@@ -1403,13 +1410,13 @@ const Historico = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={13} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
+                    <td colSpan={14} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                       CARREGANDO...
                     </td>
                   </tr>
                 ) : filteredRows.length === 0 ? (
                   <tr>
-                    <td colSpan={13} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
+                    <td colSpan={14} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                       NENHUMA ABERTURA NO PERÍODO
                     </td>
                   </tr>
@@ -1424,6 +1431,7 @@ const Historico = () => {
                           rowClass(r)
                         }
                       >
+                        <td className="px-1.5 py-2 text-muted-foreground">{r.opNumber}</td>
                         <td className="relative px-2 py-2">
                           <div className="inline-flex items-center justify-center">
                             <button
@@ -1505,6 +1513,7 @@ const Historico = () => {
 
                 {!loading && filteredRows.length > 0 && (
                   <tr className="border-t-2 border-primary-glow/40 bg-primary-glow/[0.07] font-mono tabular-nums text-center font-semibold">
+                    <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2 tracking-widest text-primary-glow">TOTAL</td>
                     <td className="px-2 py-2">—</td>
