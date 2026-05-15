@@ -136,6 +136,8 @@ const Historico = () => {
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState<number>(Date.now());
+  const [settlingRow, setSettlingRow] = useState<any | null>(null);
+  const [settlementDate, setSettlementDate] = useState<string>("");
 
   // tick every 30s so the 5-minute edit window updates
   useEffect(() => {
@@ -590,15 +592,25 @@ const Historico = () => {
       ? (inv.settled_installments as any)
       : [];
     const isSettled = current.some((e) => settledIdOf(e) === row.installmentId);
-    const next: SettledEntry[] = isSettled
-      ? current.filter((e) => settledIdOf(e) !== row.installmentId)
-      : [...current, { id: row.installmentId, date: todayISO() }];
+
+    if (isSettled) {
+      // Se já está liquidada, apenas remove sem perguntar data
+      const next: SettledEntry[] = current.filter((e) => settledIdOf(e) !== row.installmentId);
+      await saveSettlement(inv.id, next, "Liquidação removida");
+    } else {
+      // Se vai liquidar, pergunta a data
+      setSettlementDate(row.dueDate);
+      setSettlingRow(row);
+    }
+  };
+
+  const saveSettlement = async (invoiceId: string, next: SettledEntry[], successMsg: string) => {
     // optimistic
     setInvoices((prev) =>
-      prev.map((i) => (i.id === inv.id ? { ...i, settled_installments: next } : i))
+      prev.map((i) => (i.id === invoiceId ? { ...i, settled_installments: next } : i))
     );
     const { error } = await supabase.rpc("toggle_invoice_settlement", {
-      _invoice_id: inv.id,
+      _invoice_id: invoiceId,
       _settled_ids: next as any,
     });
     if (error) {
@@ -607,12 +619,22 @@ const Historico = () => {
       toast.error(friendlyDbError(error, "Erro ao atualizar liquidação"));
       load();
     } else {
-      toast.success(
-        !isSettled ? "Parcela marcada como liquidada" : "Liquidação removida"
-      );
-      // Recarrega para refletir a nova autoria (created_by passa para quem liquidou)
+      toast.success(successMsg);
       load();
     }
+  };
+
+  const confirmSettlement = async () => {
+    if (!settlingRow) return;
+    const inv = invoices.find((i) => i.id === settlingRow.invoiceId);
+    if (!inv) return;
+    const current: SettledEntry[] = Array.isArray(inv.settled_installments)
+      ? (inv.settled_installments as any)
+      : [];
+    
+    const next: SettledEntry[] = [...current, { id: settlingRow.installmentId, date: settlementDate }];
+    await saveSettlement(inv.id, next, "Parcela marcada como liquidada");
+    setSettlingRow(null);
   };
 
   const handleDeleteOperation = async (invoiceId: string) => {
@@ -1561,6 +1583,41 @@ const Historico = () => {
       <footer className="border-t border-border/40 py-6 text-center">
         <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">MYKACA$H · VERSÃO 2.4</p>
       </footer>
+
+      {/* Settlement Date Dialog */}
+      <Dialog open={!!settlingRow} onOpenChange={(o) => !o && setSettlingRow(null)}>
+        <DialogContent className="max-w-md bg-background/95 backdrop-blur-xl border-border/50">
+          <DialogHeader>
+            <DialogTitle className="font-display">Confirmar Liquidação</DialogTitle>
+            <DialogDescription className="font-mono text-[10px] tracking-wider uppercase">
+              Selecione a data em que o valor entrou no banco
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-6 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="settlement-date" className="text-xs font-mono tracking-widest uppercase text-muted-foreground">Data de Liquidação</Label>
+              <Input
+                id="settlement-date"
+                type="date"
+                className="bg-background/50 border-border/40 font-mono"
+                value={settlementDate}
+                onChange={(e) => setSettlementDate(e.target.value)}
+              />
+              <p className="text-[10px] font-mono text-muted-foreground/70 italic">
+                Padrão: Data de Vencimento da parcela.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSettlingRow(null)} className="font-mono text-[10px] tracking-widest">
+              CANCELAR
+            </Button>
+            <Button onClick={confirmSettlement} className="bg-primary text-primary-foreground font-mono text-[10px] tracking-widest">
+              CONFIRMAR LIQUIDAÇÃO
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
