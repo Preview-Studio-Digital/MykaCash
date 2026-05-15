@@ -62,6 +62,8 @@ interface UnifiedTransaction {
   date: string;
   description: string;
   reference_id?: string;
+  balanceAfter?: number;
+  created_at?: string;
 }
 
 type Period = "total" | "dia" | "semana" | "mes" | "periodo";
@@ -161,6 +163,7 @@ export const AccountCashFlow = () => {
         amount: Number(t.amount),
         date: t.date,
         description: t.description || (t.type === 'deposit' ? 'Depósito Manual' : 'Saque Manual'),
+        created_at: t.created_at
       });
     });
 
@@ -183,7 +186,8 @@ export const AccountCashFlow = () => {
           amount: calc.netValue,
           date: inv.operation_date,
           description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${calc.installmentCalcs.length > 1 ? "a" : ""}` : "—"} · Saída Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}`,
-          reference_id: inv.id
+          reference_id: inv.id,
+          created_at: inv.created_at
         });
       }
 
@@ -205,14 +209,33 @@ export const AccountCashFlow = () => {
             amount: inst.value,
             date: actualSettledDate, 
             description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${calc.installmentCalcs.length > 1 ? String.fromCharCode(96 + (idx + 1)) : ""}` : "—"} · Entrada Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'} (${idx + 1}/${calc.installmentCalcs.length})`,
-            reference_id: inv.id
+            reference_id: inv.id,
+            created_at: inv.created_at // Using invoice created_at as fallback for sorting
           });
         }
       });
     });
 
-    return data.sort((a, b) => b.date.localeCompare(a.date));
-  }, [manualTransactions, invoices]);
+    // Calculate cumulative balance
+    const sortedAsc = [...data].sort((a, b) => {
+      const dateCompare = a.date.localeCompare(b.date);
+      if (dateCompare !== 0) return dateCompare;
+      return (a.created_at || "").localeCompare(b.created_at || "");
+    });
+
+    let current = initialBalance;
+    const withBalance = sortedAsc.map(t => {
+      const delta = (t.type === "deposit" || t.type === "installment_in") ? t.amount : -t.amount;
+      current += delta;
+      return { ...t, balanceAfter: current };
+    });
+
+    return withBalance.sort((a, b) => {
+      const dateCompare = b.date.localeCompare(a.date);
+      if (dateCompare !== 0) return dateCompare;
+      return (b.created_at || "").localeCompare(a.created_at || "");
+    });
+  }, [manualTransactions, invoices, initialBalance]);
 
 
   const filteredData = useMemo(() => {
@@ -636,6 +659,7 @@ export const AccountCashFlow = () => {
                   <th>Descrição</th>
                   <th>Tipo</th>
                   <th>Valor</th>
+                  <th>Saldo</th>
                 </tr>
               </thead>
               <tbody>
@@ -650,6 +674,9 @@ export const AccountCashFlow = () => {
                     </td>
                     <td class="stat-value ${ (t.type === 'deposit' || t.type === 'installment_in') ? 'text-green' : 'text-red' }">
                       ${(t.type === 'deposit' || t.type === 'installment_in') ? '+' : '-'} ${formatBRL(t.amount)}
+                    </td>
+                    <td class="stat-value" style="color: ${ (t.balanceAfter || 0) >= 0 ? '#16a34a' : '#dc2626' }">
+                      ${formatBRL(t.balanceAfter || 0)}
                     </td>
                   </tr>
                 `).join('')}
@@ -1126,6 +1153,7 @@ export const AccountCashFlow = () => {
                 <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Descrição</TableHead>
                 <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Tipo</TableHead>
                 <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Valor</TableHead>
+                <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Saldo</TableHead>
                 <TableHead className="text-center w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -1164,6 +1192,11 @@ export const AccountCashFlow = () => {
                     (t.type === 'deposit' || t.type === 'installment_in') ? 'text-net-green' : 'text-cost-red'
                   }`}>
                     {(t.type === 'deposit' || t.type === 'installment_in') ? '+' : '-'} {formatBRL(t.amount)}
+                  </TableCell>
+                  <TableCell className={`text-center font-mono font-bold ${
+                    (t.balanceAfter || 0) >= 0 ? 'text-primary' : 'text-cost-red'
+                  }`}>
+                    {formatBRL(t.balanceAfter || 0)}
                   </TableCell>
                   <TableCell className="text-center">
                     {(t.type === 'deposit' || t.type === 'withdrawal') && (
