@@ -1431,6 +1431,7 @@ const Historico = () => {
                           rowClass(r)
                         }
                       >
+                        <td className="px-1.5 py-2 text-muted-foreground">{r.opNumber}</td>
                         <td className="relative px-2 py-2">
                           <div className="inline-flex items-center justify-center">
                             <button
