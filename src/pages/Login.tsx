@@ -26,7 +26,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
-  if (!loading && session) return <Navigate to="/historico" replace />;
+  if (!loading && session) return <Navigate to="/" replace />;
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +43,7 @@ const Login = () => {
         password: parsed.data.password,
       });
       if (error) throw error;
-      navigate("/historico", { replace: true });
+      navigate("/", { replace: true });
     } catch (err: any) {
       toast.error("Usuário ou senha inválidos");
     } finally {

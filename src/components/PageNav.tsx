@@ -9,8 +9,8 @@ export const PageNav = () => {
   const { isAdmin } = useAuth();
 
   const items = [
-    { to: "/", label: "CADASTRO", icon: FilePlus2 },
-    { to: "/historico", label: "HISTÓRICO", icon: History },
+    { to: "/cadastro", label: "CADASTRO", icon: FilePlus2 },
+    { to: "/", label: "HISTÓRICO", icon: History },
     ...(isAdmin ? [{ to: "/financeiro", label: "FINANCEIRO", icon: Wallet }] : []),
   ];
   return (

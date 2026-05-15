@@ -302,7 +302,7 @@ export const RegistrationSection = ({
       onSaveSuccess({ ...invoiceData, id: invoiceToEdit?.id });
     } else {
       setInvoiceNumber("");
-      navigate("/historico");
+      navigate("/");
     }
   };
 

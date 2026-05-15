@@ -65,15 +65,15 @@ const App = () => (
               path="/"
               element={
                 <ProtectedRoute>
-                  <Index />
+                  <Historico />
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/historico"
+              path="/cadastro"
               element={
                 <ProtectedRoute>
-                  <Historico />
+                  <Index />
                 </ProtectedRoute>
               }
             />
