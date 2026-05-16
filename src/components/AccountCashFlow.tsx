@@ -1218,19 +1218,50 @@ export const AccountCashFlow = () => {
                   </TableCell>
                   <TableCell className="text-center">
                     {(t.type === 'deposit' || t.type === 'withdrawal') && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={`h-8 w-8 transition-colors ${
-                          t.type === 'deposit' 
-                            ? 'text-blue-400 hover:text-blue-300' 
-                            : 'text-muted-foreground hover:text-primary'
-                        }`}
-                        onClick={() => openEdit(t)}
-                        title="Editar lançamento manual"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
+                      <div className="flex items-center justify-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={`h-8 w-8 transition-colors ${
+                            t.type === 'deposit' 
+                              ? 'text-blue-400 hover:text-blue-300' 
+                              : 'text-muted-foreground hover:text-primary'
+                          }`}
+                          onClick={() => openEdit(t)}
+                          title="Editar lançamento manual"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-cost-red transition-colors"
+                              title="Excluir lançamento manual"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Excluir movimentação?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Esta ação não pode ser desfeita. O lançamento "{t.description}" no valor de {formatBRL(t.amount)} será removido permanentemente.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                className="bg-cost-red hover:bg-cost-red/90"
+                                onClick={() => handleDeleteTransaction(t.id)}
+                              >
+                                Excluir
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     )}
                   </TableCell>
                 </TableRow>
