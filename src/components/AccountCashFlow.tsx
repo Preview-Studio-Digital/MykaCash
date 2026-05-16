@@ -733,6 +733,17 @@ export const AccountCashFlow = () => {
     toast.success("Documento pronto para exportação!");
   };
 
+  const handleDeleteTransaction = async (id: string) => {
+    try {
+      const { error } = await supabase.from("account_transactions").delete().eq("id", id);
+      if (error) throw error;
+      toast.success("Movimentação excluída!");
+      loadData();
+    } catch (error: any) {
+      toast.error("Erro ao excluir movimentação: " + error.message);
+    }
+  };
+
   const openEdit = (t: UnifiedTransaction) => {
     if (t.type !== 'deposit' && t.type !== 'withdrawal') return;
     setEditingId(t.id);
