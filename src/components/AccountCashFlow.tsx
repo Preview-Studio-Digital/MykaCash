@@ -806,29 +806,6 @@ export const AccountCashFlow = () => {
                 {formatBRL(statsWithInitial.cumulativeBalance)}
               </h3>
             </div>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-primary">
-                  <Pencil className="h-3 w-3" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[300px]">
-                <DialogHeader>
-                  <DialogTitle className="text-sm font-mono uppercase tracking-widest">Saldo Inicial</DialogTitle>
-                </DialogHeader>
-                <div className="py-4 space-y-4">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] uppercase font-mono text-muted-foreground">Valor que já estava no banco</Label>
-                    <Input 
-                      type="number" 
-                      defaultValue={initialBalance}
-                      onBlur={(e) => saveInitialBalance(parseFloat(e.target.value) || 0)}
-                      className="font-mono text-sm"
-                    />
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
           </div>
         </div>
       </div>
