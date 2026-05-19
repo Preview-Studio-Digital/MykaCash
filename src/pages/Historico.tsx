@@ -138,6 +138,7 @@ const Historico = () => {
   const [now, setNow] = useState<number>(Date.now());
   const [settlingRow, setSettlingRow] = useState<any | null>(null);
   const [settlementDate, setSettlementDate] = useState<string>("");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState<boolean>(false);
 
   // tick every 30s so the 5-minute edit window updates
   useEffect(() => {
