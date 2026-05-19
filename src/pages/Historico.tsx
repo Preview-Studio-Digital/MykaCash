@@ -8,7 +8,7 @@ import { DateField } from "@/components/DateField";
 import { supabase } from "@/integrations/supabase/client";
 import { calculate, formatBRL, formatPct, FACTORING_MONTHLY_RATE_PCT, type Installment } from "@/lib/calc";
 import { toast } from "sonner";
-import { CheckCircle2, Circle, Pencil, Trash2, Plus, X, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { CheckCircle2, Circle, Pencil, Trash2, Plus, X, ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Dialog,
