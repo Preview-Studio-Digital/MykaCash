@@ -11,18 +11,18 @@ import { z } from "zod";
 const USERNAME_DOMAIN = "smartmoney.local";
 
 const schema = z.object({
-  username: z
+  email: z
     .string()
     .trim()
     .toLowerCase()
-    .regex(/^[a-z0-9_.-]{3,32}$/, "Usuário inválido"),
+    .min(3, { message: "Mínimo de 3 caracteres" }),
   password: z.string().min(6, { message: "Mínimo de 6 caracteres" }).max(72),
 });
 
 const Login = () => {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -30,22 +30,27 @@ const Login = () => {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = schema.safeParse({ username, password });
+    const parsed = schema.safeParse({ email, password });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
       return;
     }
     setBusy(true);
     try {
-      const email = `${parsed.data.username}@${USERNAME_DOMAIN}`;
+      // Se contiver '@', assume que é um e-mail completo.
+      // Caso contrário, assume que é um usuário legado e adiciona o domínio padrão.
+      const resolvedEmail = parsed.data.email.includes("@")
+        ? parsed.data.email
+        : `${parsed.data.email}@${USERNAME_DOMAIN}`;
+
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: resolvedEmail,
         password: parsed.data.password,
       });
       if (error) throw error;
       navigate("/", { replace: true });
     } catch (err: any) {
-      toast.error("Usuário ou senha inválidos");
+      toast.error("E-mail ou senha inválidos");
     } finally {
       setBusy(false);
     }
@@ -65,13 +70,14 @@ const Login = () => {
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username">Usuário</Label>
+            <Label htmlFor="email">E-mail</Label>
             <Input
-              id="username"
+              id="email"
               type="text"
-              autoComplete="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              autoComplete="email"
+              placeholder="exemplo@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
