@@ -1215,7 +1215,6 @@ const Historico = () => {
                         connectNulls={false}
                         isAnimationActive={false}
                       />
-                      {statusFilter !== "liquidadas" && (
                       <Area
                         yAxisId="right"
                         type="monotone"
