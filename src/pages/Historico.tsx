@@ -1216,6 +1216,15 @@ const Historico = () => {
                         isAnimationActive={false}
                       />
                       {statusFilter !== "liquidadas" && (
+                      <Area
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="saldo"
+                        stroke="transparent"
+                        fill="transparent"
+                        isAnimationActive={false}
+                      />
+                      {statusFilter !== "liquidadas" && (
                         <Area
                           yAxisId="left"
                           type="monotone"
