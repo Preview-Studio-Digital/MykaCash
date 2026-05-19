@@ -913,20 +913,20 @@ export const AccountCashFlow = () => {
               />
               <YAxis 
                 yAxisId="left"
-                width={50}
+                width={60}
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                tickFormatter={(v) => `R$ ${Math.abs(v) >= 1000 ? (v/1000).toFixed(0) + 'k' : v}`}
+                tickFormatter={(v) => `R$${Math.abs(v) >= 1000 ? (v/1000).toFixed(0) + 'K' : v}`}
               />
               <YAxis 
                 yAxisId="right"
                 orientation="right"
-                width={50}
+                width={60}
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                tickFormatter={(v) => `R$ ${Math.abs(v) >= 1000 ? (v/1000).toFixed(0) + 'k' : v}`}
+                tickFormatter={(v) => `R$${Math.abs(v) >= 1000 ? (v/1000).toFixed(0) + 'K' : v}`}
               />
               <Tooltip 
                 cursor={false}
