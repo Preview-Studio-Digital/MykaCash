@@ -862,8 +862,17 @@ const Historico = () => {
           </div>
         )}
 
+        {/* Mobile toggle */}
+        <button
+          onClick={() => setMobileFiltersOpen((v) => !v)}
+          className="sm:hidden inline-flex items-center gap-2 rounded-full border border-border/50 bg-background/60 px-3 py-1.5 font-mono text-[9px] tracking-[0.25em] text-muted-foreground hover:text-foreground transition-all"
+        >
+          <SlidersHorizontal className="h-3 w-3" />
+          {mobileFiltersOpen ? "OCULTAR FILTROS" : "MOSTRAR FILTROS"}
+        </button>
+
         {/* Filter rows */}
-        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+        <div className={cn("flex flex-wrap items-center justify-center gap-4 sm:gap-6", !mobileFiltersOpen && "hidden sm:flex")}>
           {/* Period pills */}
           <div className="flex flex-col items-center gap-1.5">
             <span className="font-mono text-[8px] tracking-[0.2em] text-muted-foreground/60 uppercase">PERÍODO DE TEMPO</span>
