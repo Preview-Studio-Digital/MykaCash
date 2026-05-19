@@ -937,7 +937,17 @@ const Historico = () => {
     const dailySpeed = dailyAvgBruto || 0;
     const effectiveRate = totalEffective || 0;
     const totalDebt = openPresent || 0; // Valor bruto em aberto compromete fluxo de caixa futuro
+    const totalSettled = settledPresent || 0;
+    const totalBorrowed = totals.value || 0;
     
+    // Calcula a taxa de liquidação (quanto foi pago do total antecipado)
+    const liquidationRate = totalBorrowed > 0 
+      ? (totalSettled / totalBorrowed) * 100 
+      : 0;
+    
+    // Taxa de Re-empréstimo/Rolagem (quanto resta sem liquidar)
+    const rolloverRate = Math.max(0, 100 - liquidationRate);
+
     // Supondo 22 dias úteis por mês, volume mensal de antecipação
     const monthlyAnticipationVolume = dailySpeed * 22;
     
@@ -968,14 +978,15 @@ const Historico = () => {
     let healthScore = "A+";
     let scoreColor = "text-net-green";
 
-    if (cashCommitmentPct >= 60 || effectiveRate > 4.5) {
+    // O risco aumenta se o comprometimento for alto, a taxa for alta ou a rolagem (re-empréstimo) estiver extremamente alta
+    if (cashCommitmentPct >= 60 || effectiveRate > 4.5 || (rolloverRate >= 80 && totalBorrowed > 10000)) {
       riskLevel = "CRÍTICO";
       riskColor = "text-cost-red";
       riskBg = "bg-cost-red/10 border-cost-red/20";
       riskBorder = "border-cost-red/30";
       healthScore = "D-";
       scoreColor = "text-cost-red animate-pulse-glow";
-    } else if (cashCommitmentPct >= 25 || effectiveRate > 2.5) {
+    } else if (cashCommitmentPct >= 25 || effectiveRate > 2.5 || (rolloverRate >= 50 && totalBorrowed > 5000)) {
       riskLevel = "MODERADO";
       riskColor = "text-factoring-amber";
       riskBg = "bg-factoring-amber/10 border-factoring-amber/20";
@@ -988,6 +999,10 @@ const Historico = () => {
       dailySpeed,
       effectiveRate,
       totalDebt,
+      totalSettled,
+      totalBorrowed,
+      liquidationRate,
+      rolloverRate,
       monthlyAnticipationVolume,
       cashCommitmentPct,
       daysToClear,
@@ -1001,7 +1016,7 @@ const Historico = () => {
       healthScore,
       scoreColor
     };
-  }, [dailyAvgBruto, totalEffective, openPresent, factoringSavings, businessDays]);
+  }, [dailyAvgBruto, totalEffective, openPresent, settledPresent, totals.value, factoringSavings, businessDays]);
 
   return (
     <div className="min-h-screen">
@@ -1445,12 +1460,23 @@ const Historico = () => {
                     Se a empresa parasse de realizar novas antecipações hoje, ela levaria aproximadamente{" "}
                     <strong className="text-foreground font-mono text-base">{Math.ceil(alertMetrics.daysToClear)} dias úteis</strong> para liquidar todo o saldo devedor pendente através dos recebimentos normais.
                   </p>
+                  <p className="text-sm text-foreground/90 leading-relaxed font-sans">
+                    Adicionalmente, detectamos um comportamento de **Rolagem de Recebíveis (Re-empréstimo)**. Do volume total captado no período (<strong>{formatBRL(alertMetrics.totalBorrowed)}</strong>), apenas <strong>{formatPct(alertMetrics.liquidationRate)}</strong> foi liquidado de fato (<strong>{formatBRL(alertMetrics.totalSettled)}</strong>). Isso significa que <strong>{formatPct(alertMetrics.rolloverRate)}</strong> do capital está sendo re-emprestado de imediato, gerando um acúmulo acelerado de juros e dependência de novas antecipações para pagar títulos antigos.
+                  </p>
                   <div className="flex flex-wrap gap-2 pt-2">
                     <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 font-mono text-[9px] tracking-wider text-primary border border-primary/20">
                       VELOCIDADE DIÁRIA: {formatBRL(alertMetrics.dailySpeed)}
                     </span>
                     <span className="inline-flex items-center rounded-full bg-white/5 px-2.5 py-0.5 font-mono text-[9px] tracking-wider text-muted-foreground border border-border/30">
                       TAXA EFETIVA MÉDIA: {formatPct(alertMetrics.effectiveRate)}
+                    </span>
+                    <span className={cn(
+                      "inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[9px] tracking-wider border",
+                      alertMetrics.rolloverRate >= 70 
+                        ? "bg-cost-red/10 text-cost-red border-cost-red/20" 
+                        : "bg-white/5 text-muted-foreground border-border/30"
+                    )}>
+                      ÍNDICE DE RE-EMPRÉSTIMO (ROLAGEM): {formatPct(alertMetrics.rolloverRate)}
                     </span>
                   </div>
                 </div>
@@ -1515,7 +1541,9 @@ const Historico = () => {
                 <div className="space-y-0.5">
                   <div className="font-mono text-[9px] tracking-wider text-muted-foreground uppercase">Recomendação do Consultor AI</div>
                   <p className="text-xs text-muted-foreground leading-normal font-sans">
-                    {alertMetrics.cashCommitmentPct >= 60 ? (
+                    {alertMetrics.rolloverRate >= 70 && alertMetrics.totalBorrowed > 5000 ? (
+                      `Alerta crítico de Rolagem! Sua taxa de re-empréstimo de recebíveis está em ${formatPct(alertMetrics.rolloverRate)}. Como a liquidação real está muito baixa, a empresa está dependendo de novos empréstimos para sustentar o caixa. Recomenda-se frear novas antecipações imediatamente e focar na liquidação dos títulos ativos.`
+                    ) : alertMetrics.cashCommitmentPct >= 60 ? (
                       "Atenção urgente! Reduza o ritmo de antecipações focando apenas em duplicatas de curto prazo (até 15 dias). Considere renegociar contratos ou aportes pontuais para frear a bola de neve de juros acumulados."
                     ) : alertMetrics.cashCommitmentPct >= 25 ? (
                       "Ritmo moderado. Tente alternar dias de antecipação para aumentar o prazo médio acumulado e diminuir a taxa efetiva real paga por operação."
