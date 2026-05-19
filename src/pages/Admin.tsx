@@ -110,7 +110,20 @@ const Admin = () => {
           is_admin: makeAdmin,
         },
       });
-      if (error) throw error;
+      if (error) {
+        let msg = "Falha ao criar usuário";
+        try {
+          if (error.context && typeof error.context.json === "function") {
+            const body = await error.context.json();
+            msg = body.error || body.message || error.message;
+          } else {
+            msg = error.message;
+          }
+        } catch {
+          msg = error.message;
+        }
+        throw new Error(msg);
+      }
       if ((data as any)?.error) throw new Error((data as any).error);
       toast.success(`Usuário "${username}" criado`);
       setUsername("");
@@ -146,7 +159,20 @@ const Admin = () => {
       if (editIsAdmin !== adminIds.has(editing.id)) body.is_admin = editIsAdmin;
 
       const { data, error } = await supabase.functions.invoke("admin-update-user", { body });
-      if (error) throw error;
+      if (error) {
+        let msg = "Falha ao atualizar usuário";
+        try {
+          if (error.context && typeof error.context.json === "function") {
+            const body = await error.context.json();
+            msg = body.error || body.message || error.message;
+          } else {
+            msg = error.message;
+          }
+        } catch {
+          msg = error.message;
+        }
+        throw new Error(msg);
+      }
       if ((data as any)?.error) throw new Error((data as any).error);
       toast.success("Usuário atualizado");
       setEditing(null);
@@ -165,7 +191,20 @@ const Admin = () => {
       const { data, error } = await supabase.functions.invoke("admin-delete-user", {
         body: { user_id: deleting.id },
       });
-      if (error) throw error;
+      if (error) {
+        let msg = "Falha ao excluir usuário";
+        try {
+          if (error.context && typeof error.context.json === "function") {
+            const body = await error.context.json();
+            msg = body.error || body.message || error.message;
+          } else {
+            msg = error.message;
+          }
+        } catch {
+          msg = error.message;
+        }
+        throw new Error(msg);
+      }
       if ((data as any)?.error) throw new Error((data as any).error);
       toast.success("Usuário excluído");
       setDeleting(null);
