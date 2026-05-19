@@ -8,8 +8,9 @@ import { DateField } from "@/components/DateField";
 import { supabase } from "@/integrations/supabase/client";
 import { calculate, formatBRL, formatPct, FACTORING_MONTHLY_RATE_PCT, type Installment } from "@/lib/calc";
 import { toast } from "sonner";
-import { CheckCircle2, Circle, Pencil, Trash2, Plus, X, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { CheckCircle2, Circle, Pencil, Trash2, Plus, X, ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -138,6 +139,7 @@ const Historico = () => {
   const [now, setNow] = useState<number>(Date.now());
   const [settlingRow, setSettlingRow] = useState<any | null>(null);
   const [settlementDate, setSettlementDate] = useState<string>("");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState<boolean>(false);
 
   // tick every 30s so the 5-minute edit window updates
   useEffect(() => {
@@ -861,8 +863,17 @@ const Historico = () => {
           </div>
         )}
 
+        {/* Mobile toggle */}
+        <button
+          onClick={() => setMobileFiltersOpen((v) => !v)}
+          className="sm:hidden inline-flex items-center gap-2 rounded-full border border-border/50 bg-background/60 px-3 py-1.5 font-mono text-[9px] tracking-[0.25em] text-muted-foreground hover:text-foreground transition-all"
+        >
+          <SlidersHorizontal className="h-3 w-3" />
+          {mobileFiltersOpen ? "OCULTAR FILTROS" : "MOSTRAR FILTROS"}
+        </button>
+
         {/* Filter rows */}
-        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+        <div className={cn("flex flex-wrap items-center justify-center gap-4 sm:gap-6", !mobileFiltersOpen && "hidden sm:flex")}>
           {/* Period pills */}
           <div className="flex flex-col items-center gap-1.5">
             <span className="font-mono text-[8px] tracking-[0.2em] text-muted-foreground/60 uppercase">PERÍODO DE TEMPO</span>
@@ -1148,10 +1159,19 @@ const Historico = () => {
                         stroke="hsl(var(--border))"
                       />
                       <YAxis
-                        width={50}
+                        yAxisId="left"
+                        width={60}
                         tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                         stroke="hsl(var(--border))"
-                        tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`}
+                        tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}K`}
+                      />
+                      <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        width={60}
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                        stroke="hsl(var(--border))"
+                        tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}K`}
                       />
                       <Tooltip
                         cursor={{ strokeWidth: 0, stroke: "transparent", fill: "transparent" }}
@@ -1186,6 +1206,7 @@ const Historico = () => {
                         <ReferenceLine
                           key={dateKey}
                           x={dateKey}
+                          yAxisId="left"
                           stroke="hsl(var(--muted-foreground))"
                           strokeDasharray="4 4"
                           strokeWidth={2.5}
@@ -1194,6 +1215,7 @@ const Historico = () => {
                       ))}
 
                       <Area
+                        yAxisId="left"
                         type="monotone"
                         dataKey="saldo"
                         name="saldo"
@@ -1204,8 +1226,17 @@ const Historico = () => {
                         connectNulls={false}
                         isAnimationActive={false}
                       />
+                      <Area
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="saldo"
+                        stroke="transparent"
+                        fill="transparent"
+                        isAnimationActive={false}
+                      />
                       {statusFilter !== "liquidadas" && (
                         <Area
+                          yAxisId="left"
                           type="monotone"
                           dataKey="saldoFuturo"
                           name="projeção"
