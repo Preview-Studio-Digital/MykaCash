@@ -1148,10 +1148,19 @@ const Historico = () => {
                         stroke="hsl(var(--border))"
                       />
                       <YAxis
-                        width={50}
+                        yAxisId="left"
+                        width={60}
                         tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                         stroke="hsl(var(--border))"
-                        tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`}
+                        tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}K`}
+                      />
+                      <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        width={60}
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                        stroke="hsl(var(--border))"
+                        tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}K`}
                       />
                       <Tooltip
                         cursor={{ strokeWidth: 0, stroke: "transparent", fill: "transparent" }}
