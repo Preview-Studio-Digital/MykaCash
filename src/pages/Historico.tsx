@@ -1195,6 +1195,7 @@ const Historico = () => {
                         <ReferenceLine
                           key={dateKey}
                           x={dateKey}
+                          yAxisId="left"
                           stroke="hsl(var(--muted-foreground))"
                           strokeDasharray="4 4"
                           strokeWidth={2.5}
@@ -1203,6 +1204,7 @@ const Historico = () => {
                       ))}
 
                       <Area
+                        yAxisId="left"
                         type="monotone"
                         dataKey="saldo"
                         name="saldo"
@@ -1215,6 +1217,7 @@ const Historico = () => {
                       />
                       {statusFilter !== "liquidadas" && (
                         <Area
+                          yAxisId="left"
                           type="monotone"
                           dataKey="saldoFuturo"
                           name="projeção"
