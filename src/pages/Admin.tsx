@@ -36,7 +36,7 @@ type ProfileRow = {
 type RoleRow = { user_id: string; role: string };
 
 const Admin = () => {
-  const { isAdmin, loading, session, user } = useAuth();
+  const { isAdmin, loading, session, user, isAdminLoading } = useAuth();
   const [users, setUsers] = useState<ProfileRow[]>([]);
   const [adminIds, setAdminIds] = useState<Set<string>>(new Set());
   const [username, setUsername] = useState("");
@@ -86,7 +86,15 @@ const Admin = () => {
     if (isAdmin) loadUsers();
   }, [isAdmin]);
 
-  if (loading) return null;
+  if (loading || isAdminLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="font-mono text-sm text-muted-foreground animate-pulse-glow">
+          Verificando permissões...
+        </div>
+      </div>
+    );
+  }
   if (!session) return <Navigate to="/login" replace />;
   if (!isAdmin) return <Navigate to="/" replace />;
 

@@ -7,6 +7,7 @@ type AuthCtx = {
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
+  isAdminLoading: boolean;
   signOut: () => Promise<void>;
 };
 
@@ -15,6 +16,7 @@ const Ctx = createContext<AuthCtx>({
   session: null,
   loading: true,
   isAdmin: false,
+  isAdminLoading: true,
   signOut: async () => {},
 });
 
@@ -22,11 +24,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdminLoading, setIsAdminLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
 
-    const checkAdmin = async (userId: string) => {
+    const checkAdminRole = async (userId: string) => {
+      if (!active) return;
+      setIsAdminLoading(true);
       try {
         const { data } = await supabase
           .from("user_roles")
@@ -34,42 +39,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           .eq("user_id", userId)
           .eq("role", "admin")
           .maybeSingle();
-        return !!data;
+        if (active) {
+          setIsAdmin(!!data);
+        }
       } catch (err) {
         console.error("Error checking admin role:", err);
-        return false;
+        if (active) {
+          setIsAdmin(false);
+        }
+      } finally {
+        if (active) {
+          setIsAdminLoading(false);
+        }
       }
     };
 
     // Load initial session
-    supabase.auth.getSession().then(async ({ data }) => {
+    supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
       const s = data.session;
       setSession(s);
+      setLoading(false);
       if (s?.user) {
-        const adminVal = await checkAdmin(s.user.id);
-        if (active) {
-          setIsAdmin(adminVal);
-          setLoading(false);
-        }
+        checkAdminRole(s.user.id);
       } else {
         setIsAdmin(false);
-        setLoading(false);
+        setIsAdminLoading(false);
       }
     });
 
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_evt, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
       if (!active) return;
       setSession(s);
+      setLoading(false);
       if (s?.user) {
-        const adminVal = await checkAdmin(s.user.id);
-        if (active) {
-          setIsAdmin(adminVal);
-          setLoading(false);
-        }
+        checkAdminRole(s.user.id);
       } else {
         setIsAdmin(false);
-        setLoading(false);
+        setIsAdminLoading(false);
       }
     });
 
@@ -84,7 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <Ctx.Provider value={{ user: session?.user ?? null, session, loading, isAdmin, signOut }}>
+    <Ctx.Provider value={{ user: session?.user ?? null, session, loading, isAdmin, isAdminLoading, signOut }}>
       {children}
     </Ctx.Provider>
   );
