@@ -102,29 +102,25 @@ const Admin = () => {
     e.preventDefault();
     setBusy(true);
     try {
-      const { data, error } = await supabase.functions.invoke("admin-create-user", {
-        body: {
-          username: username.trim().toLowerCase(),
-          password,
-          display_name: displayName.trim() || username.trim(),
-          is_admin: makeAdmin,
-        },
-      });
-      if (error) {
-        let msg = "Falha ao criar usuário";
-        try {
-          if (error.context && typeof error.context.json === "function") {
-            const body = await error.context.json();
-            msg = body.error || body.message || error.message;
-          } else {
-            msg = error.message;
-          }
-        } catch {
-          msg = error.message;
-        }
-        throw new Error(msg);
+      const userInput = username.trim().toLowerCase();
+      let email = "";
+      if (userInput.includes("@")) {
+        email = userInput;
+      } else {
+        email = `${userInput}@smartmoney.local`;
       }
+
+      const { data, error } = await supabase.rpc("admin_create_user", {
+        p_email: email,
+        p_password: password,
+        p_username: userInput,
+        p_display_name: displayName.trim() || userInput,
+        p_is_admin: makeAdmin,
+      });
+
+      if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
+
       toast.success(`Usuário "${username}" criado`);
       setUsername("");
       setPassword("");
@@ -151,29 +147,28 @@ const Admin = () => {
     if (!editing) return;
     setEditBusy(true);
     try {
-      const body: Record<string, unknown> = { user_id: editing.id };
       const newU = editUsername.trim().toLowerCase();
-      if (newU && newU !== (editing.username ?? "")) body.username = newU;
-      if (editDisplay.trim() !== (editing.display_name ?? "")) body.display_name = editDisplay.trim();
-      if (editPassword.length > 0) body.password = editPassword;
-      if (editIsAdmin !== adminIds.has(editing.id)) body.is_admin = editIsAdmin;
-
-      const { data, error } = await supabase.functions.invoke("admin-update-user", { body });
-      if (error) {
-        let msg = "Falha ao atualizar usuário";
-        try {
-          if (error.context && typeof error.context.json === "function") {
-            const body = await error.context.json();
-            msg = body.error || body.message || error.message;
-          } else {
-            msg = error.message;
-          }
-        } catch {
-          msg = error.message;
+      let email: string | null = null;
+      if (newU) {
+        if (newU.includes("@")) {
+          email = newU;
+        } else {
+          email = `${newU}@smartmoney.local`;
         }
-        throw new Error(msg);
       }
+
+      const { data, error } = await supabase.rpc("admin_update_user", {
+        p_user_id: editing.id,
+        p_email: email,
+        p_password: editPassword || null,
+        p_username: newU || null,
+        p_display_name: editDisplay.trim() || null,
+        p_is_admin: editIsAdmin !== adminIds.has(editing.id) ? editIsAdmin : null,
+      });
+
+      if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
+
       toast.success("Usuário atualizado");
       setEditing(null);
       await loadUsers();
@@ -188,24 +183,13 @@ const Admin = () => {
     if (!deleting) return;
     setDeleteBusy(true);
     try {
-      const { data, error } = await supabase.functions.invoke("admin-delete-user", {
-        body: { user_id: deleting.id },
+      const { data, error } = await supabase.rpc("admin_delete_user", {
+        p_user_id: deleting.id,
       });
-      if (error) {
-        let msg = "Falha ao excluir usuário";
-        try {
-          if (error.context && typeof error.context.json === "function") {
-            const body = await error.context.json();
-            msg = body.error || body.message || error.message;
-          } else {
-            msg = error.message;
-          }
-        } catch {
-          msg = error.message;
-        }
-        throw new Error(msg);
-      }
+
+      if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
+
       toast.success("Usuário excluído");
       setDeleting(null);
       await loadUsers();
