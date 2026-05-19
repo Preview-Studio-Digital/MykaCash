@@ -220,7 +220,7 @@ const Historico = () => {
       const withinEditWindow = now - createdAtMs < 1 * 60 * 1000;
       const isAuthor = !!user && inv.created_by === user.id;
       const createdBy =
-        inv.profiles?.username || inv.profiles?.display_name || "—";
+        inv.profiles?.display_name || inv.profiles?.username || "—";
 
       result.installmentCalcs.forEach((i, idx) => {
         const cost = i.value - i.presentValue;
