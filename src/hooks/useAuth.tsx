@@ -24,29 +24,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
+    let active = true;
+
+    const checkAdmin = async (userId: string) => {
+      try {
+        const { data } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+          .eq("role", "admin")
+          .maybeSingle();
+        return !!data;
+      } catch (err) {
+        console.error("Error checking admin role:", err);
+        return false;
+      }
+    };
+
+    // Load initial session
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!active) return;
+      const s = data.session;
       setSession(s);
-      setLoading(false);
       if (s?.user) {
-        // defer to avoid deadlock with auth state callback
-        setTimeout(async () => {
-          const { data } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", s.user.id)
-            .eq("role", "admin")
-            .maybeSingle();
-          setIsAdmin(!!data);
-        }, 0);
+        const adminVal = await checkAdmin(s.user.id);
+        if (active) {
+          setIsAdmin(adminVal);
+          setLoading(false);
+        }
       } else {
         setIsAdmin(false);
+        setLoading(false);
       }
     });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
+
+    const { data: sub } = supabase.auth.onAuthStateChange(async (_evt, s) => {
+      if (!active) return;
+      setSession(s);
+      if (s?.user) {
+        const adminVal = await checkAdmin(s.user.id);
+        if (active) {
+          setIsAdmin(adminVal);
+          setLoading(false);
+        }
+      } else {
+        setIsAdmin(false);
+        setLoading(false);
+      }
     });
-    return () => sub.subscription.unsubscribe();
+
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {

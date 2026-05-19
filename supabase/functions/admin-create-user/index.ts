@@ -58,25 +58,41 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
-    const username = String(body.username ?? "").trim().toLowerCase();
+    const userInput = String(body.username ?? "").trim().toLowerCase();
     const password = String(body.password ?? "");
-    const displayName = body.display_name ? String(body.display_name) : username;
+    const displayName = body.display_name ? String(body.display_name) : userInput;
     const makeAdmin = Boolean(body.is_admin);
 
-    if (!/^[a-z0-9_.-]{3,32}$/.test(username)) {
+    if (!userInput) {
       return new Response(
-        JSON.stringify({ error: "Username inválido (3-32 caracteres: a-z, 0-9, . _ -)" }),
+        JSON.stringify({ error: "E-mail ou Usuário é obrigatório" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
+
+    let email = "";
+    let username = "";
+
+    if (userInput.includes("@")) {
+      email = userInput;
+      username = userInput; // Use full email as username to avoid index conflicts
+    } else {
+      if (!/^[a-z0-9_.-]{3,32}$/.test(userInput)) {
+        return new Response(
+          JSON.stringify({ error: "Usuário inválido (3-32 caracteres: a-z, 0-9, . _ -)" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      email = `${userInput}@${USERNAME_DOMAIN}`;
+      username = userInput;
+    }
+
     if (password.length < 6 || password.length > 72) {
       return new Response(
         JSON.stringify({ error: "Senha deve ter entre 6 e 72 caracteres" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
-
-    const email = `${username}@${USERNAME_DOMAIN}`;
 
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
       email,

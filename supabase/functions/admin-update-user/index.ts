@@ -69,12 +69,25 @@ Deno.serve(async (req) => {
     const newPassword = body.password != null && String(body.password).length > 0 ? String(body.password) : undefined;
     const isAdminFlag = body.is_admin != null ? Boolean(body.is_admin) : undefined;
 
-    if (newUsername !== undefined && !/^[a-z0-9_.-]{3,32}$/.test(newUsername)) {
-      return new Response(
-        JSON.stringify({ error: "Username inválido (3-32 caracteres: a-z, 0-9, . _ -)" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+    let emailToUpdate: string | undefined = undefined;
+    let usernameToUpdate: string | undefined = undefined;
+
+    if (newUsername !== undefined && newUsername.length > 0) {
+      if (newUsername.includes("@")) {
+        emailToUpdate = newUsername;
+        usernameToUpdate = newUsername;
+      } else {
+        if (!/^[a-z0-9_.-]{3,32}$/.test(newUsername)) {
+          return new Response(
+            JSON.stringify({ error: "Usuário inválido (3-32 caracteres: a-z, 0-9, . _ -)" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+        emailToUpdate = `${newUsername}@${USERNAME_DOMAIN}`;
+        usernameToUpdate = newUsername;
+      }
     }
+
     if (newPassword !== undefined && (newPassword.length < 6 || newPassword.length > 72)) {
       return new Response(
         JSON.stringify({ error: "Senha deve ter entre 6 e 72 caracteres" }),
@@ -84,13 +97,13 @@ Deno.serve(async (req) => {
 
     // Update auth user (email/password/metadata)
     const authUpdate: Record<string, unknown> = {};
-    if (newUsername !== undefined) {
-      authUpdate.email = `${newUsername}@${USERNAME_DOMAIN}`;
+    if (emailToUpdate !== undefined) {
+      authUpdate.email = emailToUpdate;
     }
     if (newPassword !== undefined) authUpdate.password = newPassword;
-    if (newUsername !== undefined || newDisplayName !== undefined) {
+    if (usernameToUpdate !== undefined || newDisplayName !== undefined) {
       authUpdate.user_metadata = {
-        ...(newUsername !== undefined ? { username: newUsername } : {}),
+        ...(usernameToUpdate !== undefined ? { username: usernameToUpdate } : {}),
         ...(newDisplayName !== undefined ? { display_name: newDisplayName } : {}),
       };
     }
@@ -112,7 +125,7 @@ Deno.serve(async (req) => {
 
     // Update profile
     const profileUpdate: Record<string, unknown> = {};
-    if (newUsername !== undefined) profileUpdate.username = newUsername;
+    if (usernameToUpdate !== undefined) profileUpdate.username = usernameToUpdate;
     if (newDisplayName !== undefined) profileUpdate.display_name = newDisplayName;
     if (Object.keys(profileUpdate).length > 0) {
       await admin.from("profiles").update(profileUpdate).eq("id", targetId);

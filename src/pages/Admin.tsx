@@ -192,12 +192,12 @@ const Admin = () => {
           <h2 className="font-display text-lg mb-4">Criar novo usuário</h2>
           <form onSubmit={onCreate} className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="username">Usuário</Label>
+              <Label htmlFor="username">E-mail ou Usuário</Label>
               <Input
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="ex: joao.silva"
+                placeholder="ex: joao.silva@gmail.com ou joao.silva"
                 required
               />
             </div>
@@ -300,7 +300,7 @@ const Admin = () => {
           </DialogHeader>
           <form onSubmit={onSaveEdit} className="grid gap-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-username">Usuário</Label>
+              <Label htmlFor="edit-username">E-mail ou Usuário</Label>
               <Input
                 id="edit-username"
                 value={editUsername}
