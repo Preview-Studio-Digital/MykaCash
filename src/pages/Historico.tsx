@@ -140,6 +140,7 @@ const Historico = () => {
   const [settlingRow, setSettlingRow] = useState<any | null>(null);
   const [settlementDate, setSettlementDate] = useState<string>("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState<boolean>(false);
+  const [activeAlertTab, setActiveAlertTab] = useState<"diaria" | "mensal" | "anual">("diaria");
 
   // tick every 30s so the 5-minute edit window updates
   useEffect(() => {
@@ -932,6 +933,76 @@ const Historico = () => {
   // alias para compatibilidade com versão anterior (evita ReferenceError no Lovable)
   const renderFilters = renderFiltersBar;
 
+  const alertMetrics = useMemo(() => {
+    const dailySpeed = dailyAvgBruto || 0;
+    const effectiveRate = totalEffective || 0;
+    const totalDebt = openPresent || 0; // Valor bruto em aberto compromete fluxo de caixa futuro
+    
+    // Supondo 22 dias úteis por mês, volume mensal de antecipação
+    const monthlyAnticipationVolume = dailySpeed * 22;
+    
+    // Porcentagem de comprometimento de receita baseada na velocidade mensal
+    const cashCommitmentPct = monthlyAnticipationVolume > 0 
+      ? (totalDebt / monthlyAnticipationVolume) * 100 
+      : 0;
+
+    // Tempo estimado para liquidar o saldo em aberto atual se parasse de antecipar hoje (em dias de negócios)
+    const daysToClear = dailySpeed > 0 ? totalDebt / dailySpeed : 0;
+    
+    // Projeção de custo de juros em 30 dias se mantiver a velocidade atual
+    const projectedInterest30d = monthlyAnticipationVolume * (effectiveRate / 100);
+    
+    // Projeção de juros anual (260 dias úteis)
+    const projectedInterest1y = (dailySpeed * 260) * (effectiveRate / 100);
+
+    // Economia anual projetada se usasse a taxa média do MykaCash vs factoring
+    const annualSavingsProjected = businessDays > 0 
+      ? (factoringSavings / businessDays) * 260 
+      : 0;
+
+    // Classificação de Risco
+    let riskLevel: "BAIXO" | "MODERADO" | "CRÍTICO" = "BAIXO";
+    let riskColor = "text-net-green";
+    let riskBg = "bg-net-green/10";
+    let riskBorder = "border-net-green/20";
+    let healthScore = "A+";
+    let scoreColor = "text-net-green";
+
+    if (cashCommitmentPct >= 60 || effectiveRate > 4.5) {
+      riskLevel = "CRÍTICO";
+      riskColor = "text-cost-red";
+      riskBg = "bg-cost-red/10 border-cost-red/20";
+      riskBorder = "border-cost-red/30";
+      healthScore = "D-";
+      scoreColor = "text-cost-red animate-pulse-glow";
+    } else if (cashCommitmentPct >= 25 || effectiveRate > 2.5) {
+      riskLevel = "MODERADO";
+      riskColor = "text-factoring-amber";
+      riskBg = "bg-factoring-amber/10 border-factoring-amber/20";
+      riskBorder = "border-factoring-amber/30";
+      healthScore = "B";
+      scoreColor = "text-factoring-amber";
+    }
+
+    return {
+      dailySpeed,
+      effectiveRate,
+      totalDebt,
+      monthlyAnticipationVolume,
+      cashCommitmentPct,
+      daysToClear,
+      projectedInterest30d,
+      projectedInterest1y,
+      annualSavingsProjected,
+      riskLevel,
+      riskColor,
+      riskBg,
+      riskBorder,
+      healthScore,
+      scoreColor
+    };
+  }, [dailyAvgBruto, totalEffective, openPresent, factoringSavings, businessDays]);
+
   return (
     <div className="min-h-screen">
       <AppHeader />
@@ -1305,6 +1376,197 @@ const Historico = () => {
               </>
             );
           })()}
+        </section>
+
+        {/* Inteligência Financeira & Alertas de Endividamento */}
+        <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
+              <h2 className="font-display text-xl font-semibold tracking-tight">
+                Análise de Compromisso e Saúde Financeira
+              </h2>
+            </div>
+            
+            {/* Tabs para navegar nas análises */}
+            <div className="inline-flex rounded-lg border border-border/50 bg-background/40 p-0.5 gap-0.5 self-start md:self-auto font-mono text-[9px] tracking-widest">
+              <button
+                onClick={() => setActiveAlertTab("diaria")}
+                className={cn(
+                  "rounded-md px-3 py-1.5 transition-all",
+                  activeAlertTab === "diaria"
+                    ? "bg-primary text-primary-foreground font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                DIÁRIA & VELOCIDADE
+              </button>
+              <button
+                onClick={() => setActiveAlertTab("mensal")}
+                className={cn(
+                  "rounded-md px-3 py-1.5 transition-all",
+                  activeAlertTab === "mensal"
+                    ? "bg-primary text-primary-foreground font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                PROJEÇÃO MENSAL
+              </button>
+              <button
+                onClick={() => setActiveAlertTab("anual")}
+                className={cn(
+                  "rounded-md px-3 py-1.5 transition-all",
+                  activeAlertTab === "anual"
+                    ? "bg-primary text-primary-foreground font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                VISÃO ANUAL & SCORE
+              </button>
+            </div>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-12 items-stretch">
+            {/* Esquerda: O diagnóstico em texto corrido e interativo */}
+            <div className="md:col-span-8 space-y-4 flex flex-col justify-between">
+              {activeAlertTab === "diaria" && (
+                <div className="space-y-4 animate-fade-in">
+                  <p className="text-sm text-foreground/90 leading-relaxed font-sans">
+                    A empresa está antecipando recebíveis a uma velocidade média de{" "}
+                    <strong className="text-primary-glow font-mono text-base">{formatBRL(alertMetrics.dailySpeed)}/dia útil</strong>. 
+                    Isso significa que seu fluxo de caixa futuro está sendo consumido de forma contínua para cobrir despesas de curto prazo.
+                  </p>
+                  <p className="text-sm text-foreground/90 leading-relaxed font-sans">
+                    Atualmente, o saldo bruto total já antecipado e em aberto é de{" "}
+                    <strong className="text-cost-red font-mono text-base">{formatBRL(alertMetrics.totalDebt)}</strong>. 
+                    Se a empresa parasse de realizar novas antecipações hoje, ela levaria aproximadamente{" "}
+                    <strong className="text-foreground font-mono text-base">{Math.ceil(alertMetrics.daysToClear)} dias úteis</strong> para liquidar todo o saldo devedor pendente através dos recebimentos normais.
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 font-mono text-[9px] tracking-wider text-primary border border-primary/20">
+                      VELOCIDADE DIÁRIA: {formatBRL(alertMetrics.dailySpeed)}
+                    </span>
+                    <span className="inline-flex items-center rounded-full bg-white/5 px-2.5 py-0.5 font-mono text-[9px] tracking-wider text-muted-foreground border border-border/30">
+                      TAXA EFETIVA MÉDIA: {formatPct(alertMetrics.effectiveRate)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {activeAlertTab === "mensal" && (
+                <div className="space-y-4 animate-fade-in">
+                  <p className="text-sm text-foreground/90 leading-relaxed font-sans">
+                    Com ritmo de antecipações atual, o volume projetado de novos recebíveis antecipados para os próximos 30 dias é de{" "}
+                    <strong className="text-primary-glow font-mono text-base">{formatBRL(alertMetrics.monthlyAnticipationVolume)}</strong>. 
+                    Deste montante, o custo financeiro direto de juros e taxas consumirá cerca de{" "}
+                    <strong className="text-cost-red font-mono text-base">{formatBRL(alertMetrics.projectedInterest30d)}</strong> de caixa líquido.
+                  </p>
+                  <p className="text-sm text-foreground/90 leading-relaxed font-sans">
+                    O grau de comprometimento da receita mensal está em{" "}
+                    <strong className={cn("font-mono text-base", alertMetrics.riskColor)}>{formatPct(alertMetrics.cashCommitmentPct)}</strong>.
+                    {alertMetrics.cashCommitmentPct >= 60 ? (
+                      <span> Este nível é considerado <strong className="text-cost-red">Crítico</strong>, o que significa que mais da metade do faturamento projetado já está pré-comprometido antes mesmo de entrar, criando um ciclo contínuo de dependência financeira.</span>
+                    ) : alertMetrics.cashCommitmentPct >= 25 ? (
+                      <span> Este nível requer <strong className="text-factoring-amber">Atenção</strong>. Embora administrável, recomenda-se alongar prazos com fornecedores para reduzir o ritmo de antecipações diárias.</span>
+                    ) : (
+                      <span> Este nível é considerado <strong className="text-net-green">Saudável</strong>. As antecipações estão alinhadas à capacidade operacional de curto prazo sem pressionar o fluxo de caixa futuro.</span>
+                    )}
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    <span className="inline-flex items-center rounded-full bg-white/5 px-2.5 py-0.5 font-mono text-[9px] tracking-wider text-muted-foreground border border-border/30">
+                      JUROS PROJETADOS (30D): {formatBRL(alertMetrics.projectedInterest30d)}
+                    </span>
+                    <span className="inline-flex items-center rounded-full bg-white/5 px-2.5 py-0.5 font-mono text-[9px] tracking-wider text-muted-foreground border border-border/30">
+                      COMPROMETIMENTO: {formatPct(alertMetrics.cashCommitmentPct)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {activeAlertTab === "anual" && (
+                <div className="space-y-4 animate-fade-in">
+                  <p className="text-sm text-foreground/90 leading-relaxed font-sans">
+                    A projeção em escala anual mantendo a atual taxa efetiva indica um pagamento acumulado de juros de{" "}
+                    <strong className="text-cost-red font-mono text-base">{formatBRL(alertMetrics.projectedInterest1y)}</strong> ao ano.
+                    Esta é a quantia que deixará de entrar diretamente no caixa líquido da sua empresa.
+                  </p>
+                  <p className="text-sm text-foreground/90 leading-relaxed font-sans">
+                    Por outro lado, o uso do MykaCash em comparação com as taxas tradicionais de mercado (Factoring) está gerando uma economia anual projetada de{" "}
+                    <strong className="text-net-green font-mono text-base">{formatBRL(alertMetrics.annualSavingsProjected)}</strong>. 
+                    Isto demonstra o impacto positivo da gestão interna de crédito e taxas de repasse.
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-2 font-mono text-[9px] tracking-wider">
+                    <span className="inline-flex items-center rounded-full bg-cost-red/10 px-2.5 py-0.5 text-cost-red border border-cost-red/20">
+                      CUSTO DE ANTECIPAÇÃO ANUAL PROJETADO: {formatBRL(alertMetrics.projectedInterest1y)}
+                    </span>
+                    <span className="inline-flex items-center rounded-full bg-net-green/10 px-2.5 py-0.5 text-net-green border border-net-green/20">
+                      ECONOMIA ANUAL GERADA: {formatBRL(alertMetrics.annualSavingsProjected)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Dica Esperta do Consultor */}
+              <div className="mt-4 p-3 rounded-lg border border-border/40 bg-muted/20 flex items-start gap-2.5">
+                <span className="text-xs">💡</span>
+                <div className="space-y-0.5">
+                  <div className="font-mono text-[9px] tracking-wider text-muted-foreground uppercase">Recomendação do Consultor AI</div>
+                  <p className="text-xs text-muted-foreground leading-normal font-sans">
+                    {alertMetrics.cashCommitmentPct >= 60 ? (
+                      "Atenção urgente! Reduza o ritmo de antecipações focando apenas em duplicatas de curto prazo (até 15 dias). Considere renegociar contratos ou aportes pontuais para frear a bola de neve de juros acumulados."
+                    ) : alertMetrics.cashCommitmentPct >= 25 ? (
+                      "Ritmo moderado. Tente alternar dias de antecipação para aumentar o prazo médio acumulado e diminuir a taxa efetiva real paga por operação."
+                    ) : (
+                      "Parabéns! Excelente gestão de recebíveis. Continue priorizando a antecipação apenas para oportunidades de compra de insumos com desconto à vista."
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Direita: Placa de Diagnóstico/Score Card */}
+            <div className="md:col-span-4 flex flex-col justify-between rounded-xl border border-border/50 bg-background/30 p-4 shadow-panel items-center text-center">
+              <div className="space-y-1">
+                <div className="font-mono text-[8px] tracking-[0.25em] text-muted-foreground uppercase">DIAGNÓSTICO DE RISCO</div>
+                <div className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[9px] tracking-widest font-bold", alertMetrics.riskColor, alertMetrics.riskBg)}>
+                  {alertMetrics.riskLevel}
+                </div>
+              </div>
+
+              {/* Placa do Score */}
+              <div className="my-4">
+                <div className="font-mono text-[8px] tracking-[0.25em] text-muted-foreground uppercase">SCORE DE SAÚDE</div>
+                <div className={cn("font-display text-5xl font-extrabold tracking-tight mt-1", alertMetrics.scoreColor)}>
+                  {alertMetrics.healthScore}
+                </div>
+                <div className="font-mono text-[8px] text-muted-foreground mt-1">MYKA FINANCIAL SCORE</div>
+              </div>
+
+              {/* Pequeno gráfico de progresso (comprometimento de receita) */}
+              <div className="w-full space-y-1">
+                <div className="flex justify-between font-mono text-[8px] text-muted-foreground">
+                  <span>RECEITA FUTURA COMPROMETIDA</span>
+                  <span>{formatPct(alertMetrics.cashCommitmentPct)}</span>
+                </div>
+                <div className="h-1.5 w-full bg-muted/60 rounded-full overflow-hidden">
+                  <div 
+                    className={cn(
+                      "h-full rounded-full transition-all duration-500",
+                      alertMetrics.cashCommitmentPct >= 60 
+                        ? "bg-cost-red" 
+                        : alertMetrics.cashCommitmentPct >= 25 
+                        ? "bg-factoring-amber" 
+                        : "bg-net-green"
+                    )}
+                    style={{ width: `${Math.min(100, alertMetrics.cashCommitmentPct)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* Secondary filters (Middle) */}
