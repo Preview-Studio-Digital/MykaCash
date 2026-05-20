@@ -184,6 +184,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_create_user: {
+        Args: {
+          p_display_name: string
+          p_email: string
+          p_is_admin: boolean
+          p_password: string
+          p_username: string
+        }
+        Returns: Json
+      }
+      admin_delete_user: { Args: { p_user_id: string }; Returns: Json }
+      admin_update_user: {
+        Args: {
+          p_display_name?: string
+          p_email?: string
+          p_is_admin?: boolean
+          p_password?: string
+          p_user_id: string
+          p_username?: string
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
