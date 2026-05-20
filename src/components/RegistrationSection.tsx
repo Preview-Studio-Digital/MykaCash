@@ -263,7 +263,7 @@ export const RegistrationSection = ({
     if (invoiceToEdit) {
       const { data, error: updateError } = await supabase
         .from("invoices")
-        .update(invoiceData)
+        .update({ ...invoiceData, created_by: user?.id ?? null })
         .eq("id", invoiceToEdit.id)
         .select()
         .single();
