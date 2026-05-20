@@ -1007,7 +1007,7 @@ export const AccountCashFlow = () => {
 
           return (
             <>
-              <div className="mt-4 flex bg-muted/20 rounded-sm" style={{ marginLeft: 50, marginRight: 50 }}>
+              <div className="mt-4 flex bg-muted/20 rounded-sm" style={{ marginLeft: 60, marginRight: 60 }}>
                 {monthSegs.map((s, i) => (
                   <div
                     key={i}
@@ -1018,7 +1018,7 @@ export const AccountCashFlow = () => {
                   </div>
                 ))}
               </div>
-              <div className="mt-1 flex" style={{ marginLeft: 50, marginRight: 50 }}>
+              <div className="mt-1 flex" style={{ marginLeft: 60, marginRight: 60 }}>
                 {yearSegs.map((s, i) => (
                   <div
                     key={i}

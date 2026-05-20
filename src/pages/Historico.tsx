@@ -1144,7 +1144,7 @@ const Historico = () => {
               </h2>
             </div>
             <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
-              {periodDays} {periodDays === 1 ? "DIA" : "DIAS"}
+              PERÍODO: {periodDays} {periodDays === 1 ? "DIA" : "DIAS"}
             </span>
           </div>
           <div className="h-64 w-full">
@@ -1212,7 +1212,7 @@ const Historico = () => {
                 const gradId = chartGradId;
                 return (
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+                    <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
                       <defs>
                         <linearGradient id={`lineGrad-${gradId}`} x1="0" y1="0" x2="1" y2="0">
                           {stops.map((s, i) => (
@@ -1247,6 +1247,9 @@ const Historico = () => {
                       <YAxis
                         yAxisId="left"
                         width={60}
+                        axisLine={false}
+                        tickLine={false}
+                        tickMargin={4}
                         tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                         stroke="hsl(var(--border))"
                         tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}K`}
@@ -1255,6 +1258,9 @@ const Historico = () => {
                         yAxisId="right"
                         orientation="right"
                         width={60}
+                        axisLine={false}
+                        tickLine={false}
+                        tickMargin={4}
                         tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                         stroke="hsl(var(--border))"
                         tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}K`}
@@ -1366,7 +1372,7 @@ const Historico = () => {
             // Compensa as margens do AreaChart (left: 0 + YAxis ~45px, right: 16)
             return (
               <>
-                <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: 50, marginRight: 16 }}>
+                <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: 60, marginRight: 60 }}>
                   {monthSegs.map((s, i) => (
                     <div
                       key={i}
@@ -1377,7 +1383,7 @@ const Historico = () => {
                     </div>
                   ))}
                 </div>
-                <div className="mt-1 flex" style={{ paddingLeft: 50, paddingRight: 16 }}>
+                <div className="mt-1 flex" style={{ marginLeft: 60, marginRight: 60 }}>
                   {segs.map((s, i) => (
                     <div
                       key={i}
@@ -1398,8 +1404,8 @@ const Historico = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full animate-color-cycle opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 animate-color-cycle"></span>
               </span>
               <h2 className="font-display text-xl font-semibold tracking-tight">
                 Análise de Compromisso e Saúde Financeira
@@ -1449,18 +1455,18 @@ const Historico = () => {
             <div className="md:col-span-8 space-y-4 flex flex-col justify-between">
               {activeAlertTab === "diaria" && (
                 <div className="space-y-4 animate-fade-in">
-                  <p className="text-sm text-foreground/90 leading-relaxed font-sans">
+                  <p className="text-sm text-justify text-foreground/90 leading-relaxed font-sans">
                     A empresa está antecipando recebíveis a uma velocidade média de{" "}
                     <strong className="text-primary-glow font-mono text-base">{formatBRL(alertMetrics.dailySpeed)}/dia útil</strong>. 
                     Isso significa que seu fluxo de caixa futuro está sendo consumido de forma contínua para cobrir despesas de curto prazo.
                   </p>
-                  <p className="text-sm text-foreground/90 leading-relaxed font-sans">
+                  <p className="text-sm text-justify text-foreground/90 leading-relaxed font-sans">
                     Atualmente, o saldo bruto total já antecipado e em aberto é de{" "}
                     <strong className="text-cost-red font-mono text-base">{formatBRL(alertMetrics.totalDebt)}</strong>. 
                     Se a empresa parasse de realizar novas antecipações hoje, ela levaria aproximadamente{" "}
                     <strong className="text-foreground font-mono text-base">{Math.ceil(alertMetrics.daysToClear)} dias úteis</strong> para liquidar todo o saldo devedor pendente através dos recebimentos normais.
                   </p>
-                  <p className="text-sm text-foreground/90 leading-relaxed font-sans">
+                  <p className="text-sm text-justify text-foreground/90 leading-relaxed font-sans">
                     Adicionalmente, detectamos um comportamento de **Rolagem de Recebíveis (Re-empréstimo)**. Do volume total captado no período (<strong>{formatBRL(alertMetrics.totalBorrowed)}</strong>), apenas <strong>{formatPct(alertMetrics.liquidationRate)}</strong> foi liquidado de fato (<strong>{formatBRL(alertMetrics.totalSettled)}</strong>). Isso significa que <strong>{formatPct(alertMetrics.rolloverRate)}</strong> do capital está sendo re-emprestado de imediato, gerando um acúmulo acelerado de juros e dependência de novas antecipações para pagar títulos antigos.
                   </p>
                   <div className="flex flex-wrap gap-2 pt-2">
@@ -1484,13 +1490,13 @@ const Historico = () => {
 
               {activeAlertTab === "mensal" && (
                 <div className="space-y-4 animate-fade-in">
-                  <p className="text-sm text-foreground/90 leading-relaxed font-sans">
+                  <p className="text-sm text-justify text-foreground/90 leading-relaxed font-sans">
                     Com ritmo de antecipações atual, o volume projetado de novos recebíveis antecipados para os próximos 30 dias é de{" "}
                     <strong className="text-primary-glow font-mono text-base">{formatBRL(alertMetrics.monthlyAnticipationVolume)}</strong>. 
                     Deste montante, o custo financeiro direto de juros e taxas consumirá cerca de{" "}
                     <strong className="text-cost-red font-mono text-base">{formatBRL(alertMetrics.projectedInterest30d)}</strong> de caixa líquido.
                   </p>
-                  <p className="text-sm text-foreground/90 leading-relaxed font-sans">
+                  <p className="text-sm text-justify text-foreground/90 leading-relaxed font-sans">
                     O grau de comprometimento da receita mensal está em{" "}
                     <strong className={cn("font-mono text-base", alertMetrics.riskColor)}>{formatPct(alertMetrics.cashCommitmentPct)}</strong>.
                     {alertMetrics.cashCommitmentPct >= 60 ? (
@@ -1514,12 +1520,12 @@ const Historico = () => {
 
               {activeAlertTab === "anual" && (
                 <div className="space-y-4 animate-fade-in">
-                  <p className="text-sm text-foreground/90 leading-relaxed font-sans">
+                  <p className="text-sm text-justify text-foreground/90 leading-relaxed font-sans">
                     A projeção em escala anual mantendo a atual taxa efetiva indica um pagamento acumulado de juros de{" "}
                     <strong className="text-cost-red font-mono text-base">{formatBRL(alertMetrics.projectedInterest1y)}</strong> ao ano.
                     Esta é a quantia que deixará de entrar diretamente no caixa líquido da sua empresa.
                   </p>
-                  <p className="text-sm text-foreground/90 leading-relaxed font-sans">
+                  <p className="text-sm text-justify text-foreground/90 leading-relaxed font-sans">
                     Por outro lado, o uso do MykaCash em comparação com as taxas tradicionais de mercado (Factoring) está gerando uma economia anual projetada de{" "}
                     <strong className="text-net-green font-mono text-base">{formatBRL(alertMetrics.annualSavingsProjected)}</strong>. 
                     Isto demonstra o impacto positivo da gestão interna de crédito e taxas de repasse.
@@ -1537,10 +1543,10 @@ const Historico = () => {
 
               {/* Dica Esperta do Consultor */}
               <div className="mt-4 p-3 rounded-lg border border-border/40 bg-muted/20 flex items-start gap-2.5">
-                <span className="text-xs">💡</span>
+                <span className="text-xs animate-pulse drop-shadow-[0_0_6px_rgba(250,204,21,0.8)]">💡</span>
                 <div className="space-y-0.5">
                   <div className="font-mono text-[9px] tracking-wider text-muted-foreground uppercase">Recomendação do Consultor AI</div>
-                  <p className="text-xs text-muted-foreground leading-normal font-sans">
+                  <p className="text-xs text-justify text-muted-foreground leading-normal font-sans">
                     {alertMetrics.rolloverRate >= 70 && alertMetrics.totalBorrowed > 5000 ? (
                       `Alerta crítico de Rolagem! Sua taxa de re-empréstimo de recebíveis está em ${formatPct(alertMetrics.rolloverRate)}. Como a liquidação real está muito baixa, a empresa está dependendo de novos empréstimos para sustentar o caixa. Recomenda-se frear novas antecipações imediatamente e focar na liquidação dos títulos ativos.`
                     ) : alertMetrics.cashCommitmentPct >= 60 ? (
@@ -1556,26 +1562,26 @@ const Historico = () => {
             </div>
 
             {/* Direita: Placa de Diagnóstico/Score Card */}
-            <div className="md:col-span-4 flex flex-col justify-between rounded-xl border border-border/50 bg-background/30 p-4 shadow-panel items-center text-center">
-              <div className="space-y-1">
-                <div className="font-mono text-[8px] tracking-[0.25em] text-muted-foreground uppercase">DIAGNÓSTICO DE RISCO</div>
-                <div className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[9px] tracking-widest font-bold", alertMetrics.riskColor, alertMetrics.riskBg)}>
+            <div className="md:col-span-4 flex flex-col justify-between rounded-xl border border-border/50 bg-background/30 p-6 shadow-panel items-center text-center">
+              <div className="space-y-2">
+                <div className="font-mono text-xs tracking-widest text-muted-foreground uppercase">DIAGNÓSTICO DE RISCO</div>
+                <div className={cn("inline-flex items-center rounded-full px-3 py-1 font-mono text-xs tracking-widest font-bold", alertMetrics.riskColor, alertMetrics.riskBg)}>
                   {alertMetrics.riskLevel}
                 </div>
               </div>
 
               {/* Placa do Score */}
               <div className="my-4">
-                <div className="font-mono text-[8px] tracking-[0.25em] text-muted-foreground uppercase">SCORE DE SAÚDE</div>
-                <div className={cn("font-display text-5xl font-extrabold tracking-tight mt-1", alertMetrics.scoreColor)}>
+                <div className="font-mono text-xs tracking-widest text-muted-foreground uppercase">SCORE DE SAÚDE</div>
+                <div className={cn("font-display text-6xl font-extrabold tracking-tight mt-2", alertMetrics.scoreColor)}>
                   {alertMetrics.healthScore}
                 </div>
-                <div className="font-mono text-[8px] text-muted-foreground mt-1">MYKA FINANCIAL SCORE</div>
+                <div className="font-mono text-[10px] tracking-widest text-muted-foreground mt-2">MYKA FINANCIAL SCORE</div>
               </div>
 
               {/* Pequeno gráfico de progresso (comprometimento de receita) */}
-              <div className="w-full space-y-1">
-                <div className="flex justify-between font-mono text-[8px] text-muted-foreground">
+              <div className="w-full space-y-2">
+                <div className="flex justify-between font-mono text-[10px] tracking-widest text-muted-foreground">
                   <span>RECEITA FUTURA COMPROMETIDA</span>
                   <span>{formatPct(alertMetrics.cashCommitmentPct)}</span>
                 </div>

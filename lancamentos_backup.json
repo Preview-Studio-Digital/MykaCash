@@ -1,0 +1,1086 @@
+[
+  {
+    "id": "d1d94084-3e4b-4522-8cca-ca5f2c281628",
+    "client_id": "3f5150e2-fa0b-4925-9fe0-4e2fe8a26ccb",
+    "invoice_number": "3460",
+    "invoice_value": 9417,
+    "operation_date": "2026-03-26",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "69gi4hbj",
+        "value": 9417,
+        "dueDate": "2026-04-08"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T19:51:22.398347+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [
+      {
+        "id": "69gi4hbj",
+        "date": "2026-04-29"
+      }
+    ],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 3
+  },
+  {
+    "id": "808a3d92-53ff-4ed4-b037-f4f205f86a27",
+    "client_id": "3f5150e2-fa0b-4925-9fe0-4e2fe8a26ccb",
+    "invoice_number": "3523",
+    "invoice_value": 9417,
+    "operation_date": "2026-05-15",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "izfwtxry",
+        "value": 9417,
+        "dueDate": "2026-06-15"
+      }
+    ],
+    "created_by": "6051a9a0-79f6-48a4-8394-5d9354ea5c8a",
+    "created_at": "2026-05-06T15:57:02.311672+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 36
+  },
+  {
+    "id": "aed05c26-b482-418c-b463-67d0c7cfb924",
+    "client_id": "3cb5d2e2-d682-469e-a8c3-11fb4e078552",
+    "invoice_number": "3527",
+    "invoice_value": 7429.07,
+    "operation_date": "2026-05-06",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "bb9n1dqp",
+        "value": 7429.07,
+        "dueDate": "2026-06-27"
+      }
+    ],
+    "created_by": "6051a9a0-79f6-48a4-8394-5d9354ea5c8a",
+    "created_at": "2026-05-15T13:01:50.438531+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 37
+  },
+  {
+    "id": "02c77f99-7bd4-4768-87a0-69d4509dd302",
+    "client_id": "7fcc85aa-a41d-41f5-8638-f906efc1391f",
+    "invoice_number": "3512",
+    "invoice_value": 16570,
+    "operation_date": "2026-05-06",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "zfbqqmz8",
+        "value": 16570,
+        "dueDate": "2026-06-25"
+      }
+    ],
+    "created_by": "6051a9a0-79f6-48a4-8394-5d9354ea5c8a",
+    "created_at": "2026-05-15T13:06:17.522006+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 38
+  },
+  {
+    "id": "b8b2150f-9238-4e74-a58b-6f1310cd7f86",
+    "client_id": "76add580-c7a6-4ac7-83a1-a63cba48aa06",
+    "invoice_number": "3491",
+    "invoice_value": 6548.76,
+    "operation_date": "2026-05-06",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "fr93r6iy",
+        "value": 6548.76,
+        "dueDate": "2026-06-11"
+      }
+    ],
+    "created_by": "6051a9a0-79f6-48a4-8394-5d9354ea5c8a",
+    "created_at": "2026-05-15T13:07:58.011393+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 39
+  },
+  {
+    "id": "aae338fe-92ca-487e-be2e-7e9acfbf00a1",
+    "client_id": "fb8819ad-07dd-4c65-b93f-84e4bc2ab47d",
+    "invoice_number": "10318",
+    "invoice_value": 6747.47,
+    "operation_date": "2026-05-15",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "kgo98pa9",
+        "value": 6747.47,
+        "dueDate": "2026-06-12"
+      }
+    ],
+    "created_by": "6051a9a0-79f6-48a4-8394-5d9354ea5c8a",
+    "created_at": "2026-05-15T14:15:26.389294+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 40
+  },
+  {
+    "id": "705ad67a-02ef-456d-b6e2-31ba6302132e",
+    "client_id": "fb8819ad-07dd-4c65-b93f-84e4bc2ab47d",
+    "invoice_number": "10319",
+    "invoice_value": 7540.77,
+    "operation_date": "2026-05-15",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "2ca7t641",
+        "value": 7540.77,
+        "dueDate": "2026-06-12"
+      }
+    ],
+    "created_by": "6051a9a0-79f6-48a4-8394-5d9354ea5c8a",
+    "created_at": "2026-05-15T14:17:17.13823+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 41
+  },
+  {
+    "id": "82168bc9-242a-4329-ac54-5ebe32ade15c",
+    "client_id": "6986ba2f-4050-4b3a-9603-cfd5fc7b856c",
+    "invoice_number": "3449",
+    "invoice_value": 13079.89,
+    "operation_date": "2026-03-26",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "c6ubygpt",
+        "value": 13079.89,
+        "dueDate": "2026-03-27"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T19:37:41.685131+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [
+      {
+        "id": "c6ubygpt",
+        "date": "2026-04-28"
+      }
+    ],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 1
+  },
+  {
+    "id": "30a35dfa-2427-4ee9-8aa5-880cf2ba5a5d",
+    "client_id": "c579978a-311f-44d6-9c4a-8b3bc940b01c",
+    "invoice_number": "3440",
+    "invoice_value": 9251.61,
+    "operation_date": "2026-03-30",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "0yyzo7ns",
+        "value": 3083.87,
+        "dueDate": "2026-04-03"
+      },
+      {
+        "id": "i9eo7g78",
+        "value": 3083.87,
+        "dueDate": "2026-04-10"
+      },
+      {
+        "id": "ygpxnhkz",
+        "value": 3083.87,
+        "dueDate": "2026-04-17"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T19:49:03.369384+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [
+      {
+        "id": "ygpxnhkz",
+        "date": "2026-04-28"
+      },
+      {
+        "id": "i9eo7g78",
+        "date": "2026-04-28"
+      },
+      {
+        "id": "0yyzo7ns",
+        "date": "2026-04-29"
+      }
+    ],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 2
+  },
+  {
+    "id": "b3ed18e4-f8dd-43e9-85ef-c15d90e17a1d",
+    "client_id": "ff492b4d-bf87-4903-a62d-91bc15a5452d",
+    "invoice_number": "3459",
+    "invoice_value": 5808.18,
+    "operation_date": "2026-03-26",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "b38s1pum",
+        "value": 2904.09,
+        "dueDate": "2026-04-10"
+      },
+      {
+        "id": "y4fif7m6",
+        "value": 2904.09,
+        "dueDate": "2026-05-01"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T19:57:15.219509+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [
+      {
+        "id": "b38s1pum",
+        "date": "2026-04-28"
+      },
+      {
+        "id": "y4fif7m6",
+        "date": "2026-05-02"
+      }
+    ],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 4
+  },
+  {
+    "id": "9d57d475-a1ff-4366-bd94-e41018c1dda0",
+    "client_id": "f181c819-cfb2-4696-917a-b22b772f17a0",
+    "invoice_number": "3461",
+    "invoice_value": 6602.07,
+    "operation_date": "2026-03-26",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "nuabjuxm",
+        "value": 6602.07,
+        "dueDate": "2026-04-20"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T19:58:38.752004+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [
+      {
+        "id": "nuabjuxm",
+        "date": "2026-04-28"
+      }
+    ],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 5
+  },
+  {
+    "id": "ca513fef-0526-43e4-a1a3-71be44972235",
+    "client_id": "6523ffd4-1c94-4056-bdf4-1381a998ca15",
+    "invoice_number": "100",
+    "invoice_value": 5500,
+    "operation_date": "2026-04-06",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "rzoiucx9",
+        "value": 2750,
+        "dueDate": "2026-04-20"
+      },
+      {
+        "id": "9kr8utru",
+        "value": 2750,
+        "dueDate": "2026-04-27"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T20:14:04.294086+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [
+      {
+        "id": "rzoiucx9",
+        "date": "2026-04-30"
+      },
+      {
+        "id": "9kr8utru",
+        "date": "2026-04-30"
+      }
+    ],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 6
+  },
+  {
+    "id": "7575506f-7848-4157-ae66-f2a643dedc5e",
+    "client_id": "e4127e62-30c1-42bc-9731-d6e2d9fce548",
+    "invoice_number": "3463",
+    "invoice_value": 13948.55,
+    "operation_date": "2026-03-30",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "nvyjulvl",
+        "value": 13948.55,
+        "dueDate": "2026-04-22"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T20:19:03.006417+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [
+      {
+        "id": "nvyjulvl",
+        "date": "2026-04-29"
+      }
+    ],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 7
+  },
+  {
+    "id": "13e502d7-c1d6-4425-aef2-61ecfdafbbbd",
+    "client_id": "7fcc85aa-a41d-41f5-8638-f906efc1391f",
+    "invoice_number": "3553",
+    "invoice_value": 16570,
+    "operation_date": "2026-03-30",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "wexwytxb",
+        "value": 16570,
+        "dueDate": "2026-04-25"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T20:25:14.463344+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [
+      {
+        "id": "wexwytxb",
+        "date": "2026-04-28"
+      }
+    ],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 9
+  },
+  {
+    "id": "c35e5791-770a-42cb-b85d-c5d4b479db46",
+    "client_id": "aa2da375-9fc1-4180-a6e3-a5c62fe25c51",
+    "invoice_number": "3464",
+    "invoice_value": 11808.57,
+    "operation_date": "2026-03-26",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "y6d8ba2k",
+        "value": 3936.19,
+        "dueDate": "2026-04-24"
+      },
+      {
+        "id": "qf36p9pe",
+        "value": 3936.19,
+        "dueDate": "2026-05-08"
+      },
+      {
+        "id": "o6dkzyut",
+        "value": 3936.19,
+        "dueDate": "2026-05-22"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T20:22:49.324113+00:00",
+    "updated_at": "2026-05-16T00:59:48.715914+00:00",
+    "settled_installments": [
+      {
+        "id": "y6d8ba2k",
+        "date": "2026-04-28"
+      },
+      {
+        "id": "qf36p9pe",
+        "date": "2026-05-11"
+      }
+    ],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 8
+  },
+  {
+    "id": "3f754ffa-dbf0-45a9-bcf1-08e37b15d959",
+    "client_id": "3f5150e2-fa0b-4925-9fe0-4e2fe8a26ccb",
+    "invoice_number": "3523",
+    "invoice_value": 9417,
+    "operation_date": "2026-05-06",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "k6b592ry",
+        "value": 9417,
+        "dueDate": "2026-06-15"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-05-16T01:22:27.474843+00:00",
+    "updated_at": "2026-05-16T01:22:27.474843+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 42
+  },
+  {
+    "id": "d7372d8b-f517-40ea-a114-4bd0c640c69f",
+    "client_id": "eabebe9a-59d0-48f4-91da-461cb0b2ce7c",
+    "invoice_number": "3465",
+    "invoice_value": 5967.87,
+    "operation_date": "2026-04-06",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "3oixfjfa",
+        "value": 5967.87,
+        "dueDate": "2026-04-29"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T20:38:06.157838+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [
+      {
+        "id": "3oixfjfa",
+        "date": "2026-04-30"
+      }
+    ],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 10
+  },
+  {
+    "id": "62918435-337c-452b-aeec-36542d795c5e",
+    "client_id": "eabebe9a-59d0-48f4-91da-461cb0b2ce7c",
+    "invoice_number": "3487",
+    "invoice_value": 2061.5,
+    "operation_date": "2026-04-06",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "2m5joesc",
+        "value": 2061.5,
+        "dueDate": "2026-04-29"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T20:39:02.251076+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [
+      {
+        "id": "2m5joesc",
+        "date": "2026-04-30"
+      }
+    ],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 11
+  },
+  {
+    "id": "070e4793-c0c2-4ca0-9057-751aec24fd08",
+    "client_id": "3cb5d2e2-d682-469e-a8c3-11fb4e078552",
+    "invoice_number": "3476",
+    "invoice_value": 7429.07,
+    "operation_date": "2026-03-30",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "ffpn21cu",
+        "value": 7429.07,
+        "dueDate": "2026-05-01"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T20:41:38.788812+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [
+      {
+        "id": "ffpn21cu",
+        "date": "2026-05-02"
+      }
+    ],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 12
+  },
+  {
+    "id": "61c93b09-b6aa-4e13-b2ad-2bdeb8ba6ae7",
+    "client_id": "a9951205-e156-4fb5-92b2-f2a6c97204ba",
+    "invoice_number": "3490",
+    "invoice_value": 5248.81,
+    "operation_date": "2026-04-06",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "5gno9s5a",
+        "value": 5248.81,
+        "dueDate": "2026-05-01"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T20:43:53.65293+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [
+      {
+        "id": "5gno9s5a",
+        "date": "2026-05-02"
+      }
+    ],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 13
+  },
+  {
+    "id": "4aa8940e-f544-4a8b-8eee-a0b30ef8870d",
+    "client_id": "76add580-c7a6-4ac7-83a1-a63cba48aa06",
+    "invoice_number": "3489",
+    "invoice_value": 8744.92,
+    "operation_date": "2026-04-08",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "afqeyen0",
+        "value": 8744.92,
+        "dueDate": "2026-05-05"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T20:45:13.532897+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [
+      {
+        "id": "afqeyen0",
+        "date": "2026-05-06"
+      }
+    ],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 14
+  },
+  {
+    "id": "2a84adb2-4d9e-4bae-893a-62213f751efc",
+    "client_id": "fb8819ad-07dd-4c65-b93f-84e4bc2ab47d",
+    "invoice_number": "3474",
+    "invoice_value": 3647.2,
+    "operation_date": "2026-04-14",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "dms2nxn6",
+        "value": 3647.2,
+        "dueDate": "2026-05-19"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T20:53:13.34832+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 17
+  },
+  {
+    "id": "09c1d9ed-f62d-4eaa-9584-b27cc3cac9a5",
+    "client_id": "76add580-c7a6-4ac7-83a1-a63cba48aa06",
+    "invoice_number": "3485",
+    "invoice_value": 7597.19,
+    "operation_date": "2026-03-30",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "bi1ixgk2",
+        "value": 7597.19,
+        "dueDate": "2026-05-25"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T20:54:56.084239+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 18
+  },
+  {
+    "id": "96b36d6b-57c5-4ec5-bd94-1931282d4de2",
+    "client_id": "7fcc85aa-a41d-41f5-8638-f906efc1391f",
+    "invoice_number": "3491",
+    "invoice_value": 16570,
+    "operation_date": "2026-03-30",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "czrx5s4k",
+        "value": 16570,
+        "dueDate": "2026-05-25"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T20:55:35.329652+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 19
+  },
+  {
+    "id": "fd726606-430e-426e-afee-20db3a949168",
+    "client_id": "3cb5d2e2-d682-469e-a8c3-11fb4e078552",
+    "invoice_number": "3502",
+    "invoice_value": 7429.07,
+    "operation_date": "2026-04-14",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "0qea0yt9",
+        "value": 7429.07,
+        "dueDate": "2026-05-29"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T20:56:25.466586+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 20
+  },
+  {
+    "id": "00094de1-a7f9-4562-a8f6-567799428f85",
+    "client_id": "7e06b594-76eb-470d-885a-a2c52197211e",
+    "invoice_number": "3488",
+    "invoice_value": 25602.5,
+    "operation_date": "2026-03-30",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "tvu1sp2n",
+        "value": 25602.5,
+        "dueDate": "2026-05-30"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T20:58:05.41828+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 21
+  },
+  {
+    "id": "2545cb64-b40d-4d3f-bb0d-477a51e4244e",
+    "client_id": "3f5150e2-fa0b-4925-9fe0-4e2fe8a26ccb",
+    "invoice_number": "3497",
+    "invoice_value": 9417,
+    "operation_date": "2026-04-08",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "x75o3quj",
+        "value": 9417,
+        "dueDate": "2026-05-15"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T20:48:19.868864+00:00",
+    "updated_at": "2026-05-15T22:29:52.339763+00:00",
+    "settled_installments": [
+      {
+        "id": "x75o3quj",
+        "date": "2026-05-15"
+      }
+    ],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 16
+  },
+  {
+    "id": "26d0388c-e3ba-443e-8de5-29caa8e94a61",
+    "client_id": "688c2f9a-db14-4f75-b335-c7d6c87495a2",
+    "invoice_number": "3467",
+    "invoice_value": 3112,
+    "operation_date": "2026-04-14",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "3w81v9pq",
+        "value": 3112,
+        "dueDate": "2026-05-11"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T20:47:36.667125+00:00",
+    "updated_at": "2026-05-16T00:56:30.596256+00:00",
+    "settled_installments": [
+      {
+        "id": "3w81v9pq",
+        "date": "2026-05-12"
+      }
+    ],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 15
+  },
+  {
+    "id": "862c8561-6b74-4756-a020-e3605ee9577e",
+    "client_id": "01383ea5-4120-4883-9411-1a71f3141b4c",
+    "invoice_number": "10365",
+    "invoice_value": 7464,
+    "operation_date": "2026-05-19",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "pc8ifem2",
+        "value": 7464,
+        "dueDate": "2026-06-22"
+      }
+    ],
+    "created_by": "6051a9a0-79f6-48a4-8394-5d9354ea5c8a",
+    "created_at": "2026-05-19T18:33:56.172037+00:00",
+    "updated_at": "2026-05-19T18:33:56.172037+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 43
+  },
+  {
+    "id": "d61fca9c-4c48-4afe-9776-59dd583ad972",
+    "client_id": "91175f99-dd50-407d-b0a1-31b8424932e6",
+    "invoice_number": "3469",
+    "invoice_value": 4425,
+    "operation_date": "2026-04-15",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "anmbized",
+        "value": 2212.5,
+        "dueDate": "2026-06-01"
+      },
+      {
+        "id": "8l5oermr",
+        "value": 2212.5,
+        "dueDate": "2026-06-15"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T21:00:43.261555+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 22
+  },
+  {
+    "id": "38e4bbac-6a56-4c1a-9cb4-cc2dd0e6e85f",
+    "client_id": "eabebe9a-59d0-48f4-91da-461cb0b2ce7c",
+    "invoice_number": "3472",
+    "invoice_value": 9839.24,
+    "operation_date": "2026-04-15",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "t687055b",
+        "value": 4919.62,
+        "dueDate": "2026-05-23"
+      },
+      {
+        "id": "dctkq6jd",
+        "value": 4919.62,
+        "dueDate": "2026-06-22"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T21:03:51.115873+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 23
+  },
+  {
+    "id": "f55219c1-5785-4c01-a396-79fa045409a0",
+    "client_id": "ebb14311-17a6-4b13-86b8-247afa8847ab",
+    "invoice_number": "10015",
+    "invoice_value": 22429.38,
+    "operation_date": "2026-04-22",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "vqg18fu1",
+        "value": 22429.38,
+        "dueDate": "2026-05-30"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T21:06:58.617861+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 24
+  },
+  {
+    "id": "67405922-4f21-429b-b641-f45f7f230f74",
+    "client_id": "95b0ddb6-a244-44b2-b8e1-0008127393ed",
+    "invoice_number": "10264",
+    "invoice_value": 9877.05,
+    "operation_date": "2026-04-24",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "9nf564t2",
+        "value": 9877.05,
+        "dueDate": "2026-05-27"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T21:12:53.655867+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 26
+  },
+  {
+    "id": "c060067f-c7bc-47ef-b5c4-c19797173641",
+    "client_id": "95b0ddb6-a244-44b2-b8e1-0008127393ed",
+    "invoice_number": "10693",
+    "invoice_value": 3717.78,
+    "operation_date": "2026-04-24",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "n68kz1gp",
+        "value": 3717.78,
+        "dueDate": "2026-05-27"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T21:14:13.117879+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 27
+  },
+  {
+    "id": "4dcc32f1-2ce4-4cab-a946-3aef3d63bf69",
+    "client_id": "01383ea5-4120-4883-9411-1a71f3141b4c",
+    "invoice_number": "10345",
+    "invoice_value": 10276.4,
+    "operation_date": "2026-04-24",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "xq9mwgee",
+        "value": 10276.4,
+        "dueDate": "2026-05-26"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T21:18:27.103188+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 29
+  },
+  {
+    "id": "9c56b2fe-133e-4919-8952-72b988a7d000",
+    "client_id": "1dcca56b-da00-4e90-bbe8-9b8a959be7f9",
+    "invoice_number": "3477",
+    "invoice_value": 6931.98,
+    "operation_date": "2026-04-30",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "ooc4ktcx",
+        "value": 6931.98,
+        "dueDate": "2026-05-26"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-30T22:50:09.309353+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 30
+  },
+  {
+    "id": "8653aa39-5824-4c96-a074-9e6554ddd6d4",
+    "client_id": "7e06b594-76eb-470d-885a-a2c52197211e",
+    "invoice_number": "3410",
+    "invoice_value": 27261.32,
+    "operation_date": "2026-04-30",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "ro6tm00s",
+        "value": 27261.32,
+        "dueDate": "2026-07-10"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-30T22:51:53.133677+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 31
+  },
+  {
+    "id": "d373c155-7021-440f-8f18-0cf69c9d7410",
+    "client_id": "cb05f185-ae4d-44f6-95ee-0eae29feaf34",
+    "invoice_number": "103",
+    "invoice_value": 4500,
+    "operation_date": "2026-04-30",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "qvar0avf",
+        "value": 4500,
+        "dueDate": "2026-05-27"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-30T22:53:35.792942+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 32
+  },
+  {
+    "id": "bbd6a0f8-6669-4f7f-9f50-d3cdf8cc5709",
+    "client_id": "f181c819-cfb2-4696-917a-b22b772f17a0",
+    "invoice_number": "103",
+    "invoice_value": 18016.24,
+    "operation_date": "2026-04-30",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "xa9sxz9s",
+        "value": 9008.12,
+        "dueDate": "2026-05-28"
+      },
+      {
+        "id": "i0uwvo6c",
+        "value": 9008.12,
+        "dueDate": "2026-06-25"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-30T22:55:26.046981+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 33
+  },
+  {
+    "id": "0c69fab1-3d46-426a-9038-f0be27b356d0",
+    "client_id": "a9951205-e156-4fb5-92b2-f2a6c97204ba",
+    "invoice_number": "3511",
+    "invoice_value": 5248.8,
+    "operation_date": "2026-05-05",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "e808t5ph",
+        "value": 5248.8,
+        "dueDate": "2026-06-03"
+      }
+    ],
+    "created_by": "6051a9a0-79f6-48a4-8394-5d9354ea5c8a",
+    "created_at": "2026-05-05T14:27:14.070018+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 34
+  },
+  {
+    "id": "5dee9028-26bb-4708-abd2-af8e12383c01",
+    "client_id": "76add580-c7a6-4ac7-83a1-a63cba48aa06",
+    "invoice_number": "3510",
+    "invoice_value": 8744.92,
+    "operation_date": "2026-05-05",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "2t14m8a3",
+        "value": 8744.92,
+        "dueDate": "2026-06-03"
+      }
+    ],
+    "created_by": "6051a9a0-79f6-48a4-8394-5d9354ea5c8a",
+    "created_at": "2026-05-05T14:30:28.079361+00:00",
+    "updated_at": "2026-05-15T20:42:49.380226+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 35
+  },
+  {
+    "id": "db8f55a8-182a-4bc1-9ed3-888d269b1cea",
+    "client_id": "ebb14311-17a6-4b13-86b8-247afa8847ab",
+    "invoice_number": "3470",
+    "invoice_value": 17969.46,
+    "operation_date": "2026-04-22",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "sfygp43y",
+        "value": 17969.46,
+        "dueDate": "2026-05-15"
+      }
+    ],
+    "created_by": "f8398af2-6975-4e1d-bfb0-84e8f11d1bdf",
+    "created_at": "2026-04-28T21:07:47.812484+00:00",
+    "updated_at": "2026-05-16T00:27:17.303869+00:00",
+    "settled_installments": [
+      {
+        "id": "sfygp43y",
+        "date": "2026-05-15"
+      }
+    ],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 25
+  },
+  {
+    "id": "32c75de3-de1f-46df-a1ed-a4bcb7b01690",
+    "client_id": "6523ffd4-1c94-4056-bdf4-1381a998ca15",
+    "invoice_number": "102",
+    "invoice_value": 5500,
+    "operation_date": "2026-04-24",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "kdkz8g8a",
+        "value": 2750,
+        "dueDate": "2026-05-15"
+      },
+      {
+        "id": "wvosnhpt",
+        "value": 2750,
+        "dueDate": "2026-05-22"
+      }
+    ],
+    "created_by": "6051a9a0-79f6-48a4-8394-5d9354ea5c8a",
+    "created_at": "2026-04-28T21:16:07.540303+00:00",
+    "updated_at": "2026-05-18T15:52:30.888469+00:00",
+    "settled_installments": [
+      {
+        "id": "kdkz8g8a",
+        "date": "2026-05-18"
+      }
+    ],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 28
+  },
+  {
+    "id": "e9a7225b-452e-452c-8347-e53f36d3b9c6",
+    "client_id": "01383ea5-4120-4883-9411-1a71f3141b4c",
+    "invoice_number": "10373",
+    "invoice_value": 7588,
+    "operation_date": "2026-05-19",
+    "monthly_rate": 3,
+    "installments": [
+      {
+        "id": "gl5dapyn",
+        "value": 7588,
+        "dueDate": "2026-06-22"
+      }
+    ],
+    "created_by": "6051a9a0-79f6-48a4-8394-5d9354ea5c8a",
+    "created_at": "2026-05-19T18:36:37.173023+00:00",
+    "updated_at": "2026-05-19T18:36:37.173023+00:00",
+    "settled_installments": [],
+    "factoring_monthly_rate": 3.74,
+    "ordem": 44
+  }
+]
