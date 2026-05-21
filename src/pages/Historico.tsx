@@ -1655,7 +1655,7 @@ const Historico = () => {
                   >
                     <div className="flex items-center justify-between">
                       <div className="font-mono text-[10px] tracking-widest text-primary-glow">
-                        REG {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"} · NF {r.invoiceNumber} · P {r.parcelLabel}
+                        REG {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"} · NF {r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}
                       </div>
                       <div className="flex items-center gap-2">
                         {r.settled ? (
