@@ -986,31 +986,40 @@ const Historico = () => {
       ? (globalStats.factoringSavings / globalStats.businessDays) * 260
       : 0;
 
+    // Score CONTÍNUO (0–100): cai proporcionalmente conforme cada indicador piora,
+    // evitando saltos bruscos quando uma única operação cruza um limiar.
+    const clamp = (n: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
+    // Penalidades suaves (cada uma pode tirar até X pontos)
+    const penCommit = clamp((cashCommitmentPct / 80) * 45, 0, 45);   // até -45 pts
+    const penRoll   = clamp((rolloverRate / 100) * 30, 0, 30);        // até -30 pts
+    const penRate   = clamp((effectiveRate / 6) * 25, 0, 25);         // até -25 pts
+    const scoreNumeric = Math.round(clamp(100 - penCommit - penRoll - penRate));
+
     let riskLevel: "BAIXO" | "MODERADO" | "CRÍTICO" = "BAIXO";
     let riskColor = "text-net-green";
     let riskBg = "bg-net-green/10";
     let riskBorder = "border-net-green/20";
     let healthScore = "A+";
     let scoreColor = "text-net-green";
-    let scoreNumeric = 95;
 
-    if (cashCommitmentPct >= 60 || effectiveRate > 4.5 || (rolloverRate >= 80 && totalBorrowed > 10000)) {
+    if (scoreNumeric < 45) {
       riskLevel = "CRÍTICO";
       riskColor = "text-cost-red";
       riskBg = "bg-cost-red/10 border-cost-red/20";
       riskBorder = "border-cost-red/30";
-      healthScore = "D-";
+      healthScore = scoreNumeric < 30 ? "D-" : "D";
       scoreColor = "text-cost-red animate-pulse-glow";
-      scoreNumeric = 30;
-    } else if (cashCommitmentPct >= 25 || effectiveRate > 2.5 || (rolloverRate >= 50 && totalBorrowed > 5000)) {
+    } else if (scoreNumeric < 75) {
       riskLevel = "MODERADO";
       riskColor = "text-factoring-amber";
       riskBg = "bg-factoring-amber/10 border-factoring-amber/20";
       riskBorder = "border-factoring-amber/30";
-      healthScore = "B";
+      healthScore = scoreNumeric < 60 ? "C" : "B";
       scoreColor = "text-factoring-amber";
-      scoreNumeric = 65;
+    } else {
+      healthScore = scoreNumeric >= 90 ? "A+" : "A";
     }
+
 
     return {
       dailySpeed, effectiveRate, totalDebt, totalSettled, totalBorrowed,
