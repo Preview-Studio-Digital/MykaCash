@@ -1032,6 +1032,11 @@ const Historico = () => {
 
   // === Consultor AI: recomendação adaptativa que muda forma e conteúdo a cada nova operação ===
   const opsCount = rows.length;
+  const latestOpNumber = rows.reduce((max, r) => {
+    const n = Number(r.opNumber) || 0;
+    return n > max ? n : max;
+  }, 0);
+  const opLabel = latestOpNumber > 0 ? String(latestOpNumber).padStart(4, "0") : String(opsCount).padStart(4, "0");
 
   const advisorRecommendation = useMemo(() => {
     const {
