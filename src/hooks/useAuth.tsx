@@ -28,6 +28,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     let active = true;
+    let lastUserId: string | null = null;
 
     const checkAdminRole = async (userId: string) => {
       if (!active) return;
@@ -54,30 +55,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
+    const applySession = (s: Session | null) => {
+      const newUserId = s?.user?.id ?? null;
+      // Only update session state if the user identity actually changed.
+      // This prevents TOKEN_REFRESHED / focus events from re-rendering the
+      // tree and remounting pages (which caused the "load twice" delay).
+      if (newUserId !== lastUserId) {
+        lastUserId = newUserId;
+        setSession(s);
+        if (newUserId) {
+          checkAdminRole(newUserId);
+        } else {
+          setIsAdmin(false);
+          setIsAdminLoading(false);
+        }
+      } else {
+        // Same user — silently keep token fresh without re-rendering consumers.
+        setSession((prev) => (prev ? { ...prev, access_token: s?.access_token ?? prev.access_token } as Session : s));
+      }
+    };
+
     // Load initial session
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
-      const s = data.session;
-      setSession(s);
+      applySession(data.session);
       setLoading(false);
-      if (s?.user) {
-        checkAdminRole(s.user.id);
-      } else {
-        setIsAdmin(false);
-        setIsAdminLoading(false);
-      }
     });
 
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
       if (!active) return;
-      setSession(s);
-      setLoading(false);
-      if (s?.user) {
-        checkAdminRole(s.user.id);
-      } else {
-        setIsAdmin(false);
-        setIsAdminLoading(false);
-      }
+      applySession(s);
     });
 
     return () => {
@@ -85,6 +92,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       sub.subscription.unsubscribe();
     };
   }, []);
+
 
   const signOut = async () => {
     await supabase.auth.signOut();
