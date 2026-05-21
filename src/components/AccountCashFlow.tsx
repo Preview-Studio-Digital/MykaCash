@@ -194,12 +194,14 @@ export const AccountCashFlow = () => {
       if (inv.operation_date) {
         if (calc.installmentCalcs.length > 0) {
           calc.installmentCalcs.forEach((inst, idx) => {
+            const multi = calc.installmentCalcs.length > 1;
+            const letter = multi ? String.fromCharCode(96 + (idx + 1)) : "";
             data.push({
               id: `op-out-${inv.id}-${inst.id}`,
               type: "operation_out",
               amount: inst.presentValue,
               date: inv.operation_date,
-              description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${calc.installmentCalcs.length > 1 ? String.fromCharCode(96 + (idx + 1)) : ""}` : "—"} · Saída Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'} (${idx + 1}/${calc.installmentCalcs.length})`,
+              description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${letter}` : "—"} · Saída: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}${letter}`,
               reference_id: inv.id,
               created_at: inv.created_at
             });
@@ -210,7 +212,7 @@ export const AccountCashFlow = () => {
             type: "operation_out",
             amount: calc.netValue,
             date: inv.operation_date,
-            description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}` : "—"} · Saída Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}`,
+            description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}` : "—"} · Saída: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}`,
             reference_id: inv.id,
             created_at: inv.created_at
           });
@@ -229,12 +231,14 @@ export const AccountCashFlow = () => {
       calc.installmentCalcs.forEach((inst, idx) => {
         if (settledMap.has(inst.id)) {
           const actualSettledDate = settledMap.get(inst.id) || inst.dueDate;
+          const multi = calc.installmentCalcs.length > 1;
+          const letter = multi ? String.fromCharCode(96 + (idx + 1)) : "";
           data.push({
             id: `inst-in-${inst.id}`,
             type: "installment_in",
             amount: inst.value,
             date: actualSettledDate, 
-            description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${calc.installmentCalcs.length > 1 ? String.fromCharCode(96 + (idx + 1)) : ""}` : "—"} · Entrada Op: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'} (${idx + 1}/${calc.installmentCalcs.length})`,
+            description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${letter}` : "—"} · Entrada: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}${letter}`,
             reference_id: inv.id,
             created_at: inv.created_at // Using invoice created_at as fallback for sorting
           });

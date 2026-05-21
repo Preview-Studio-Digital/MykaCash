@@ -1655,7 +1655,7 @@ const Historico = () => {
                   >
                     <div className="flex items-center justify-between">
                       <div className="font-mono text-[10px] tracking-widest text-primary-glow">
-                        REG {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"} · NF {r.invoiceNumber} · P {r.parcelLabel}
+                        REG {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"} · NF {r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}
                       </div>
                       <div className="flex items-center gap-2">
                         {r.settled ? (
@@ -1749,7 +1749,6 @@ const Historico = () => {
                   <th className="px-1.5 py-2 text-center font-medium">STATUS</th>
                   <SortableTh label="CLIENTE" sKey="clientName" />
                   <SortableTh label="NF" sKey="invoiceNumber" />
-                  <SortableTh label="PARC." sKey="parcelLabel" />
                   <SortableTh label="ABERTURA" sKey="operationDate" />
                   <SortableTh label="VENC." sKey="dueDate" />
                   <SortableTh label="DIAS" sKey="days" />
@@ -1764,13 +1763,13 @@ const Historico = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={14} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
+                    <td colSpan={13} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                       CARREGANDO...
                     </td>
                   </tr>
                 ) : filteredRows.length === 0 ? (
                   <tr>
-                    <td colSpan={14} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
+                    <td colSpan={13} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                       NENHUMA ABERTURA NO PERÍODO
                     </td>
                   </tr>
@@ -1847,8 +1846,7 @@ const Historico = () => {
                         <td className="px-2 py-2 max-w-[160px] truncate" title={r.clientName}>
                           {r.clientName}
                         </td>
-                        <td className="px-1.5 py-2">{r.invoiceNumber}</td>
-                        <td className="px-1.5 py-2">{r.parcelLabel}</td>
+                        <td className="px-1.5 py-2">{r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}</td>
                         <td className="px-1.5 py-2">{fmtDateShort(r.operationDate)}</td>
                         <td className="px-1.5 py-2">{fmtDateShort(r.dueDate)}</td>
                         <td className="px-1.5 py-2">{r.days}</td>
@@ -1870,7 +1868,6 @@ const Historico = () => {
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2 tracking-widest text-primary-glow">TOTAL</td>
-                    <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2">—</td>
                     <td className="px-2 py-2">—</td>
