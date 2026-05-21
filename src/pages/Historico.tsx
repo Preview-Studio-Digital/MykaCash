@@ -1143,7 +1143,7 @@ const Historico = () => {
       headline: tone === "down" ? "Atenção crítica" : tone === "warn" ? "Recalibrar exposição" : "Saúde financeira positiva",
       body: `${pick(openings[tone])} ${diagnosis} ${pick(actions[tone])}`,
     };
-  }, [opsCount, alertMetrics]);
+  }, [opsCount, opLabel, alertMetrics]);
 
 
 
