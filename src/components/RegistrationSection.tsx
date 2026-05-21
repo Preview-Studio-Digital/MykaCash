@@ -928,7 +928,7 @@ export const RegistrationSection = ({
               }}
             >
               <div style={{ fontSize: "10px", letterSpacing: "0.3em", color: "#a7f3d0", marginBottom: "8px" }}>
-                VALOR LÍQUIDO (A RECEBER)
+                VALOR LÍQUIDO
               </div>
               <div style={{ fontSize: "22px", fontWeight: 800 }}>{formatBRL(result.netValue)}</div>
             </div>
