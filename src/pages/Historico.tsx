@@ -1682,23 +1682,27 @@ const Historico = () => {
               )}
 
               {/* Dica Esperta do Consultor */}
-              <div className="mt-4 p-3 rounded-lg border border-border/40 bg-muted/20 flex items-start gap-2.5">
+              <div
+                key={`advisor-${opsCount}-${alertMetrics.scoreNumeric}`}
+                className={cn(
+                  "mt-4 p-3 rounded-lg border flex items-start gap-2.5 animate-fade-in",
+                  advisorRecommendation.tone === "up" && "border-net-green/40 bg-net-green/5",
+                  advisorRecommendation.tone === "warn" && "border-factoring-amber/40 bg-factoring-amber/5",
+                  advisorRecommendation.tone === "down" && "border-cost-red/40 bg-cost-red/5",
+                  advisorRecommendation.tone === "neutral" && "border-border/40 bg-muted/20",
+                )}
+              >
                 <span className="text-xs animate-pulse drop-shadow-[0_0_6px_rgba(250,204,21,0.8)]">💡</span>
                 <div className="space-y-0.5">
-                  <div className="font-mono text-[9px] tracking-wider text-muted-foreground uppercase">Recomendação do Consultor AI</div>
+                  <div className="font-mono text-[9px] tracking-wider text-muted-foreground uppercase">
+                    Recomendação do Consultor AI · {advisorRecommendation.headline}
+                  </div>
                   <p className="text-xs text-justify text-muted-foreground leading-normal font-sans">
-                    {alertMetrics.rolloverRate >= 70 && alertMetrics.totalBorrowed > 5000 ? (
-                      `Alerta crítico de Rolagem! Sua taxa de re-empréstimo de recebíveis está em ${formatPct(alertMetrics.rolloverRate)}. Como a liquidação real está muito baixa, a empresa está dependendo de novos empréstimos para sustentar o caixa. Recomenda-se frear novas antecipações imediatamente e focar na liquidação dos títulos ativos.`
-                    ) : alertMetrics.cashCommitmentPct >= 60 ? (
-                      "Atenção urgente! Reduza o ritmo de antecipações focando apenas em duplicatas de curto prazo (até 15 dias). Considere renegociar contratos ou aportes pontuais para frear a bola de neve de juros acumulados."
-                    ) : alertMetrics.cashCommitmentPct >= 25 ? (
-                      "Ritmo moderado. Tente alternar dias de antecipação para aumentar o prazo médio acumulado e diminuir a taxa efetiva real paga por operação."
-                    ) : (
-                      "Parabéns! Excelente gestão de recebíveis. Continue priorizando a antecipação apenas para oportunidades de compra de insumos com desconto à vista."
-                    )}
+                    {advisorRecommendation.body}
                   </p>
                 </div>
               </div>
+
             </div>
 
             {/* Direita: Placa de Diagnóstico/Score Card */}
