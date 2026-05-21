@@ -1749,7 +1749,6 @@ const Historico = () => {
                   <th className="px-1.5 py-2 text-center font-medium">STATUS</th>
                   <SortableTh label="CLIENTE" sKey="clientName" />
                   <SortableTh label="NF" sKey="invoiceNumber" />
-                  <SortableTh label="PARC." sKey="parcelLabel" />
                   <SortableTh label="ABERTURA" sKey="operationDate" />
                   <SortableTh label="VENC." sKey="dueDate" />
                   <SortableTh label="DIAS" sKey="days" />
