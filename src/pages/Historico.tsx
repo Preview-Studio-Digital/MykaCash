@@ -1316,7 +1316,10 @@ const Historico = () => {
                         fill={`url(#areaGradH-${gradId})`}
                         mask={`url(#areaFadeMask-${gradId})`}
                         connectNulls={false}
-                        isAnimationActive={false}
+                        isAnimationActive={true}
+                        animationDuration={900}
+                        animationEasing="ease-out"
+
                       />
                       <Area
                         yAxisId="right"
@@ -1324,7 +1327,10 @@ const Historico = () => {
                         dataKey="saldo"
                         stroke="transparent"
                         fill="transparent"
-                        isAnimationActive={false}
+                        isAnimationActive={true}
+                        animationDuration={900}
+                        animationEasing="ease-out"
+
                       />
                       {statusFilter !== "liquidadas" && (
                         <Area
@@ -1338,7 +1344,10 @@ const Historico = () => {
                           fill="hsl(var(--muted-foreground))"
                           fillOpacity={0.35}
                           connectNulls={true}
-                          isAnimationActive={false}
+                          isAnimationActive={true}
+                          animationDuration={900}
+                          animationEasing="ease-out"
+
                         />
                       )}
 
