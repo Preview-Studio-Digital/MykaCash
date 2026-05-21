@@ -933,52 +933,67 @@ const Historico = () => {
   // alias para compatibilidade com versão anterior (evita ReferenceError no Lovable)
   const renderFilters = renderFiltersBar;
 
+  // === Métricas GLOBAIS (independem de período/filtro) ===
+  const globalStats = useMemo(() => {
+    const g = rows.reduce(
+      (a, r) => ({
+        value: a.value + r.value,
+        cost: a.cost + r.cost,
+        factoring: a.factoring + r.factoringCost,
+        settled: a.settled + (r.settled ? r.value : 0),
+        open: a.open + (r.settled ? 0 : r.value),
+      }),
+      { value: 0, cost: 0, factoring: 0, settled: 0, open: 0 }
+    );
+    const effective = g.value > 0 ? (g.cost / g.value) * 100 : 0;
+    const savings = Math.max(0, g.factoring - g.cost);
+    const fromISO = dataBounds.from;
+    const toISO = todayStr;
+    const bDays = countBusinessDays(fromISO, toISO);
+    const dailySpeed = g.value / bDays;
+    return {
+      totalBorrowed: g.value,
+      totalCost: g.cost,
+      totalDebt: g.open,
+      totalSettled: g.settled,
+      effectiveRate: effective,
+      factoringSavings: savings,
+      businessDays: bDays,
+      dailySpeed,
+    };
+  }, [rows, dataBounds.from, todayStr]);
+
   const alertMetrics = useMemo(() => {
-    const dailySpeed = dailyAvgBruto || 0;
-    const effectiveRate = totalEffective || 0;
-    const totalDebt = openPresent || 0; // Valor bruto em aberto compromete fluxo de caixa futuro
-    const totalSettled = settledPresent || 0;
-    const totalBorrowed = totals.value || 0;
-    
-    // Calcula a taxa de liquidação (quanto foi pago do total antecipado)
-    const liquidationRate = totalBorrowed > 0 
-      ? (totalSettled / totalBorrowed) * 100 
+    const dailySpeed = globalStats.dailySpeed || 0;
+    const effectiveRate = globalStats.effectiveRate || 0;
+    const totalDebt = globalStats.totalDebt || 0;
+    const totalSettled = globalStats.totalSettled || 0;
+    const totalBorrowed = globalStats.totalBorrowed || 0;
+
+    const liquidationRate = totalBorrowed > 0
+      ? (totalSettled / totalBorrowed) * 100
       : 0;
-    
-    // Taxa de Re-empréstimo/Rolagem (quanto resta sem liquidar)
     const rolloverRate = Math.max(0, 100 - liquidationRate);
 
-    // Supondo 22 dias úteis por mês, volume mensal de antecipação
     const monthlyAnticipationVolume = dailySpeed * 22;
-    
-    // Porcentagem de comprometimento de receita baseada na velocidade mensal
-    const cashCommitmentPct = monthlyAnticipationVolume > 0 
-      ? (totalDebt / monthlyAnticipationVolume) * 100 
+    const cashCommitmentPct = monthlyAnticipationVolume > 0
+      ? (totalDebt / monthlyAnticipationVolume) * 100
       : 0;
-
-    // Tempo estimado para liquidar o saldo em aberto atual se parasse de antecipar hoje (em dias de negócios)
     const daysToClear = dailySpeed > 0 ? totalDebt / dailySpeed : 0;
-    
-    // Projeção de custo de juros em 30 dias se mantiver a velocidade atual
     const projectedInterest30d = monthlyAnticipationVolume * (effectiveRate / 100);
-    
-    // Projeção de juros anual (260 dias úteis)
     const projectedInterest1y = (dailySpeed * 260) * (effectiveRate / 100);
-
-    // Economia anual projetada se usasse a taxa média do MykaCash vs factoring
-    const annualSavingsProjected = businessDays > 0 
-      ? (factoringSavings / businessDays) * 260 
+    const annualSavingsProjected = globalStats.businessDays > 0
+      ? (globalStats.factoringSavings / globalStats.businessDays) * 260
       : 0;
 
-    // Classificação de Risco
     let riskLevel: "BAIXO" | "MODERADO" | "CRÍTICO" = "BAIXO";
     let riskColor = "text-net-green";
     let riskBg = "bg-net-green/10";
     let riskBorder = "border-net-green/20";
     let healthScore = "A+";
     let scoreColor = "text-net-green";
+    let scoreNumeric = 95;
 
-    // O risco aumenta se o comprometimento for alto, a taxa for alta ou a rolagem (re-empréstimo) estiver extremamente alta
     if (cashCommitmentPct >= 60 || effectiveRate > 4.5 || (rolloverRate >= 80 && totalBorrowed > 10000)) {
       riskLevel = "CRÍTICO";
       riskColor = "text-cost-red";
@@ -986,6 +1001,7 @@ const Historico = () => {
       riskBorder = "border-cost-red/30";
       healthScore = "D-";
       scoreColor = "text-cost-red animate-pulse-glow";
+      scoreNumeric = 30;
     } else if (cashCommitmentPct >= 25 || effectiveRate > 2.5 || (rolloverRate >= 50 && totalBorrowed > 5000)) {
       riskLevel = "MODERADO";
       riskColor = "text-factoring-amber";
@@ -993,30 +1009,88 @@ const Historico = () => {
       riskBorder = "border-factoring-amber/30";
       healthScore = "B";
       scoreColor = "text-factoring-amber";
+      scoreNumeric = 65;
     }
 
     return {
-      dailySpeed,
-      effectiveRate,
-      totalDebt,
-      totalSettled,
-      totalBorrowed,
-      liquidationRate,
-      rolloverRate,
-      monthlyAnticipationVolume,
-      cashCommitmentPct,
-      daysToClear,
-      projectedInterest30d,
-      projectedInterest1y,
-      annualSavingsProjected,
-      riskLevel,
-      riskColor,
-      riskBg,
-      riskBorder,
-      healthScore,
-      scoreColor
+      dailySpeed, effectiveRate, totalDebt, totalSettled, totalBorrowed,
+      liquidationRate, rolloverRate, monthlyAnticipationVolume,
+      cashCommitmentPct, daysToClear, projectedInterest30d,
+      projectedInterest1y, annualSavingsProjected,
+      riskLevel, riskColor, riskBg, riskBorder, healthScore, scoreColor, scoreNumeric,
     };
-  }, [dailyAvgBruto, totalEffective, openPresent, settledPresent, totals.value, factoringSavings, businessDays]);
+  }, [globalStats]);
+
+  // === Comparativo contextual: parabeniza ou sugere melhorias quando uma nova operação é cadastrada ===
+  const opsCount = rows.length;
+  const snapshotKey = user?.id ? `myka:analysis-snap:${user.id}` : null;
+  const [contextNote, setContextNote] = useState<{ tone: "up" | "down" | "neutral" | "first"; text: string } | null>(null);
+
+  useEffect(() => {
+    if (!snapshotKey) return;
+    const current = {
+      ops: opsCount,
+      score: alertMetrics.scoreNumeric,
+      commit: alertMetrics.cashCommitmentPct,
+      rollover: alertMetrics.rolloverRate,
+      rate: alertMetrics.effectiveRate,
+    };
+    let prev: typeof current | null = null;
+    try {
+      const raw = localStorage.getItem(snapshotKey);
+      if (raw) prev = JSON.parse(raw);
+    } catch { /* ignore */ }
+
+    if (!prev) {
+      setContextNote({
+        tone: "first",
+        text: opsCount === 0
+          ? "Cadastre sua primeira operação para começarmos a montar o diagnóstico contextual da saúde financeira."
+          : `Diagnóstico inicial calibrado sobre ${opsCount} operação(ões). A cada novo lançamento, refaremos a análise e indicaremos se você está melhorando ou se há ajustes recomendados.`,
+      });
+    } else if (current.ops > prev.ops) {
+      const dScore = current.score - prev.score;
+      const dCommit = current.commit - prev.commit;
+      const dRoll = current.rollover - prev.rollover;
+      const dRate = current.rate - prev.rate;
+
+      const improved = dScore > 0 || dCommit < -2 || dRoll < -2 || dRate < -0.1;
+      const worsened = dScore < 0 || dCommit > 2 || dRoll > 2 || dRate > 0.1;
+
+      if (improved && !worsened) {
+        const parts: string[] = [];
+        if (dCommit < 0) parts.push(`comprometimento de receita caiu ${formatPct(Math.abs(dCommit))}`);
+        if (dRoll < 0) parts.push(`taxa de rolagem reduziu ${formatPct(Math.abs(dRoll))}`);
+        if (dRate < 0) parts.push(`taxa efetiva média recuou ${formatPct(Math.abs(dRate))}`);
+        setContextNote({
+          tone: "up",
+          text: `🎉 Parabéns! Após o novo lançamento, sua saúde financeira melhorou significativamente${parts.length ? ` — ${parts.join(", ")}` : ""}. Mantenha esse padrão de antecipações curtas e liquidações rápidas para sustentar a evolução do score.`,
+        });
+      } else if (worsened) {
+        const sugg: string[] = [];
+        if (dCommit > 0) sugg.push("reduza o ritmo diário de antecipações ou priorize duplicatas de prazo mais curto");
+        if (dRoll > 0) sugg.push("foque na liquidação dos títulos abertos antes de captar novas operações para evitar o efeito rolagem");
+        if (dRate > 0) sugg.push("renegocie taxas: a média efetiva subiu após este lançamento");
+        setContextNote({
+          tone: "down",
+          text: `⚠️ Atenção: o novo lançamento piorou os indicadores globais (score ${prev.score} → ${current.score}). Recomendações: ${sugg.join("; ") || "revise o perfil das próximas operações para não acelerar o endividamento"}.`,
+        });
+      } else {
+        setContextNote({
+          tone: "neutral",
+          text: `Nova operação registrada. Os indicadores globais ficaram estáveis (score ${current.score}). Continue monitorando — pequenas variações ainda não alteraram o diagnóstico.`,
+        });
+      }
+    } else if (current.ops < prev.ops) {
+      setContextNote({
+        tone: "neutral",
+        text: `Uma operação foi removida. Diagnóstico recalibrado sobre ${current.ops} operação(ões) restantes.`,
+      });
+    }
+
+    try { localStorage.setItem(snapshotKey, JSON.stringify(current)); } catch { /* ignore */ }
+  }, [snapshotKey, opsCount, alertMetrics.scoreNumeric, alertMetrics.cashCommitmentPct, alertMetrics.rolloverRate, alertMetrics.effectiveRate]);
+
 
   return (
     <div className="min-h-screen">
