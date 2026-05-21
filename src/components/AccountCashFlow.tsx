@@ -479,31 +479,15 @@ export const AccountCashFlow = () => {
     return result;
   }, [unifiedData, period, fromDate, toDate]);
 
-  const chartColorStops = useMemo(() => {
-    if (chartData.length === 0) {
-      return [{ offset: 0, color: "hsl(var(--muted-foreground))" }];
-    }
+  // Gradient offset for positive/negative colors
+  const gradientOffset = useMemo(() => {
+    const dataMax = Math.max(...chartData.map((i) => i.balance));
+    const dataMin = Math.min(...chartData.map((i) => i.balance));
 
-    const slopeColor = (s: number, maxAbs: number) => {
-      const raw = maxAbs === 0 ? 0 : Math.max(-1, Math.min(1, s / maxAbs));
-      const t = Math.sign(raw) * Math.pow(Math.abs(raw), 0.35);
-      const hue = t >= 0 ? 50 + (145 - 50) * t : 50 + (0 - 50) * -t;
-      return `hsl(${hue.toFixed(1)} 90% 50%)`;
-    };
+    if (dataMax <= 0) return 0;
+    if (dataMin >= 0) return 1;
 
-    const n = chartData.length;
-    const slopes: number[] = [];
-    for (let i = 0; i < n; i++) {
-      const prev = chartData[Math.max(0, i - 1)].balance;
-      const next = chartData[Math.min(n - 1, i + 1)].balance;
-      slopes.push(next - prev);
-    }
-    const maxAbs = Math.max(1, ...slopes.map((s) => Math.abs(s)));
-
-    return chartData.map((_, i) => ({
-      offset: n <= 1 ? 0 : (i / (n - 1)) * 100,
-      color: slopeColor(slopes[i], maxAbs),
-    }));
+    return dataMax / (dataMax - dataMin);
   }, [chartData]);
 
   const handleSaveTransaction = async (e: React.FormEvent) => {
@@ -909,23 +893,14 @@ export const AccountCashFlow = () => {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
               <defs>
-                <linearGradient id="financeLineGrad" x1="0" y1="0" x2="1" y2="0">
-                  {chartColorStops.map((s, i) => (
-                    <stop key={i} offset={`${s.offset}%`} stopColor={s.color} stopOpacity={1} />
-                  ))}
+                <linearGradient id="splitColor" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset={gradientOffset} stopColor="hsl(var(--net-green))" stopOpacity={0.3} />
+                  <stop offset={gradientOffset} stopColor="hsl(var(--cost-red))" stopOpacity={0.3} />
                 </linearGradient>
-                <linearGradient id="financeAreaGrad" x1="0" y1="0" x2="1" y2="0">
-                  {chartColorStops.map((s, i) => (
-                    <stop key={i} offset={`${s.offset}%`} stopColor={s.color} stopOpacity={0.55} />
-                  ))}
+                <linearGradient id="strokeColor" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset={gradientOffset} stopColor="hsl(var(--net-green))" stopOpacity={1} />
+                  <stop offset={gradientOffset} stopColor="hsl(var(--cost-red))" stopOpacity={1} />
                 </linearGradient>
-                <linearGradient id="financeAreaFade" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ffffff" stopOpacity={1} />
-                  <stop offset="100%" stopColor="#ffffff" stopOpacity={0.05} />
-                </linearGradient>
-                <mask id="financeAreaFadeMask">
-                  <rect x="0" y="0" width="100%" height="100%" fill="url(#financeAreaFade)" />
-                </mask>
               </defs>
               <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--muted-foreground))" opacity={0.4} vertical={true} horizontal={true} />
               <XAxis 
@@ -995,13 +970,10 @@ export const AccountCashFlow = () => {
                 yAxisId="left"
                 type="monotone" 
                 dataKey="balance" 
-                name="saldo"
-                stroke="url(#financeLineGrad)" 
-                strokeWidth={2.5}
+                stroke="url(#strokeColor)" 
+                strokeWidth={3}
                 fillOpacity={1} 
-                fill="url(#financeAreaGrad)" 
-                mask="url(#financeAreaFadeMask)"
-                connectNulls={false}
+                fill="url(#splitColor)" 
                 isAnimationActive={true}
                 animationDuration={900}
                 animationEasing="ease-out"
