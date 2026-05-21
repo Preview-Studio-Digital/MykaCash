@@ -973,7 +973,9 @@ export const AccountCashFlow = () => {
                 strokeWidth={3}
                 fillOpacity={1} 
                 fill="url(#splitColor)" 
-                animationDuration={1500}
+                isAnimationActive={true}
+                animationDuration={900}
+                animationEasing="ease-out"
               />
               <Area 
                 yAxisId="right"
@@ -981,7 +983,9 @@ export const AccountCashFlow = () => {
                 dataKey="balance" 
                 stroke="transparent" 
                 fill="transparent" 
-                isAnimationActive={false}
+                isAnimationActive={true}
+                animationDuration={900}
+                animationEasing="ease-out"
               />
             </AreaChart>
           </ResponsiveContainer>
