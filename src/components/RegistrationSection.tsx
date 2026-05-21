@@ -849,7 +849,7 @@ export const RegistrationSection = ({
                       fontSize: "10px",
                     }}
                   >
-                    CUSTO
+                    CUSTO DAS OPERAÇÕES
                   </th>
                 </tr>
               </thead>
@@ -947,7 +947,7 @@ export const RegistrationSection = ({
               }}
             >
               <div style={{ fontSize: "10px", letterSpacing: "0.3em", color: "#fecaca", marginBottom: "8px" }}>
-                CUSTO DA OPERAÇÃO
+                CUSTO DAS OPERAÇÕES
               </div>
               <div style={{ fontSize: "22px", fontWeight: 800 }}>{formatBRL(result.operationCost)}</div>
             </div>
