@@ -1615,6 +1615,7 @@ const Historico = () => {
             </div>
           </div>
         </section>
+        )}
 
         {/* Secondary filters (Middle) */}
         {renderFilters()}
