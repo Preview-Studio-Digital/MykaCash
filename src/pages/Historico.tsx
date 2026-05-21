@@ -1072,19 +1072,19 @@ const Historico = () => {
 
     const openings: Record<typeof tone, string[]> = {
       up: [
-        `Operação #${opsCount} registrada — a saúde financeira segue em zona positiva (score ${scoreNumeric}/100, nota ${healthScore}).`,
-        `Bom trabalho. Com ${opsCount} operação(ões) acumulada(s), os indicadores continuam equilibrados (${healthScore}).`,
-        `Cenário ainda confortável após o lançamento mais recente: ${formatPct(rolloverRate)} de rolagem e ${formatPct(cashCommitmentPct)} de receita comprometida.`,
+        `Operação ${opLabel} registrada — a saúde financeira segue em zona positiva (score ${scoreNumeric}/100, nota ${healthScore}).`,
+        `Bom trabalho. Após o registro ${opLabel}, os indicadores continuam equilibrados (${healthScore}).`,
+        `Cenário ainda confortável após o lançamento ${opLabel}: ${formatPct(rolloverRate)} de rolagem e ${formatPct(cashCommitmentPct)} de receita comprometida.`,
       ],
       warn: [
-        `Diagnóstico atualizado após a operação #${opsCount}: estamos na faixa moderada (score ${scoreNumeric}, ${healthScore}).`,
-        `O novo lançamento move o termômetro para zona de atenção — exposição já em ${formatBRL(totalDebt)} contra ${formatBRL(totalBorrowed)} captados.`,
-        `Sinais mistos após ${opsCount} operação(ões): ${formatPct(cashCommitmentPct)} da receita futura já está comprometida e a taxa efetiva média está em ${formatPct(effectiveRate)}.`,
+        `Diagnóstico atualizado após a operação ${opLabel}: estamos na faixa moderada (score ${scoreNumeric}, ${healthScore}).`,
+        `O lançamento ${opLabel} move o termômetro para zona de atenção — exposição já em ${formatBRL(totalDebt)} contra ${formatBRL(totalBorrowed)} captados.`,
+        `Sinais mistos após o registro ${opLabel}: ${formatPct(cashCommitmentPct)} da receita futura já está comprometida e a taxa efetiva média está em ${formatPct(effectiveRate)}.`,
       ],
       down: [
-        `Alerta após a operação #${opsCount}: score em ${scoreNumeric} (${healthScore}) e ${formatPct(rolloverRate)} de rolagem indicam dependência crescente de novas captações.`,
-        `Cenário crítico — receita comprometida em ${formatPct(cashCommitmentPct)} e ${Math.round(daysToClear)} dias úteis necessários para zerar a posição no ritmo atual.`,
-        `O lançamento mais recente intensifica a pressão: ${formatBRL(totalDebt)} em aberto contra apenas ${formatBRL(totalSettled)} liquidados.`,
+        `Alerta após a operação ${opLabel}: score em ${scoreNumeric} (${healthScore}) e ${formatPct(rolloverRate)} de rolagem indicam dependência crescente de novas captações.`,
+        `Cenário crítico após o registro ${opLabel} — receita comprometida em ${formatPct(cashCommitmentPct)} e ${Math.round(daysToClear)} dias úteis necessários para zerar a posição no ritmo atual.`,
+        `O lançamento ${opLabel} intensifica a pressão: ${formatBRL(totalDebt)} em aberto contra apenas ${formatBRL(totalSettled)} liquidados.`,
       ],
     };
 
