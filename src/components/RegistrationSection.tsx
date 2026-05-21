@@ -908,7 +908,7 @@ export const RegistrationSection = ({
               }}
             >
               <div style={{ fontSize: "10px", letterSpacing: "0.3em", color: "#94a3b8", marginBottom: "8px" }}>
-                VALOR BRUTO (A PAGAR)
+                VALOR BRUTO
               </div>
               <div style={{ fontSize: "22px", fontWeight: 800 }}>{formatBRL(result.totalInvoice)}</div>
             </div>
