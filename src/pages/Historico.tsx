@@ -1116,7 +1116,7 @@ const Historico = () => {
       return pick([
         `Indicadores equilibrados: liquidação em ${formatPct(100 - rolloverRate)} do volume e taxa média controlada em ${formatPct(effectiveRate)}.`,
         `Sem vilão dominante. Você está usando a antecipação como instrumento tático e não como dívida recorrente — exatamente o uso recomendado.`,
-        `Composição saudável entre captação e liquidação após ${opsCount} operação(ões). A economia projetada anual frente ao factoring soma ${formatBRL(annualSavingsProjected)}.`,
+        `Composição saudável entre captação e liquidação após o registro ${opLabel}. A economia projetada anual frente ao factoring soma ${formatBRL(annualSavingsProjected)}.`,
       ]);
     })();
 
