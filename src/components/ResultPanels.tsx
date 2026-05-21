@@ -15,7 +15,7 @@ export const ResultPanels = ({ result, monthlyRate }: { result: CalcResult; mont
           <div className="mt-3 h-px bg-white/20" />
           <div className="mt-3 grid grid-cols-1 gap-2">
             <div>
-              <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR BRUTO (A PAGAR)</div>
+              <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR BRUTO</div>
               <div className="mt-0.5 font-display text-base md:text-lg font-semibold tabular-nums">
                 {formatBRL(result.totalInvoice)}
               </div>
