@@ -28,7 +28,7 @@ export const ResultPanels = ({ result, monthlyRate }: { result: CalcResult; mont
       <div className="relative overflow-hidden rounded-xl bg-gradient-cost p-4 text-cost-red-foreground panel-glow-cost animate-fade-up">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
         <div className="relative">
-          <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">CUSTO DA OPERAÇÃO</div>
+          <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">CUSTO DAS OPERAÇÕES</div>
           <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums break-words">
             {formatBRL(result.operationCost)}
           </div>
