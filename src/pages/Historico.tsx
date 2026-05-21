@@ -1030,74 +1030,116 @@ const Historico = () => {
     };
   }, [globalStats]);
 
-  // === Comparativo contextual: parabeniza ou sugere melhorias quando uma nova operação é cadastrada ===
+  // === Consultor AI: recomendação adaptativa que muda forma e conteúdo a cada nova operação ===
   const opsCount = rows.length;
-  const snapshotKey = user?.id ? `myka:analysis-snap:${user.id}` : null;
-  const [contextNote, setContextNote] = useState<{ tone: "up" | "down" | "neutral" | "first"; text: string } | null>(null);
 
-  useEffect(() => {
-    if (!snapshotKey) return;
-    const current = {
-      ops: opsCount,
-      score: alertMetrics.scoreNumeric,
-      commit: alertMetrics.cashCommitmentPct,
-      rollover: alertMetrics.rolloverRate,
-      rate: alertMetrics.effectiveRate,
-    };
-    let prev: typeof current | null = null;
-    try {
-      const raw = localStorage.getItem(snapshotKey);
-      if (raw) prev = JSON.parse(raw);
-    } catch { /* ignore */ }
+  const advisorRecommendation = useMemo(() => {
+    const {
+      cashCommitmentPct, rolloverRate, effectiveRate, daysToClear,
+      totalDebt, totalBorrowed, totalSettled, dailySpeed,
+      projectedInterest30d, annualSavingsProjected, scoreNumeric, healthScore,
+    } = alertMetrics;
 
-    if (!prev) {
-      setContextNote({
-        tone: "first",
-        text: opsCount === 0
-          ? "Cadastre sua primeira operação para começarmos a montar o diagnóstico contextual da saúde financeira."
-          : `Diagnóstico inicial calibrado sobre ${opsCount} operação(ões). A cada novo lançamento, refaremos a análise e indicaremos se você está melhorando ou se há ajustes recomendados.`,
-      });
-    } else if (current.ops > prev.ops) {
-      const dCommit = current.commit - prev.commit;
-      const dRoll = current.rollover - prev.rollover;
-      const dRate = current.rate - prev.rate;
-
-      const improved = dCommit < -2 || dRoll < -2 || dRate < -0.1;
-      const worsened = dCommit > 2 || dRoll > 2 || dRate > 0.1;
-
-      if (improved && !worsened) {
-        const parts: string[] = [];
-        if (dCommit < 0) parts.push(`comprometimento de receita caiu ${formatPct(Math.abs(dCommit))}`);
-        if (dRoll < 0) parts.push(`taxa de rolagem reduziu ${formatPct(Math.abs(dRoll))}`);
-        if (dRate < 0) parts.push(`taxa efetiva média recuou ${formatPct(Math.abs(dRate))}`);
-        setContextNote({
-          tone: "up",
-          text: `🎉 Parabéns! Após o novo lançamento, sua saúde financeira melhorou significativamente${parts.length ? ` — ${parts.join(", ")}` : ""}. Mantenha esse padrão de antecipações curtas e liquidações rápidas para sustentar a evolução do score.`,
-        });
-      } else if (worsened) {
-        const sugg: string[] = [];
-        if (dCommit > 0) sugg.push("reduza o ritmo diário de antecipações ou priorize duplicatas de prazo mais curto");
-        if (dRoll > 0) sugg.push("foque na liquidação dos títulos abertos antes de captar novas operações para evitar o efeito rolagem");
-        if (dRate > 0) sugg.push("renegocie taxas: a média efetiva subiu após este lançamento");
-        setContextNote({
-          tone: "down",
-          text: `⚠️ Atenção: o novo lançamento trouxe pressão aos indicadores globais. Recomendações: ${sugg.join("; ") || "revise o perfil das próximas operações para não acelerar o endividamento"}.`,
-        });
-      } else {
-        setContextNote({
-          tone: "neutral",
-          text: "Nova operação registrada. Os indicadores globais ficaram estáveis. Continue monitorando — pequenas variações ainda não alteraram o diagnóstico.",
-        });
-      }
-    } else if (current.ops < prev.ops) {
-      setContextNote({
-        tone: "neutral",
-        text: `Uma operação foi removida. Diagnóstico recalibrado sobre ${current.ops} operação(ões) restantes.`,
-      });
+    if (opsCount === 0) {
+      return {
+        tone: "neutral" as const,
+        headline: "Aguardando primeiro lançamento",
+        body: "Cadastre uma operação para iniciarmos o diagnóstico adaptativo. A cada novo registro a recomendação será recalculada considerando comprometimento de receita, rolagem, taxa efetiva e velocidade diária.",
+      };
     }
 
-    try { localStorage.setItem(snapshotKey, JSON.stringify(current)); } catch { /* ignore */ }
-  }, [snapshotKey, opsCount, alertMetrics.scoreNumeric, alertMetrics.cashCommitmentPct, alertMetrics.rolloverRate, alertMetrics.effectiveRate]);
+    const commitTier = cashCommitmentPct >= 60 ? 3 : cashCommitmentPct >= 25 ? 2 : 1;
+    const rollTier   = rolloverRate >= 70 ? 3 : rolloverRate >= 40 ? 2 : 1;
+    const rateTier   = effectiveRate >= 4 ? 3 : effectiveRate >= 2 ? 2 : 1;
+    const speedTier  = dailySpeed > 0 && daysToClear > 45 ? 3 : daysToClear > 20 ? 2 : 1;
+    const sumTier    = commitTier + rollTier + rateTier + speedTier;
+    const tone: "up" | "warn" | "down" = sumTier >= 10 ? "down" : sumTier >= 7 ? "warn" : "up";
+
+    const tiers = [
+      { key: "commit", tier: commitTier, value: cashCommitmentPct },
+      { key: "roll",   tier: rollTier,   value: rolloverRate },
+      { key: "rate",   tier: rateTier,   value: effectiveRate },
+      { key: "speed",  tier: speedTier,  value: daysToClear },
+    ];
+    const dominant = [...tiers].sort((a, b) => b.tier - a.tier || b.value - a.value)[0];
+
+    const pick = <T,>(arr: T[]): T => arr[opsCount % arr.length];
+
+    const openings: Record<typeof tone, string[]> = {
+      up: [
+        `Operação #${opsCount} registrada — a saúde financeira segue em zona positiva (score ${scoreNumeric}/100, nota ${healthScore}).`,
+        `Bom trabalho. Com ${opsCount} operação(ões) acumulada(s), os indicadores continuam equilibrados (${healthScore}).`,
+        `Cenário ainda confortável após o lançamento mais recente: ${formatPct(rolloverRate)} de rolagem e ${formatPct(cashCommitmentPct)} de receita comprometida.`,
+      ],
+      warn: [
+        `Diagnóstico atualizado após a operação #${opsCount}: estamos na faixa moderada (score ${scoreNumeric}, ${healthScore}).`,
+        `O novo lançamento move o termômetro para zona de atenção — exposição já em ${formatBRL(totalDebt)} contra ${formatBRL(totalBorrowed)} captados.`,
+        `Sinais mistos após ${opsCount} operação(ões): ${formatPct(cashCommitmentPct)} da receita futura já está comprometida e a taxa efetiva média está em ${formatPct(effectiveRate)}.`,
+      ],
+      down: [
+        `Alerta após a operação #${opsCount}: score em ${scoreNumeric} (${healthScore}) e ${formatPct(rolloverRate)} de rolagem indicam dependência crescente de novas captações.`,
+        `Cenário crítico — receita comprometida em ${formatPct(cashCommitmentPct)} e ${Math.round(daysToClear)} dias úteis necessários para zerar a posição no ritmo atual.`,
+        `O lançamento mais recente intensifica a pressão: ${formatBRL(totalDebt)} em aberto contra apenas ${formatBRL(totalSettled)} liquidados.`,
+      ],
+    };
+
+    const diagnosis = (() => {
+      if (dominant.key === "commit" && commitTier >= 2) {
+        return pick([
+          `O ponto que mais pesa agora é o comprometimento da receita futura (${formatPct(cashCommitmentPct)}). Cada nova antecipação está consumindo o caixa projetado dos próximos ${Math.round(daysToClear)} dias úteis.`,
+          `Foco: comprometimento de receita em ${formatPct(cashCommitmentPct)}. Mantido esse ritmo, o juro projetado para 30 dias soma ${formatBRL(projectedInterest30d)}.`,
+        ]);
+      }
+      if (dominant.key === "roll" && rollTier >= 2) {
+        return pick([
+          `O fator crítico é a rolagem (${formatPct(rolloverRate)}): há mais captação do que liquidação real e isso transforma a antecipação em dívida circulante.`,
+          `Sua taxa de re-empréstimo está em ${formatPct(rolloverRate)} — sinal de que novos títulos estão financiando os antigos em vez de gerar liquidez nova.`,
+        ]);
+      }
+      if (dominant.key === "rate" && rateTier >= 2) {
+        return pick([
+          `A taxa efetiva média subiu para ${formatPct(effectiveRate)} ao mês. Em base anualizada isso equivale a uma sangria estimada de ${formatBRL(projectedInterest30d * 12)} se o ritmo persistir.`,
+          `Custo financeiro é o principal vilão: ${formatPct(effectiveRate)} efetivos. Antecipações de prazo mais curto e renegociação de spread devem entrar na pauta.`,
+        ]);
+      }
+      if (dominant.key === "speed" && speedTier >= 2) {
+        return pick([
+          `Você está antecipando ${formatBRL(dailySpeed)} por dia útil — nesse passo, levaria ~${Math.round(daysToClear)} dias úteis para liquidar o saldo atual sem novas operações.`,
+          `Velocidade elevada (${formatBRL(dailySpeed)}/dia útil) com saldo em aberto de ${formatBRL(totalDebt)}: alterne dias sem captação para alongar o prazo médio efetivo.`,
+        ]);
+      }
+      return pick([
+        `Indicadores equilibrados: liquidação em ${formatPct(100 - rolloverRate)} do volume e taxa média controlada em ${formatPct(effectiveRate)}.`,
+        `Sem vilão dominante. Você está usando a antecipação como instrumento tático e não como dívida recorrente — exatamente o uso recomendado.`,
+        `Composição saudável entre captação e liquidação após ${opsCount} operação(ões). A economia projetada anual frente ao factoring soma ${formatBRL(annualSavingsProjected)}.`,
+      ]);
+    })();
+
+    const actions: Record<typeof tone, string[]> = {
+      up: [
+        "Próxima ação sugerida: aproveitar a folga para negociar spread menor com o banco; cada 0,1% economizado se multiplica nas próximas operações.",
+        "Continue priorizando antecipações somente quando houver oportunidade real (compra com desconto à vista). É essa disciplina que sustenta o score.",
+        "Considere registrar uma reserva-meta: separar parte da economia gerada hoje cria amortecimento para meses de menor faturamento.",
+      ],
+      warn: [
+        `Reduza o ritmo diário para abaixo de ${formatBRL(dailySpeed * 0.7)} nas próximas captações e priorize duplicatas de até 15 dias para baixar a taxa efetiva.`,
+        `Concentre liquidações: zerar pelo menos ${formatBRL(totalDebt * 0.3)} do saldo aberto antes da próxima antecipação devolveria o score à faixa segura.`,
+        "Reavalie qual contraparte está cobrando mais caro — concentrar volume no banco de menor spread costuma render ganhos imediatos no próximo ciclo.",
+      ],
+      down: [
+        `Freie novas antecipações por pelo menos ${Math.max(5, Math.round(daysToClear / 3))} dias úteis e direcione todo o fluxo recebido à liquidação dos títulos abertos.`,
+        "Renegociação é prioridade: leve à mesa o histórico e peça redução de spread ou troca por uma linha de capital de giro mais barata para os títulos mais longos.",
+        `Estabeleça um teto de antecipação semanal abaixo de ${formatBRL(dailySpeed * 5 * 0.5)} até a rolagem cair para menos de 40%.`,
+      ],
+    };
+
+    return {
+      tone,
+      headline: tone === "down" ? "Atenção crítica" : tone === "warn" ? "Recalibrar exposição" : "Saúde financeira positiva",
+      body: `${pick(openings[tone])} ${diagnosis} ${pick(actions[tone])}`,
+    };
+  }, [opsCount, alertMetrics]);
+
 
 
   return (
@@ -1544,25 +1586,8 @@ const Historico = () => {
             </div>
           </div>
 
-          {contextNote && (
-            <div
-              key={`ctx-${rows.length}`}
-              className={cn(
-                "mb-6 rounded-xl border p-4 animate-fade-in",
-                contextNote.tone === "up" && "border-net-green/40 bg-net-green/10",
-                contextNote.tone === "down" && "border-cost-red/40 bg-cost-red/10",
-                contextNote.tone === "neutral" && "border-border/50 bg-muted/20",
-                contextNote.tone === "first" && "border-primary/30 bg-primary/5",
-              )}
-            >
-              <div className="font-mono text-[9px] tracking-widest text-muted-foreground uppercase mb-1">
-                Análise Contextual · atualizada a cada nova operação
-              </div>
-              <p className="text-sm text-foreground/90 leading-relaxed font-sans">
-                {contextNote.text}
-              </p>
-            </div>
-          )}
+
+
 
 
           <div className="grid gap-6 md:grid-cols-12 items-stretch">
@@ -1657,23 +1682,27 @@ const Historico = () => {
               )}
 
               {/* Dica Esperta do Consultor */}
-              <div className="mt-4 p-3 rounded-lg border border-border/40 bg-muted/20 flex items-start gap-2.5">
+              <div
+                key={`advisor-${opsCount}-${alertMetrics.scoreNumeric}`}
+                className={cn(
+                  "mt-4 p-3 rounded-lg border flex items-start gap-2.5 animate-fade-in",
+                  advisorRecommendation.tone === "up" && "border-net-green/40 bg-net-green/5",
+                  advisorRecommendation.tone === "warn" && "border-factoring-amber/40 bg-factoring-amber/5",
+                  advisorRecommendation.tone === "down" && "border-cost-red/40 bg-cost-red/5",
+                  advisorRecommendation.tone === "neutral" && "border-border/40 bg-muted/20",
+                )}
+              >
                 <span className="text-xs animate-pulse drop-shadow-[0_0_6px_rgba(250,204,21,0.8)]">💡</span>
                 <div className="space-y-0.5">
-                  <div className="font-mono text-[9px] tracking-wider text-muted-foreground uppercase">Recomendação do Consultor AI</div>
+                  <div className="font-mono text-[9px] tracking-wider text-muted-foreground uppercase">
+                    Recomendação do Consultor AI · {advisorRecommendation.headline}
+                  </div>
                   <p className="text-xs text-justify text-muted-foreground leading-normal font-sans">
-                    {alertMetrics.rolloverRate >= 70 && alertMetrics.totalBorrowed > 5000 ? (
-                      `Alerta crítico de Rolagem! Sua taxa de re-empréstimo de recebíveis está em ${formatPct(alertMetrics.rolloverRate)}. Como a liquidação real está muito baixa, a empresa está dependendo de novos empréstimos para sustentar o caixa. Recomenda-se frear novas antecipações imediatamente e focar na liquidação dos títulos ativos.`
-                    ) : alertMetrics.cashCommitmentPct >= 60 ? (
-                      "Atenção urgente! Reduza o ritmo de antecipações focando apenas em duplicatas de curto prazo (até 15 dias). Considere renegociar contratos ou aportes pontuais para frear a bola de neve de juros acumulados."
-                    ) : alertMetrics.cashCommitmentPct >= 25 ? (
-                      "Ritmo moderado. Tente alternar dias de antecipação para aumentar o prazo médio acumulado e diminuir a taxa efetiva real paga por operação."
-                    ) : (
-                      "Parabéns! Excelente gestão de recebíveis. Continue priorizando a antecipação apenas para oportunidades de compra de insumos com desconto à vista."
-                    )}
+                    {advisorRecommendation.body}
                   </p>
                 </div>
               </div>
+
             </div>
 
             {/* Direita: Placa de Diagnóstico/Score Card */}
