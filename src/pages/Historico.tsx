@@ -1536,6 +1536,27 @@ const Historico = () => {
             </div>
           </div>
 
+          {contextNote && (
+            <div
+              key={`ctx-${rows.length}`}
+              className={cn(
+                "mb-6 rounded-xl border p-4 animate-fade-in",
+                contextNote.tone === "up" && "border-net-green/40 bg-net-green/10",
+                contextNote.tone === "down" && "border-cost-red/40 bg-cost-red/10",
+                contextNote.tone === "neutral" && "border-border/50 bg-muted/20",
+                contextNote.tone === "first" && "border-primary/30 bg-primary/5",
+              )}
+            >
+              <div className="font-mono text-[9px] tracking-widest text-muted-foreground uppercase mb-1">
+                Análise Contextual · atualizada a cada nova operação
+              </div>
+              <p className="text-sm text-foreground/90 leading-relaxed font-sans">
+                {contextNote.text}
+              </p>
+            </div>
+          )}
+
+
           <div className="grid gap-6 md:grid-cols-12 items-stretch">
             {/* Esquerda: O diagnóstico em texto corrido e interativo */}
             <div className="md:col-span-8 space-y-4 flex flex-col justify-between">
