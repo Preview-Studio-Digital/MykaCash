@@ -909,14 +909,23 @@ export const AccountCashFlow = () => {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
               <defs>
-                <linearGradient id="splitColor" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset={gradientOffset} stopColor="hsl(var(--net-green))" stopOpacity={0.3} />
-                  <stop offset={gradientOffset} stopColor="hsl(var(--cost-red))" stopOpacity={0.3} />
+                <linearGradient id="financeLineGrad" x1="0" y1="0" x2="1" y2="0">
+                  {chartColorStops.map((s, i) => (
+                    <stop key={i} offset={`${s.offset}%`} stopColor={s.color} stopOpacity={1} />
+                  ))}
                 </linearGradient>
-                <linearGradient id="strokeColor" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset={gradientOffset} stopColor="hsl(var(--net-green))" stopOpacity={1} />
-                  <stop offset={gradientOffset} stopColor="hsl(var(--cost-red))" stopOpacity={1} />
+                <linearGradient id="financeAreaGrad" x1="0" y1="0" x2="1" y2="0">
+                  {chartColorStops.map((s, i) => (
+                    <stop key={i} offset={`${s.offset}%`} stopColor={s.color} stopOpacity={0.55} />
+                  ))}
                 </linearGradient>
+                <linearGradient id="financeAreaFade" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#ffffff" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#ffffff" stopOpacity={0.05} />
+                </linearGradient>
+                <mask id="financeAreaFadeMask">
+                  <rect x="0" y="0" width="100%" height="100%" fill="url(#financeAreaFade)" />
+                </mask>
               </defs>
               <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--muted-foreground))" opacity={0.4} vertical={true} horizontal={true} />
               <XAxis 
@@ -986,10 +995,13 @@ export const AccountCashFlow = () => {
                 yAxisId="left"
                 type="monotone" 
                 dataKey="balance" 
-                stroke="url(#strokeColor)" 
-                strokeWidth={3}
+                name="saldo"
+                stroke="url(#financeLineGrad)" 
+                strokeWidth={2.5}
                 fillOpacity={1} 
-                fill="url(#splitColor)" 
+                fill="url(#financeAreaGrad)" 
+                mask="url(#financeAreaFadeMask)"
+                connectNulls={false}
                 isAnimationActive={true}
                 animationDuration={900}
                 animationEasing="ease-out"
