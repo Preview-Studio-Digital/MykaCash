@@ -1058,13 +1058,12 @@ const Historico = () => {
           : `Diagnóstico inicial calibrado sobre ${opsCount} operação(ões). A cada novo lançamento, refaremos a análise e indicaremos se você está melhorando ou se há ajustes recomendados.`,
       });
     } else if (current.ops > prev.ops) {
-      const dScore = current.score - prev.score;
       const dCommit = current.commit - prev.commit;
       const dRoll = current.rollover - prev.rollover;
       const dRate = current.rate - prev.rate;
 
-      const improved = dScore > 0 || dCommit < -2 || dRoll < -2 || dRate < -0.1;
-      const worsened = dScore < 0 || dCommit > 2 || dRoll > 2 || dRate > 0.1;
+      const improved = dCommit < -2 || dRoll < -2 || dRate < -0.1;
+      const worsened = dCommit > 2 || dRoll > 2 || dRate > 0.1;
 
       if (improved && !worsened) {
         const parts: string[] = [];
@@ -1082,12 +1081,12 @@ const Historico = () => {
         if (dRate > 0) sugg.push("renegocie taxas: a média efetiva subiu após este lançamento");
         setContextNote({
           tone: "down",
-          text: `⚠️ Atenção: o novo lançamento piorou os indicadores globais (score ${prev.score} → ${current.score}). Recomendações: ${sugg.join("; ") || "revise o perfil das próximas operações para não acelerar o endividamento"}.`,
+          text: `⚠️ Atenção: o novo lançamento trouxe pressão aos indicadores globais. Recomendações: ${sugg.join("; ") || "revise o perfil das próximas operações para não acelerar o endividamento"}.`,
         });
       } else {
         setContextNote({
           tone: "neutral",
-          text: `Nova operação registrada. Os indicadores globais ficaram estáveis (score ${current.score}). Continue monitorando — pequenas variações ainda não alteraram o diagnóstico.`,
+          text: "Nova operação registrada. Os indicadores globais ficaram estáveis. Continue monitorando — pequenas variações ainda não alteraram o diagnóstico.",
         });
       }
     } else if (current.ops < prev.ops) {
