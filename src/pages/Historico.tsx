@@ -1917,7 +1917,7 @@ const Historico = () => {
       </Dialog>
 
       <footer className="border-t border-border/40 py-6 text-center">
-        <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">MYKACA$H · VERSÃO 2.4</p>
+        <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">MYKACA$H · VERSÃO 2.5</p>
       </footer>
 
       {/* Settlement Date Dialog */}
