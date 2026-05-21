@@ -315,7 +315,9 @@ export const RegistrationSection = ({
             <span className="h-2 w-2 rounded-full animate-color-cycle" />
             <h2 className="font-display text-xl font-semibold tracking-tight">
               {invoiceToEdit ? "Edição" : "Cadastro"}
+              {operationNumber ? ` ${String(operationNumber).padStart(4, "0")}` : ""}
             </h2>
+
           </div>
           <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
             {invoiceToEdit ? "EDITAR ABERTURA" : "ABERTURA"}
