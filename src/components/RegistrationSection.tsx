@@ -290,7 +290,10 @@ export const RegistrationSection = ({
       );
     }
     const clientName = clients.find((c) => c.id === clientId)?.name ?? "cliente";
+    if (savedOpNumber) setOperationNumber(savedOpNumber);
     try {
+      // Wait a tick so the offscreen archive re-renders with the final operation number
+      await new Promise((r) => setTimeout(r, 50));
       await generateArchivePng(clientName, savedOpNumber || undefined);
       toast.success(invoiceToEdit ? "Abertura atualizada e arquivo PNG gerado" : "Abertura salva e arquivo PNG gerado");
     } catch (e) {
@@ -315,7 +318,9 @@ export const RegistrationSection = ({
             <span className="h-2 w-2 rounded-full animate-color-cycle" />
             <h2 className="font-display text-xl font-semibold tracking-tight">
               {invoiceToEdit ? "Edição" : "Cadastro"}
+              {operationNumber ? ` ${String(operationNumber).padStart(4, "0")}` : ""}
             </h2>
+
           </div>
           <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
             {invoiceToEdit ? "EDITAR ABERTURA" : "ABERTURA"}
