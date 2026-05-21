@@ -780,7 +780,7 @@ export const AccountCashFlow = () => {
           </div>
           <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Valor Depositado</p>
           <h3 className="text-2xl font-bold mt-2 text-net-green">
-            {formatBRL(stats.periodDeposits)}
+            {loading ? <span className="opacity-40">—</span> : formatBRL(stats.periodDeposits)}
           </h3>
         </div>
 
@@ -790,7 +790,7 @@ export const AccountCashFlow = () => {
           </div>
           <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Valor Sacado</p>
           <h3 className="text-2xl font-bold mt-2 text-cost-red">
-            {formatBRL(stats.periodWithdrawals)}
+            {loading ? <span className="opacity-40">—</span> : formatBRL(stats.periodWithdrawals)}
           </h3>
         </div>
 
@@ -800,7 +800,7 @@ export const AccountCashFlow = () => {
           </div>
           <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Saldo Aberto</p>
           <h3 className="text-2xl font-bold mt-2 text-factoring-amber">
-            {formatBRL(stats.periodOpen)}
+            {loading ? <span className="opacity-40">—</span> : formatBRL(stats.periodOpen)}
           </h3>
         </div>
 
@@ -810,27 +810,30 @@ export const AccountCashFlow = () => {
           </div>
           <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Ganho Total</p>
           <h3 className="text-2xl font-bold mt-2 text-net-green">
-            {formatBRL(stats.periodProfit)}
+            {loading ? <span className="opacity-40">—</span> : formatBRL(stats.periodProfit)}
           </h3>
         </div>
 
         <div className={`relative group overflow-hidden rounded-2xl border bg-gradient-to-br from-card to-card/50 p-6 transition-all ${
-          statsWithInitial.cumulativeBalance >= 0 
-            ? 'border-primary/20 shadow-[0_0_20px_-5px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_40px_-2px_hsl(var(--primary)/0.6)]' 
-            : 'border-cost-red/20 shadow-[0_0_20px_-5px_hsl(var(--cost-red)/0.3)] hover:shadow-[0_0_40px_-2px_hsl(var(--cost-red)/0.6)]'
+          loading
+            ? 'border-border/30'
+            : statsWithInitial.cumulativeBalance >= 0 
+              ? 'border-primary/20 shadow-[0_0_20px_-5px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_40px_-2px_hsl(var(--primary)/0.6)]' 
+              : 'border-cost-red/20 shadow-[0_0_20px_-5px_hsl(var(--cost-red)/0.3)] hover:shadow-[0_0_40px_-2px_hsl(var(--cost-red)/0.6)]'
         }`}>
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Wallet className={`h-12 w-12 ${statsWithInitial.cumulativeBalance >= 0 ? 'text-primary' : 'text-cost-red'}`} />
+            <Wallet className={`h-12 w-12 ${loading ? 'text-muted-foreground' : statsWithInitial.cumulativeBalance >= 0 ? 'text-primary' : 'text-cost-red'}`} />
           </div>
           <div className="flex justify-between items-start">
             <div>
               <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Saldo em conta</p>
-              <h3 className={`text-2xl font-bold mt-2 ${statsWithInitial.cumulativeBalance >= 0 ? 'text-primary' : 'text-cost-red'}`}>
-                {formatBRL(statsWithInitial.cumulativeBalance)}
+              <h3 className={`text-2xl font-bold mt-2 ${loading ? 'text-muted-foreground' : statsWithInitial.cumulativeBalance >= 0 ? 'text-primary' : 'text-cost-red'}`}>
+                {loading ? <span className="opacity-40">—</span> : formatBRL(statsWithInitial.cumulativeBalance)}
               </h3>
             </div>
           </div>
         </div>
+
       </div>
 
       {/* Chart Section */}
