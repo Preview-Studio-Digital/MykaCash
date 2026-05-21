@@ -1408,8 +1408,12 @@ const Historico = () => {
           })()}
         </section>
 
-        {/* Inteligência Financeira & Alertas de Endividamento */}
-        <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up">
+        {/* Inteligência Financeira & Alertas de Endividamento — somente quando filtro = TODAS */}
+        {statusFilter === "todas" && (
+        <section
+          key={`alerts-${period}-${range.from}-${range.to}-${rows.length}`}
+          className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up"
+        >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
               <span className="relative flex h-2 w-2">
