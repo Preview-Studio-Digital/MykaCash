@@ -1032,6 +1032,11 @@ const Historico = () => {
 
   // === Consultor AI: recomendação adaptativa que muda forma e conteúdo a cada nova operação ===
   const opsCount = rows.length;
+  const latestOpNumber = rows.reduce((max, r) => {
+    const n = Number(r.opNumber) || 0;
+    return n > max ? n : max;
+  }, 0);
+  const opLabel = latestOpNumber > 0 ? String(latestOpNumber).padStart(4, "0") : String(opsCount).padStart(4, "0");
 
   const advisorRecommendation = useMemo(() => {
     const {
@@ -1067,19 +1072,19 @@ const Historico = () => {
 
     const openings: Record<typeof tone, string[]> = {
       up: [
-        `Operação #${opsCount} registrada — a saúde financeira segue em zona positiva (score ${scoreNumeric}/100, nota ${healthScore}).`,
-        `Bom trabalho. Com ${opsCount} operação(ões) acumulada(s), os indicadores continuam equilibrados (${healthScore}).`,
-        `Cenário ainda confortável após o lançamento mais recente: ${formatPct(rolloverRate)} de rolagem e ${formatPct(cashCommitmentPct)} de receita comprometida.`,
+        `Operação ${opLabel} registrada — a saúde financeira segue em zona positiva (score ${scoreNumeric}/100, nota ${healthScore}).`,
+        `Bom trabalho. Após o registro ${opLabel}, os indicadores continuam equilibrados (${healthScore}).`,
+        `Cenário ainda confortável após o lançamento ${opLabel}: ${formatPct(rolloverRate)} de rolagem e ${formatPct(cashCommitmentPct)} de receita comprometida.`,
       ],
       warn: [
-        `Diagnóstico atualizado após a operação #${opsCount}: estamos na faixa moderada (score ${scoreNumeric}, ${healthScore}).`,
-        `O novo lançamento move o termômetro para zona de atenção — exposição já em ${formatBRL(totalDebt)} contra ${formatBRL(totalBorrowed)} captados.`,
-        `Sinais mistos após ${opsCount} operação(ões): ${formatPct(cashCommitmentPct)} da receita futura já está comprometida e a taxa efetiva média está em ${formatPct(effectiveRate)}.`,
+        `Diagnóstico atualizado após a operação ${opLabel}: estamos na faixa moderada (score ${scoreNumeric}, ${healthScore}).`,
+        `O lançamento ${opLabel} move o termômetro para zona de atenção — exposição já em ${formatBRL(totalDebt)} contra ${formatBRL(totalBorrowed)} captados.`,
+        `Sinais mistos após o registro ${opLabel}: ${formatPct(cashCommitmentPct)} da receita futura já está comprometida e a taxa efetiva média está em ${formatPct(effectiveRate)}.`,
       ],
       down: [
-        `Alerta após a operação #${opsCount}: score em ${scoreNumeric} (${healthScore}) e ${formatPct(rolloverRate)} de rolagem indicam dependência crescente de novas captações.`,
-        `Cenário crítico — receita comprometida em ${formatPct(cashCommitmentPct)} e ${Math.round(daysToClear)} dias úteis necessários para zerar a posição no ritmo atual.`,
-        `O lançamento mais recente intensifica a pressão: ${formatBRL(totalDebt)} em aberto contra apenas ${formatBRL(totalSettled)} liquidados.`,
+        `Alerta após a operação ${opLabel}: score em ${scoreNumeric} (${healthScore}) e ${formatPct(rolloverRate)} de rolagem indicam dependência crescente de novas captações.`,
+        `Cenário crítico após o registro ${opLabel} — receita comprometida em ${formatPct(cashCommitmentPct)} e ${Math.round(daysToClear)} dias úteis necessários para zerar a posição no ritmo atual.`,
+        `O lançamento ${opLabel} intensifica a pressão: ${formatBRL(totalDebt)} em aberto contra apenas ${formatBRL(totalSettled)} liquidados.`,
       ],
     };
 
@@ -1111,7 +1116,7 @@ const Historico = () => {
       return pick([
         `Indicadores equilibrados: liquidação em ${formatPct(100 - rolloverRate)} do volume e taxa média controlada em ${formatPct(effectiveRate)}.`,
         `Sem vilão dominante. Você está usando a antecipação como instrumento tático e não como dívida recorrente — exatamente o uso recomendado.`,
-        `Composição saudável entre captação e liquidação após ${opsCount} operação(ões). A economia projetada anual frente ao factoring soma ${formatBRL(annualSavingsProjected)}.`,
+        `Composição saudável entre captação e liquidação após o registro ${opLabel}. A economia projetada anual frente ao factoring soma ${formatBRL(annualSavingsProjected)}.`,
       ]);
     })();
 
@@ -1138,7 +1143,7 @@ const Historico = () => {
       headline: tone === "down" ? "Atenção crítica" : tone === "warn" ? "Recalibrar exposição" : "Saúde financeira positiva",
       body: `${pick(openings[tone])} ${diagnosis} ${pick(actions[tone])}`,
     };
-  }, [opsCount, alertMetrics]);
+  }, [opsCount, opLabel, alertMetrics]);
 
 
 
