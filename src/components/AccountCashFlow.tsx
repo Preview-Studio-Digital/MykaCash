@@ -889,6 +889,7 @@ export const AccountCashFlow = () => {
         </div>
 
         <div className="h-[300px] w-full">
+          {chartData.length > 0 && (
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
               <defs>
@@ -989,7 +990,9 @@ export const AccountCashFlow = () => {
               />
             </AreaChart>
           </ResponsiveContainer>
+          )}
         </div>
+
 
         {chartData.length > 0 && (() => {
           const MONTHS_PT = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
