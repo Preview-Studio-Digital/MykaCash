@@ -1763,13 +1763,13 @@ const Historico = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={14} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
+                    <td colSpan={13} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                       CARREGANDO...
                     </td>
                   </tr>
                 ) : filteredRows.length === 0 ? (
                   <tr>
-                    <td colSpan={14} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
+                    <td colSpan={13} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
                       NENHUMA ABERTURA NO PERÍODO
                     </td>
                   </tr>
