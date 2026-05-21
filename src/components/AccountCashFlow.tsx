@@ -479,15 +479,31 @@ export const AccountCashFlow = () => {
     return result;
   }, [unifiedData, period, fromDate, toDate]);
 
-  // Gradient offset for positive/negative colors
-  const gradientOffset = useMemo(() => {
-    const dataMax = Math.max(...chartData.map((i) => i.balance));
-    const dataMin = Math.min(...chartData.map((i) => i.balance));
+  const chartColorStops = useMemo(() => {
+    if (chartData.length === 0) {
+      return [{ offset: 0, color: "hsl(var(--muted-foreground))" }];
+    }
 
-    if (dataMax <= 0) return 0;
-    if (dataMin >= 0) return 1;
+    const slopeColor = (s: number, maxAbs: number) => {
+      const raw = maxAbs === 0 ? 0 : Math.max(-1, Math.min(1, s / maxAbs));
+      const t = Math.sign(raw) * Math.pow(Math.abs(raw), 0.35);
+      const hue = t >= 0 ? 50 + (145 - 50) * t : 50 + (0 - 50) * -t;
+      return `hsl(${hue.toFixed(1)} 90% 50%)`;
+    };
 
-    return dataMax / (dataMax - dataMin);
+    const n = chartData.length;
+    const slopes: number[] = [];
+    for (let i = 0; i < n; i++) {
+      const prev = chartData[Math.max(0, i - 1)].balance;
+      const next = chartData[Math.min(n - 1, i + 1)].balance;
+      slopes.push(next - prev);
+    }
+    const maxAbs = Math.max(1, ...slopes.map((s) => Math.abs(s)));
+
+    return chartData.map((_, i) => ({
+      offset: n <= 1 ? 0 : (i / (n - 1)) * 100,
+      color: slopeColor(slopes[i], maxAbs),
+    }));
   }, [chartData]);
 
   const handleSaveTransaction = async (e: React.FormEvent) => {
