@@ -1195,7 +1195,7 @@ const Historico = () => {
             <div className="relative">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">CUSTO DAS OPERAÇÕES</div>
+                  <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">CUSTO</div>
                   <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums whitespace-nowrap">
                     {formatBRL(totals.cost)}
                   </div>
@@ -1830,7 +1830,7 @@ const Historico = () => {
                         <div className="text-net-green">{formatBRL(r.presentValue)}</div>
                       </div>
                       <div>
-                        <div className="text-[9px] tracking-widest text-muted-foreground">CUSTO DAS OPERAÇÕES</div>
+                        <div className="text-[9px] tracking-widest text-muted-foreground">CUSTO</div>
                         <div className="text-cost-red">{formatBRL(r.cost)}</div>
                       </div>
                     </div>
@@ -1896,7 +1896,7 @@ const Historico = () => {
                   <SortableTh label="TX EFET." sKey="effectivePct" />
                   <SortableTh label="BRUTO (R$)" sKey="value" />
                   <SortableTh label="LÍQUIDO (R$)" sKey="presentValue" />
-                  <SortableTh label="CUSTO DAS OPERAÇÕES (R$)" sKey="cost" />
+                  <SortableTh label="CUSTO (R$)" sKey="cost" />
                   <SortableTh label="AUTOR" sKey="createdBy" />
                 </tr>
               </thead>
