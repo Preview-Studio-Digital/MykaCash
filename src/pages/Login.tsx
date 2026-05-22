@@ -24,7 +24,6 @@ const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false);
   const [busy, setBusy] = useState(false);
 
   if (!loading && session) return <Navigate to="/" replace />;
@@ -38,41 +37,16 @@ const Login = () => {
     }
     setBusy(true);
     try {
-      // Se contiver '@', assume que é um e-mail completo.
-      // Caso contrário, assume que é um usuário legado e adiciona o domínio padrão.
       const resolvedEmail = parsed.data.email.includes("@")
         ? parsed.data.email
         : `${parsed.data.email}@${USERNAME_DOMAIN}`;
 
-      if (isSignUp) {
-        const username = resolvedEmail.split("@")[0];
-        const { data, error } = await supabase.auth.signUp({
-          email: resolvedEmail,
-          password: parsed.data.password,
-          options: {
-            data: {
-              username: username,
-              display_name: username,
-            }
-          }
-        });
-        if (error) throw error;
-        
-        if (data?.session) {
-          toast.success("Conta criada e logada com sucesso!");
-          navigate("/", { replace: true });
-        } else {
-          toast.success("Conta criada! Por favor, faça login.");
-          setIsSignUp(false);
-        }
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: resolvedEmail,
-          password: parsed.data.password,
-        });
-        if (error) throw error;
-        navigate("/", { replace: true });
-      }
+      const { error } = await supabase.auth.signInWithPassword({
+        email: resolvedEmail,
+        password: parsed.data.password,
+      });
+      if (error) throw error;
+      navigate("/", { replace: true });
     } catch (err: any) {
       toast.error(err.message || "E-mail ou senha inválidos");
     } finally {
@@ -117,19 +91,10 @@ const Login = () => {
             />
           </div>
           <Button type="submit" disabled={busy} className="w-full font-display tracking-wide">
-            {busy ? "Aguarde..." : isSignUp ? "Cadastrar" : "Entrar"}
+            {busy ? "Aguarde..." : "Entrar"}
           </Button>
         </form>
 
-        <div className="mt-4 text-center">
-          <button
-            type="button"
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-xs text-primary hover:underline font-mono tracking-widest"
-          >
-            {isSignUp ? "JÁ TEM UMA CONTA? ENTRE" : "NÃO TEM UMA CONTA? CADASTRE-SE"}
-          </button>
-        </div>
 
         <p className="mt-6 text-center text-xs font-mono tracking-widest text-muted-foreground whitespace-pre-line">
           ACESSO RESTRITO
