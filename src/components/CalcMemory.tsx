@@ -43,7 +43,7 @@ export const CalcMemory = ({
     "DIAS",
     "VALOR BRUTO",
     "VALOR LÍQUIDO",
-    "CUSTO DAS OPERAÇÕES",
+    "CUSTO",
     "TAXA EFETIVA",
   ];
 
@@ -93,7 +93,7 @@ export const CalcMemory = ({
                 <div className="text-net-green">{formatBRL(r.presentValue)}</div>
               </div>
               <div>
-                <div className="text-[9px] tracking-widest text-muted-foreground">CUSTO DAS OPERAÇÕES</div>
+                <div className="text-[9px] tracking-widest text-muted-foreground">CUSTO</div>
                 <div className="text-cost-red">{formatBRL(r.cost)}</div>
               </div>
               <div>
@@ -119,7 +119,7 @@ export const CalcMemory = ({
                 <div className="text-net-green">{formatBRL(totals.presentValue)}</div>
               </div>
               <div>
-                <div className="text-[9px] tracking-widest text-muted-foreground">CUSTO DAS OPERAÇÕES</div>
+                <div className="text-[9px] tracking-widest text-muted-foreground">CUSTO</div>
                 <div className="text-cost-red">{formatBRL(totals.cost)}</div>
               </div>
               <div>
@@ -144,7 +144,7 @@ export const CalcMemory = ({
               <th className="px-2 py-2 text-center font-medium">TAXA EFETIVA</th>
               <th className="px-2 py-2 text-center font-medium">VALOR BRUTO</th>
               <th className="px-2 py-2 text-center font-medium">VALOR LÍQUIDO</th>
-              <th className="px-2 py-2 text-center font-medium">CUSTO DAS OPERAÇÕES</th>
+              <th className="px-2 py-2 text-center font-medium">CUSTO</th>
             </tr>
           </thead>
           <tbody>

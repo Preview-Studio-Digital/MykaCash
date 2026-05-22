@@ -849,7 +849,7 @@ export const RegistrationSection = ({
                       fontSize: "10px",
                     }}
                   >
-                    CUSTO DAS OPERAÇÕES
+                    CUSTO
                   </th>
                 </tr>
               </thead>
