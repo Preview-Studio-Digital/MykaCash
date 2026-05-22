@@ -91,19 +91,10 @@ const Login = () => {
             />
           </div>
           <Button type="submit" disabled={busy} className="w-full font-display tracking-wide">
-            {busy ? "Aguarde..." : isSignUp ? "Cadastrar" : "Entrar"}
+            {busy ? "Aguarde..." : "Entrar"}
           </Button>
         </form>
 
-        <div className="mt-4 text-center">
-          <button
-            type="button"
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-xs text-primary hover:underline font-mono tracking-widest"
-          >
-            {isSignUp ? "JÁ TEM UMA CONTA? ENTRE" : "NÃO TEM UMA CONTA? CADASTRE-SE"}
-          </button>
-        </div>
 
         <p className="mt-6 text-center text-xs font-mono tracking-widest text-muted-foreground whitespace-pre-line">
           ACESSO RESTRITO
