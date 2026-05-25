@@ -1725,7 +1725,7 @@ const Historico = () => {
                 <div className={cn("font-display text-6xl font-extrabold tracking-tight mt-2", alertMetrics.scoreColor)}>
                   {alertMetrics.healthScore}
                 </div>
-                <div className="font-mono text-[10px] tracking-widest text-muted-foreground mt-2">MYKA FINANCIAL SCORE</div>
+                <div className="font-mono text-[10px] tracking-widest text-muted-foreground mt-2">MIKACASH FINANCIAL SCORE</div>
               </div>
 
               {/* Pequeno gráfico de progresso (comprometimento de receita) */}
