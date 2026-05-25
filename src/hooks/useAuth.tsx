@@ -69,10 +69,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setIsAdmin(false);
           setIsAdminLoading(false);
         }
-      } else {
-        // Same user — silently keep token fresh without re-rendering consumers.
-        setSession((prev) => (prev ? { ...prev, access_token: s?.access_token ?? prev.access_token } as Session : s));
       }
+      // Same user — do not update session state to avoid re-render cascades
+      // (token refreshes are handled internally by the supabase client).
     };
 
     // Load initial session
