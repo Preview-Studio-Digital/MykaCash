@@ -1725,7 +1725,7 @@ const Historico = () => {
                 <div className={cn("font-display text-6xl font-extrabold tracking-tight mt-2", alertMetrics.scoreColor)}>
                   {alertMetrics.healthScore}
                 </div>
-                <div className="font-mono text-[10px] tracking-widest text-muted-foreground mt-2">MIKACASH FINANCIAL SCORE</div>
+                <div className="font-mono text-[10px] tracking-widest text-muted-foreground mt-2">MYKA FINANCIAL SCORE</div>
               </div>
 
               {/* Pequeno gráfico de progresso (comprometimento de receita) */}
@@ -2054,7 +2054,7 @@ const Historico = () => {
       </Dialog>
 
       <footer className="border-t border-border/40 py-6 text-center">
-        <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">MIKACASH · VERSÃO 2.5</p>
+        <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">MYKACA$H · VERSÃO 2.5</p>
       </footer>
 
       {/* Settlement Date Dialog */}

@@ -553,7 +553,7 @@ export const AccountCashFlow = () => {
     const htmlContent = `
       <html>
         <head>
-          <title>Relatório Financeiro - MIKACASH</title>
+          <title>Relatório Financeiro - MYKACA$H</title>
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
             @page {
@@ -663,7 +663,7 @@ export const AccountCashFlow = () => {
         <body>
           <div class="container">
             <div class="header">
-              <div class="header-small">MIKACASH · SISTEMA FINANCEIRO</div>
+              <div class="header-small">MYKACA$H · SISTEMA FINANCEIRO</div>
               <div class="header-title">RELATÓRIO DE MOVIMENTAÇÕES</div>
               <div class="header-meta">
                 PERÍODO: ${period.toUpperCase()} | GERADO EM: ${new Date().toLocaleDateString('pt-BR')}
@@ -718,7 +718,7 @@ export const AccountCashFlow = () => {
             </table>
 
             <div class="footer">
-              DOCUMENTO GERADO PELO SISTEMA MIKACASH · ${new Date().getFullYear()}
+              DOCUMENTO GERADO PELO SISTEMA MYKACA$H · ${new Date().getFullYear()}
             </div>
           </div>
           <script>

@@ -661,7 +661,7 @@ export const RegistrationSection = ({
                     marginBottom: "6px",
                   }}
                 >
-                  MIKACASH · ADIANTAMENTO DE RECEBÍVEIS
+                  MYKACA$H · ADIANTAMENTO DE RECEBÍVEIS
                 </div>
                 <div
                   style={{
@@ -1015,7 +1015,7 @@ export const RegistrationSection = ({
               position: "relative",
             }}
           >
-            ◆ MIKACASH · VERSÃO 2.5 · DOCUMENTO GERADO EM {new Date().toLocaleString("pt-BR")}
+            ◆ MYKACA$H · VERSÃO 2.5 · DOCUMENTO GERADO EM {new Date().toLocaleString("pt-BR")}
             {authorName ? ` · POR ${authorName.toUpperCase()}` : ""} ◆
           </div>
         </div>
