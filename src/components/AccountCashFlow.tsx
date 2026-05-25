@@ -553,7 +553,7 @@ export const AccountCashFlow = () => {
     const htmlContent = `
       <html>
         <head>
-          <title>Relatório Financeiro - MYKACA$H</title>
+          <title>Relatório Financeiro - MIKACASH</title>
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
             @page {
