@@ -279,13 +279,16 @@ const Historico = () => {
 
   const range = useMemo(() => {
     const todayStr = todayISO();
-    if (period === "total") return { from: dataBounds.from, to: todayStr };
+    if (period === "total") {
+      const to = statusFilter === "a_vencer" ? dataBounds.to : todayStr;
+      return { from: dataBounds.from, to };
+    }
     if (period === "mes") return { from: startOfMonthISO(), to: endOfMonthISO() };
     if (period === "semana") return { from: startOfWeekISO(), to: endOfWeekISO() };
     if (period === "data") return { from: from || todayStr, to: from || todayStr };
     // periodo
     return { from: from || todayStr, to: to || todayStr };
-  }, [period, from, to, todayStr, dataBounds]);
+  }, [period, from, to, todayStr, dataBounds, statusFilter]);
 
   const inRange = (d: string) => d >= range.from && d <= range.to;
 
