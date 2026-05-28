@@ -1,25 +1,44 @@
 ## Problema
 
-Eu apliquei `text-right` em mais elementos do que você pediu. Você pediu apenas para 4 labels específicos (linhas 11, 16, 27, 40 do `ResultPanels.tsx`), mas eu também alinhei à direita os valores numéricos (R$, %) e os textos do painel laranja "ECONOMIA FACTORING".
+No `src/pages/Historico.tsx`, o `range` para `period === "total"` é definido como `{ from: dataBounds.from, to: todayStr }` (linha 282). Isso faz sentido para filtros baseados em saldo/histórico, mas quebra o filtro **"a vencer"**:
+
+```ts
+if (statusFilter === "a_vencer") {
+  return rows.filter((r) => !r.settled && inRange(r.dueDate));
+}
+```
+
+Como `inRange` exige `dueDate <= today`, todas as parcelas com vencimento **futuro** (que é exatamente o que "a vencer" significa) são descartadas no período "total". Resultado: a lista vem vazia ou só com parcelas vencidas que ainda não foram liquidadas.
 
 ## Correção
 
-Em `src/components/ResultPanels.tsx`, remover `text-right` dos elementos que NÃO estavam no seu pedido original, mantendo somente nos 4 labels que você selecionou:
+Quando `statusFilter === "a_vencer"` e `period === "total"`, estender o limite superior do range até `dataBounds.to` (que já considera a maior `dueDate` cadastrada). Assim:
 
-**Manter `text-right` (seus 4 pedidos):**
-- L11 — `VALOR LÍQUIDO`
-- L16 — `VALOR DA NOTA FISCAL`
-- L27 — `CUSTO DA OPERAÇÃO`
-- L40 — `TAXA EFETIVA` (painel vermelho)
+- "Total" + "a vencer" → mostra todas as parcelas não liquidadas com vencimento de hoje em diante até a última data cadastrada.
+- Demais combinações continuam idênticas (nenhuma outra lógica é alterada).
 
-**Reverter (remover `text-right` que adicionei a mais):**
-- L12 — valor numérico do `VALOR LÍQUIDO`
-- L17 — valor numérico do `VALOR DA NOTA FISCAL`
-- L28 — valor numérico do `CUSTO DA OPERAÇÃO`
-- L41 — valor numérico da `TAXA EFETIVA` vermelha
-- L53 — label `ECONOMIA FACTORING` (painel laranja)
-- L54 — valor numérico do `ECONOMIA FACTORING`
-- L66 — label `TAXA EFETIVA` (painel laranja)
-- L67 — valor numérico da `TAXA EFETIVA` laranja
+### Mudança pontual
 
-Resultado: os labels dos valores principais nas duas primeiras caixas (verde e vermelha) ficam alinhados à direita, e tudo o mais volta ao alinhamento original (esquerda). A caixa laranja fica intacta.
+Em `Historico.tsx`, ajustar o `useMemo` do `range` (linhas 280-288) para considerar o filtro:
+
+```ts
+const range = useMemo(() => {
+  const todayStr = todayISO();
+  if (period === "total") {
+    const to = statusFilter === "a_vencer" ? dataBounds.to : todayStr;
+    return { from: dataBounds.from, to };
+  }
+  if (period === "mes") return { from: startOfMonthISO(), to: endOfMonthISO() };
+  if (period === "semana") return { from: startOfWeekISO(), to: endOfWeekISO() };
+  if (period === "data") return { from: from || todayStr, to: from || todayStr };
+  return { from: from || todayStr, to: to || todayStr };
+}, [period, from, to, todayStr, dataBounds, statusFilter]);
+```
+
+Adicionar `statusFilter` às dependências do `useMemo`.
+
+## Verificação
+
+- Período "total" + "a vencer" → lista parcelas com `dueDate >= hoje`.
+- Período "total" + "todas"/"liquidadas"/"vencidas"/"andamento" → comportamento inalterado.
+- Períodos "mês", "semana", "data", "período" + "a vencer" → comportamento inalterado (já respeitavam o intervalo escolhido).
