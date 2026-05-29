@@ -57,6 +57,7 @@ const Admin = () => {
   // Delete confirm state
   const [deleting, setDeleting] = useState<ProfileRow | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [activeTab, setActiveTab] = useState<"usuarios" | "configuracoes">("usuarios");
 
   const loadUsers = async () => {
     const [{ data: profilesData, error: profilesErr }, { data: rolesData, error: rolesErr }] =
