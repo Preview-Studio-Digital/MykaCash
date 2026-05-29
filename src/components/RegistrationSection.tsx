@@ -239,6 +239,7 @@ export const RegistrationSection = ({
   };
 
   const handleSaveInvoice = async () => {
+    if (operationDate > todayISO()) return toast.error("A data da abertura não pode ser futura");
     if (!clientId) return toast.error("Selecione um cliente");
     if (!invoiceNumber.trim()) return toast.error("Informe o número da nota");
     if (invoiceValue <= 0) return toast.error("Informe o valor da nota");
