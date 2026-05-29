@@ -590,6 +590,151 @@ export const RegistrationSection = ({
         </Button>
       </div>
 
+      {/* Confirmation dialog */}
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl tracking-tight">Confirmar operação</DialogTitle>
+            <DialogDescription className="font-mono text-xs tracking-wider text-muted-foreground">
+              Revise os dados antes de salvar
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* General info grid */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-border/50 bg-muted/20 p-3">
+                <div className="font-mono text-[9px] tracking-widest text-muted-foreground">CLIENTE</div>
+                <div className="mt-1 font-display text-sm font-semibold">
+                  {clients.find((c) => c.id === clientId)?.name ?? "—"}
+                </div>
+                <div className="font-mono text-xs text-muted-foreground">
+                  {clients.find((c) => c.id === clientId)?.document ?? "—"}
+                </div>
+              </div>
+              <div className="rounded-lg border border-border/50 bg-muted/20 p-3">
+                <div className="font-mono text-[9px] tracking-widest text-muted-foreground">NOTA FISCAL</div>
+                <div className="mt-1 font-display text-sm font-semibold">{invoiceNumber || "—"}</div>
+              </div>
+              <div className="rounded-lg border border-border/50 bg-muted/20 p-3">
+                <div className="font-mono text-[9px] tracking-widest text-muted-foreground">VALOR DA NOTA</div>
+                <div className="mt-1 font-display text-sm font-semibold tabular-nums">{formatBRL(invoiceValue)}</div>
+              </div>
+              <div className="rounded-lg border border-border/50 bg-muted/20 p-3">
+                <div className="font-mono text-[9px] tracking-widest text-muted-foreground">DATA DA ABERTURA</div>
+                <div className="mt-1 font-display text-sm font-semibold">
+                  {new Date(operationDate + "T00:00:00").toLocaleDateString("pt-BR")}
+                </div>
+              </div>
+              <div className="rounded-lg border border-border/50 bg-muted/20 p-3">
+                <div className="font-mono text-[9px] tracking-widest text-muted-foreground">TAXA MENSAL</div>
+                <div className="mt-1 font-display text-sm font-semibold tabular-nums">{formatPct(monthlyRate)}</div>
+              </div>
+              <div className="rounded-lg border border-border/50 bg-muted/20 p-3">
+                <div className="font-mono text-[9px] tracking-widest text-muted-foreground">PARCELAS</div>
+                <div className="mt-1 font-display text-sm font-semibold tabular-nums">{installments.length}</div>
+              </div>
+            </div>
+
+            {/* Installments — desktop table */}
+            <div className="hidden md:block rounded-lg border border-border/50">
+              <table className="w-full text-[11px]">
+                <thead className="bg-muted/40 font-mono tracking-widest">
+                  <tr className="text-muted-foreground">
+                    <th className="px-2 py-2 text-center font-medium">PARCELA</th>
+                    <th className="px-2 py-2 text-center font-medium">VENCIMENTO</th>
+                    <th className="px-2 py-2 text-center font-medium">DIAS</th>
+                    <th className="px-2 py-2 text-center font-medium">VALOR BRUTO</th>
+                    <th className="px-2 py-2 text-center font-medium">VALOR LÍQUIDO</th>
+                    <th className="px-2 py-2 text-center font-medium">CUSTO</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.installmentCalcs.map((i, idx) => (
+                    <tr key={i.id} className="border-t border-border/40 font-mono tabular-nums text-center">
+                      <td className="px-2 py-2">
+                        {result.installmentCalcs.length > 1 ? String(idx + 1).padStart(2, "0") : "ÚNICA"}
+                      </td>
+                      <td className="px-2 py-2">{new Date(i.dueDate + "T00:00:00").toLocaleDateString("pt-BR")}</td>
+                      <td className="px-2 py-2">{i.days}</td>
+                      <td className="px-2 py-2">{formatBRL(i.value)}</td>
+                      <td className="px-2 py-2 text-net-green">{formatBRL(i.presentValue)}</td>
+                      <td className="px-2 py-2 text-cost-red">{formatBRL(i.value - i.presentValue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Installments — mobile cards */}
+            <div className="space-y-2 md:hidden">
+              {result.installmentCalcs.map((i, idx) => (
+                <div key={i.id} className="rounded-lg border border-border/40 bg-muted/20 p-3 space-y-1 text-center">
+                  <div className="font-mono text-[10px] tracking-widest text-muted-foreground">
+                    {result.installmentCalcs.length > 1 ? `P ${String(idx + 1).padStart(2, "0")}` : "PARCELA ÚNICA"}
+                  </div>
+                  <div className="font-mono text-xs">
+                    {new Date(i.dueDate + "T00:00:00").toLocaleDateString("pt-BR")} · {i.days} dias
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 pt-1 font-mono text-xs tabular-nums">
+                    <div>
+                      <div className="text-[9px] tracking-widest text-muted-foreground">BRUTO</div>
+                      <div>{formatBRL(i.value)}</div>
+                    </div>
+                    <div>
+                      <div className="text-[9px] tracking-widest text-muted-foreground">LÍQUIDO</div>
+                      <div className="text-net-green">{formatBRL(i.presentValue)}</div>
+                    </div>
+                    <div>
+                      <div className="text-[9px] tracking-widest text-muted-foreground">CUSTO</div>
+                      <div className="text-cost-red">{formatBRL(i.value - i.presentValue)}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Summary panels */}
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl bg-gradient-net p-4 text-net-green-foreground text-center panel-glow-net">
+                <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
+                <div className="mt-1 font-display text-lg font-bold tabular-nums">{formatBRL(result.netValue)}</div>
+              </div>
+              <div className="rounded-xl bg-gradient-cost p-4 text-cost-red-foreground text-center panel-glow-cost">
+                <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">CUSTO</div>
+                <div className="mt-1 font-display text-lg font-bold tabular-nums">{formatBRL(result.operationCost)}</div>
+              </div>
+              <div className="rounded-xl bg-gradient-factoring p-4 text-white text-center panel-glow-factoring">
+                <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">ECONOMIA FACTORING</div>
+                <div className="mt-1 font-display text-lg font-bold tabular-nums">
+                  {formatBRL(Math.max(0, result.factoringCost - result.operationCost))}
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-center">
+              <div className="rounded-lg border border-border/50 bg-muted/20 p-2">
+                <div className="font-mono text-[9px] tracking-widest text-muted-foreground">TAXA EFETIVA</div>
+                <div className="mt-0.5 font-display text-sm font-semibold tabular-nums">{formatPct(result.effectiveRatePct)}</div>
+              </div>
+              <div className="rounded-lg border border-border/50 bg-muted/20 p-2">
+                <div className="font-mono text-[9px] tracking-widest text-muted-foreground">MÉDIA DE DIAS</div>
+                <div className="mt-0.5 font-display text-sm font-semibold tabular-nums">{result.averageDays.toFixed(0)}</div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={saving} className="font-display tracking-wide w-full sm:w-auto">
+              VOLTAR E EDITAR
+            </Button>
+            <Button onClick={handleSaveInvoice} disabled={saving} className="font-display tracking-wide w-full sm:w-auto">
+              <Save className="mr-2 h-4 w-4" />
+              {saving ? "Salvando..." : "CONFIRMAR E SALVAR"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Offscreen archive document for PNG export */}
       <div
         ref={archiveRef}
