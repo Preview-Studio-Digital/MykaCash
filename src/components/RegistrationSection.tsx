@@ -247,6 +247,7 @@ export const RegistrationSection = ({
     if (Math.abs(totalAllocated - invoiceValue) > 0.01)
       return toast.error("Soma das parcelas deve ser igual ao valor da nota");
     setConfirmOpen(true);
+    playSound("confirm");
   };
 
   const handleSaveInvoice = async () => {
@@ -311,6 +312,7 @@ export const RegistrationSection = ({
     } catch (e) {
       toast.success(invoiceToEdit ? "Abertura atualizada (falha ao gerar PNG)" : "Abertura salva (falha ao gerar PNG)");
     }
+    playSound("success");
     setSaving(false);
 
     if (onSaveSuccess) {
