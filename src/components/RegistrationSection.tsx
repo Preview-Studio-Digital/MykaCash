@@ -16,6 +16,7 @@ import html2canvas from "html2canvas";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { FACTORING_MONTHLY_RATE_PCT } from "@/lib/calc";
+import { playSound } from "@/lib/sounds";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const formatCNPJ = (value: string) => {
