@@ -584,7 +584,7 @@ export const RegistrationSection = ({
             CANCELAR
           </Button>
         )}
-        <Button onClick={handleSaveInvoice} disabled={saving} size="lg" className="font-display tracking-wide">
+        <Button onClick={handleOpenConfirm} disabled={saving} size="lg" className="font-display tracking-wide">
           <Save className="mr-2 h-4 w-4" />
           {saving ? "Salvando..." : invoiceToEdit ? "SALVAR ALTERAÇÕES" : "CADASTRAR E EXPORTAR"}
         </Button>
