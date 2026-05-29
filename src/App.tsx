@@ -11,7 +11,7 @@ import Admin from "./pages/Admin.tsx";
 import Historico from "./pages/Historico.tsx";
 import Financeiro from "./pages/Financeiro.tsx";
 import NotFound from "./pages/NotFound.tsx";
-import Configuracoes from "./pages/Configuracoes.tsx";
+
 import { useEffect } from "react";
 
 const ScrollTracker = () => {
@@ -91,14 +91,6 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Admin />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/configuracoes"
-              element={
-                <ProtectedRoute>
-                  <Configuracoes />
                 </ProtectedRoute>
               }
             />
