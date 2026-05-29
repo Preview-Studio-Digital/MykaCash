@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, Pencil, Trash2, Shield, Users } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, Shield, Users, Settings } from "lucide-react";
+import SoundSettings from "@/components/SoundSettings";
 import {
   Dialog,
   DialogContent,
