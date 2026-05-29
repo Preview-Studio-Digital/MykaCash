@@ -73,6 +73,22 @@ export const RegistrationSection = ({
 
   const [saving, setSaving] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [displayName, setDisplayName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setDisplayName(null);
+      return;
+    }
+    supabase
+      .from("profiles")
+      .select("display_name, username")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setDisplayName(data?.display_name || data?.username || null);
+      });
+  }, [user?.id]);
 
   // Single installment mirrors the invoice value and operation date + 30 days
   useEffect(() => {
