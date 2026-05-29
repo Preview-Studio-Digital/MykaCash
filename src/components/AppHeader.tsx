@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { LogOut, Shield } from "lucide-react";
+import { LogOut, Settings, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -53,6 +53,17 @@ export const AppHeader = () => {
               </Link>
             </Button>
           )}
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="h-8 px-3 text-xs font-mono tracking-wider hover:text-primary"
+          >
+            <Link to="/configuracoes">
+              <Settings className="mr-1.5 h-3.5 w-3.5" />
+              CONFIG
+            </Link>
+          </Button>
           <Button
             variant="ghost"
             size="sm"

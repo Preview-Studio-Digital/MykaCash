@@ -16,6 +16,7 @@ import html2canvas from "html2canvas";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { FACTORING_MONTHLY_RATE_PCT } from "@/lib/calc";
+import { playSound } from "@/lib/sounds";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const formatCNPJ = (value: string) => {
@@ -247,6 +248,7 @@ export const RegistrationSection = ({
     if (Math.abs(totalAllocated - invoiceValue) > 0.01)
       return toast.error("Soma das parcelas deve ser igual ao valor da nota");
     setConfirmOpen(true);
+    playSound("confirm");
   };
 
   const handleSaveInvoice = async () => {
@@ -311,6 +313,7 @@ export const RegistrationSection = ({
     } catch (e) {
       toast.success(invoiceToEdit ? "Abertura atualizada (falha ao gerar PNG)" : "Abertura salva (falha ao gerar PNG)");
     }
+    playSound("success");
     setSaving(false);
 
     if (onSaveSuccess) {
