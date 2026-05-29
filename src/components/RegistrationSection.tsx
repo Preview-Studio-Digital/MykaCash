@@ -71,6 +71,7 @@ export const RegistrationSection = ({
   const [newClientDoc, setNewClientDoc] = useState("");
 
   const [saving, setSaving] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   // Single installment mirrors the invoice value and operation date + 30 days
   useEffect(() => {
