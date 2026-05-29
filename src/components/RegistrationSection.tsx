@@ -73,6 +73,22 @@ export const RegistrationSection = ({
 
   const [saving, setSaving] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [displayName, setDisplayName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setDisplayName(null);
+      return;
+    }
+    supabase
+      .from("profiles")
+      .select("display_name, username")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setDisplayName(data?.display_name || data?.username || null);
+      });
+  }, [user?.id]);
 
   // Single installment mirrors the invoice value and operation date + 30 days
   useEffect(() => {
@@ -597,7 +613,9 @@ export const RegistrationSection = ({
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto p-4">
           <DialogHeader className="space-y-0.5">
-            <DialogTitle className="font-display text-lg tracking-tight">Confirmar operação</DialogTitle>
+            <DialogTitle className="font-display text-lg tracking-tight">
+              {displayName ? `${displayName}, confirme a operação:` : "Confirme a operação:"}
+            </DialogTitle>
             <DialogDescription className="font-mono text-[10px] tracking-wider text-muted-foreground">
               Revise os dados antes de salvar
             </DialogDescription>
@@ -695,24 +713,6 @@ export const RegistrationSection = ({
                   </div>
                 </div>
               ))}
-            </div>
-
-            {/* Summary panels */}
-            <div className="grid gap-2 sm:grid-cols-3">
-              <div className="rounded-xl bg-gradient-net p-3 text-net-green-foreground text-center panel-glow-net">
-                <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
-                <div className="mt-0.5 font-display text-base font-bold tabular-nums">{formatBRL(result.netValue)}</div>
-              </div>
-              <div className="rounded-xl bg-gradient-cost p-3 text-cost-red-foreground text-center panel-glow-cost">
-                <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">CUSTO</div>
-                <div className="mt-0.5 font-display text-base font-bold tabular-nums">{formatBRL(result.operationCost)}</div>
-              </div>
-              <div className="rounded-xl bg-gradient-factoring p-3 text-white text-center panel-glow-factoring">
-                <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">ECONOMIA FACTORING</div>
-                <div className="mt-0.5 font-display text-base font-bold tabular-nums">
-                  {formatBRL(Math.max(0, result.factoringCost - result.operationCost))}
-                </div>
-              </div>
             </div>
           </div>
 
