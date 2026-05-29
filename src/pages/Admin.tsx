@@ -212,11 +212,30 @@ const Admin = () => {
           >
             <ArrowLeft className="h-3.5 w-3.5" /> VOLTAR
           </Link>
-          <h1 className="font-title title-gradient text-lg font-bold tracking-tight">GESTÃO DE FUNCIONÁRIOS</h1>
+          <h1 className="font-title title-gradient text-lg font-bold tracking-tight">ADMINISTRAÇÃO</h1>
         </div>
-        
-        <div className="flex items-center gap-2 rounded-lg bg-muted/40 p-1 border border-border/40 px-4 py-1.5 text-xs font-mono tracking-wider text-muted-foreground">
-          <Users className="h-3.5 w-3.5" /> USUÁRIOS
+
+        <div className="flex items-center gap-1 rounded-lg bg-muted/40 p-1 border border-border/40">
+          <button
+            onClick={() => setActiveTab("usuarios")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono tracking-wider transition-colors ${
+              activeTab === "usuarios"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Users className="h-3.5 w-3.5" /> USUÁRIOS
+          </button>
+          <button
+            onClick={() => setActiveTab("configuracoes")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono tracking-wider transition-colors ${
+              activeTab === "configuracoes"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Settings className="h-3.5 w-3.5" /> CONFIGURAÇÕES
+          </button>
         </div>
       </header>
 
