@@ -451,7 +451,7 @@ export const RegistrationSection = ({
 
           <div className="space-y-2">
             <Label>Data da Abertura</Label>
-            <DateField value={operationDate} onChange={setOperationDate} />
+            <DateField value={operationDate} onChange={setOperationDate} max={todayISO()} />
           </div>
 
           <div className="space-y-2">
