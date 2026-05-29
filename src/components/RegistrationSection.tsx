@@ -239,6 +239,16 @@ export const RegistrationSection = ({
     }
   };
 
+  const handleOpenConfirm = () => {
+    if (operationDate > todayISO()) return toast.error("A data da abertura não pode ser futura");
+    if (!clientId) return toast.error("Selecione um cliente");
+    if (!invoiceNumber.trim()) return toast.error("Informe o número da nota");
+    if (invoiceValue <= 0) return toast.error("Informe o valor da nota");
+    if (Math.abs(totalAllocated - invoiceValue) > 0.01)
+      return toast.error("Soma das parcelas deve ser igual ao valor da nota");
+    setConfirmOpen(true);
+  };
+
   const handleSaveInvoice = async () => {
     if (operationDate > todayISO()) return toast.error("A data da abertura não pode ser futura");
     if (!clientId) return toast.error("Selecione um cliente");
