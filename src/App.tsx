@@ -11,7 +11,6 @@ import Admin from "./pages/Admin.tsx";
 import Historico from "./pages/Historico.tsx";
 import Financeiro from "./pages/Financeiro.tsx";
 import NotFound from "./pages/NotFound.tsx";
-
 import { useEffect } from "react";
 
 const ScrollTracker = () => {

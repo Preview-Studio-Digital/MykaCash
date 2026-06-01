@@ -9,7 +9,6 @@ type Props = {
   value: string; // ISO yyyy-mm-dd
   onChange: (iso: string) => void;
   className?: string;
-  max?: string; // ISO yyyy-mm-dd
 };
 
 const toISO = (d: Date) => {
@@ -19,16 +18,14 @@ const toISO = (d: Date) => {
   return `${y}-${m}-${day}`;
 };
 
-export const DateField = ({ value, onChange, className, max }: Props) => {
+export const DateField = ({ value, onChange, className }: Props) => {
   const selected = value ? new Date(value + "T00:00:00") : undefined;
-  const maxDate = max ? new Date(max + "T00:00:00") : undefined;
 
   return (
     <div className={cn("relative", className)}>
       <Input
         type="date"
         value={value}
-        max={max}
         onChange={(e) => onChange(e.target.value)}
         className="pr-10 font-mono"
       />
@@ -49,7 +46,6 @@ export const DateField = ({ value, onChange, className, max }: Props) => {
             mode="single"
             selected={selected}
             onSelect={(d) => d && onChange(toISO(d))}
-            disabled={maxDate ? { after: maxDate } : undefined}
             initialFocus
             className={cn("p-3 pointer-events-auto")}
           />
