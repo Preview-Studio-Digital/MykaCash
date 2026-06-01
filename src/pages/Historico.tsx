@@ -280,7 +280,9 @@ const Historico = () => {
   const range = useMemo(() => {
     const todayStr = todayISO();
     if (period === "total") {
-      return { from: dataBounds.from, to: dataBounds.to };
+      // "Total" engloba somente até a data presente — não projetamos vencimentos futuros
+      const to = dataBounds.to > todayStr ? todayStr : dataBounds.to;
+      return { from: dataBounds.from, to };
     }
     if (period === "mes") return { from: startOfMonthISO(), to: endOfMonthISO() };
     if (period === "semana") return { from: startOfWeekISO(), to: endOfWeekISO() };
