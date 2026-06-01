@@ -1,25 +1,48 @@
-## Problema
+# Alertas sonoros para cadastro/edição de operações
 
-Eu apliquei `text-right` em mais elementos do que você pediu. Você pediu apenas para 4 labels específicos (linhas 11, 16, 27, 40 do `ResultPanels.tsx`), mas eu também alinhei à direita os valores numéricos (R$, %) e os textos do painel laranja "ECONOMIA FACTORING".
+## Comportamento
 
-## Correção
+1. Ao abrir a tela de confirmação (clique em "CADASTRAR E EXPORTAR" / "SALVAR ALTERAÇÕES"): toca **som de aviso** ("alerta").
+2. Ao confirmar de fato a operação (salvar nova OU edição com sucesso): toca **som de sucesso**.
+3. Se o áudio falhar (autoplay bloqueado, etc.), não quebra o fluxo — apenas ignora silenciosamente.
 
-Em `src/components/ResultPanels.tsx`, remover `text-right` dos elementos que NÃO estavam no seu pedido original, mantendo somente nos 4 labels que você selecionou:
+## Sons (biblioteca livre)
 
-**Manter `text-right` (seus 4 pedidos):**
-- L11 — `VALOR LÍQUIDO`
-- L16 — `VALOR DA NOTA FISCAL`
-- L27 — `CUSTO DA OPERAÇÃO`
-- L40 — `TAXA EFETIVA` (painel vermelho)
+Adicionar 4–5 opções curtas (<2s) para cada categoria, hospedadas localmente em `public/sounds/`:
 
-**Reverter (remover `text-right` que adicionei a mais):**
-- L12 — valor numérico do `VALOR LÍQUIDO`
-- L17 — valor numérico do `VALOR DA NOTA FISCAL`
-- L28 — valor numérico do `CUSTO DA OPERAÇÃO`
-- L41 — valor numérico da `TAXA EFETIVA` vermelha
-- L53 — label `ECONOMIA FACTORING` (painel laranja)
-- L54 — valor numérico do `ECONOMIA FACTORING`
-- L66 — label `TAXA EFETIVA` (painel laranja)
-- L67 — valor numérico da `TAXA EFETIVA` laranja
+- **Aviso/Confirmação aberta**: `chime-soft.mp3`, `ding.mp3`, `pop.mp3`, `notify.mp3`
+- **Sucesso**: `success-bell.mp3`, `cash-register.mp3`, `success-chord.mp3`, `level-up.mp3`
 
-Resultado: os labels dos valores principais nas duas primeiras caixas (verde e vermelha) ficam alinhados à direita, e tudo o mais volta ao alinhamento original (esquerda). A caixa laranja fica intacta.
+Fonte: Pixabay/Mixkit (royalty-free). Baixados via `curl` na fase de build.
+
+## Seleção pelo usuário
+
+Nova página **`/configuracoes`** (link no `AppHeader`, ícone engrenagem) com:
+
+- Toggle "Ativar alertas sonoros" (default: ligado)
+- Slider de volume (0–100%, default 70%)
+- Para cada categoria (Confirmação / Sucesso): `Select` com a lista de sons + botão ▶ para pré-ouvir
+- Botão "Restaurar padrões"
+- Preferências salvas em `localStorage` (chave `mikacash:sound-prefs`) — sem necessidade de backend
+
+## Implementação técnica
+
+**`src/lib/sounds.ts`** (novo):
+- Catálogo dos arquivos: `SOUND_CATALOG = { confirm: [...], success: [...] }`
+- Hook `useSoundPrefs()` → lê/grava no localStorage
+- `playSound(kind: "confirm" | "success")` → instancia `new Audio(url)`, aplica volume, `play().catch(()=>{})`
+
+**`src/pages/Configuracoes.tsx`** (novo): UI do seletor + pré-escuta.
+
+**`src/App.tsx`**: registrar rota `/configuracoes`.
+
+**`src/components/AppHeader.tsx`**: adicionar link "Configurações" (ícone `Settings` do lucide).
+
+**`src/components/RegistrationSection.tsx`**:
+- Em `handleOpenConfirm` (após validação bem-sucedida, antes/junto de abrir dialog): `playSound("confirm")`.
+- No fim de `handleSaveInvoice`, após salvar com sucesso (tanto criação quanto edição): `playSound("success")`.
+
+## Fora do escopo
+
+- Não há mudança de backend, schema ou RLS.
+- Sons são estáticos no bundle (não há upload pelo usuário neste plano — pode ser adicionado depois).
