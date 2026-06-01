@@ -425,6 +425,8 @@ const Historico = () => {
     // Eventos que ocorreram DENTRO do período
     const periodEvents = allEvents.filter((e) => {
       if (period === "data") return e.date.startsWith(range.from);
+      // Período "total" engloba somente até a data presente (sem projeção de vencimentos futuros)
+      if (period === "total" && e.date > todayStr) return false;
       return e.date >= range.from && e.date <= range.to;
     });
 
