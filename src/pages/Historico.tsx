@@ -364,15 +364,18 @@ const Historico = () => {
     };
 
     const allEvents: Ev[] = [];
+    const totalSemVencimento = period === "total";
+
     if (statusFilter === "a_vencer") {
       for (const r of filteredRows) {
+        if (totalSemVencimento) continue;
         allEvents.push({ date: r.dueDate.slice(0, 10), delta: -r.value });
       }
     } else if (statusFilter === "liquidadas") {
       for (const r of filteredRows) {
         if (r.settled) {
-          // No gráfico de liquidadas, usamos a data de vencimento (regra: liq = venc)
-          const rawDate = r.dueDate;
+          // No período total, não usamos vencimento: liquidação entra pela data liquidada.
+          const rawDate = totalSemVencimento ? (r.settledDate ?? r.operationDate) : r.dueDate;
           const setDate = (period === "data") ? rawDate : rawDate.slice(0, 10);
           allEvents.push({ date: setDate, delta: r.value });
         }
@@ -381,9 +384,8 @@ const Historico = () => {
       // Para TODAS, INICIADAS, ANDAMENTO e VENCIDAS:
       // Gráfico de SALDO EM ABERTO: Início (+) e Liquidação (-)
       for (const r of filteredRows) {
-        // Regra: Operações VENCIDAS entram no gráfico na DATA DE VENCIMENTO.
-        // As demais (em andamento ou já liquidadas) entram na DATA DE OPERAÇÃO.
-        const isOverdue = !r.settled && r.dueDate < todayStr;
+        // No período total, vencimento não entra no gráfico: só operação e liquidação.
+        const isOverdue = !totalSemVencimento && !r.settled && r.dueDate < todayStr;
         const evDate = isOverdue
           ? r.dueDate.slice(0, 10)
           : ((period === "data") ? r.createdAt : r.operationDate.slice(0, 10));
@@ -391,11 +393,11 @@ const Historico = () => {
         allEvents.push({ date: evDate, delta: r.value });
         
         if (r.settled) {
-          // Liquidada: Abate do saldo na data de vencimento (histórico ou futuro)
-          const rawDate = r.dueDate;
+          // No total, abate pela liquidação; nos demais períodos mantém a regra atual.
+          const rawDate = totalSemVencimento ? (r.settledDate ?? r.operationDate) : r.dueDate;
           const setDate = (period === "data") ? rawDate : rawDate.slice(0, 10);
           allEvents.push({ date: setDate, delta: -r.value });
-        } else if (r.dueDate > todayStr) {
+        } else if (!totalSemVencimento && r.dueDate > todayStr) {
           // Não liquidada (Iniciada/Andamento): Abate do saldo apenas se o vencimento for FUTURO (projeção tracejada)
           const rawDate = r.dueDate;
           const setDate = (period === "data") ? rawDate : rawDate.slice(0, 10);
@@ -421,11 +423,10 @@ const Historico = () => {
     }
 
     // Eventos que ocorreram DENTRO do período
+    const chartTo = totalSemVencimento ? todayStr : range.to;
     const periodEvents = allEvents.filter((e) => {
       if (period === "data") return e.date.startsWith(range.from);
-      // Período "total" engloba somente até a data presente (sem projeção de vencimentos futuros)
-      if (period === "total" && e.date > todayStr) return false;
-      return e.date >= range.from && e.date <= range.to;
+      return e.date >= range.from && e.date <= chartTo;
     });
 
     // Agrupa eventos do período por data
@@ -436,7 +437,7 @@ const Historico = () => {
 
     // Garante que o início e fim do período estejam presentes no eixo X para mostrar as datas corretamente
     if (range.from && !byDate.has(range.from)) byDate.set(range.from, 0);
-    if (range.to && !byDate.has(range.to)) byDate.set(range.to, 0);
+    if (chartTo && !byDate.has(chartTo)) byDate.set(chartTo, 0);
 
     if (period === "semana") {
       // Garante que todos os dias da semana estejam presentes no eixo X
