@@ -280,9 +280,7 @@ const Historico = () => {
   const range = useMemo(() => {
     const todayStr = todayISO();
     if (period === "total") {
-      // "Total" engloba somente até a data presente — não projetamos vencimentos futuros
-      const to = dataBounds.to > todayStr ? todayStr : dataBounds.to;
-      return { from: dataBounds.from, to };
+      return { from: dataBounds.from, to: dataBounds.to };
     }
     if (period === "mes") return { from: startOfMonthISO(), to: endOfMonthISO() };
     if (period === "semana") return { from: startOfWeekISO(), to: endOfWeekISO() };
@@ -427,8 +425,6 @@ const Historico = () => {
     // Eventos que ocorreram DENTRO do período
     const periodEvents = allEvents.filter((e) => {
       if (period === "data") return e.date.startsWith(range.from);
-      // Período "total" engloba somente até a data presente (sem projeção de vencimentos futuros)
-      if (period === "total" && e.date > todayStr) return false;
       return e.date >= range.from && e.date <= range.to;
     });
 
