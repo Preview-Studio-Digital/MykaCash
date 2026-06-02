@@ -434,8 +434,8 @@ const Historico = () => {
     if (range.from && !byDate.has(range.from)) byDate.set(range.from, 0);
     if (range.to && !byDate.has(range.to)) byDate.set(range.to, 0);
 
-    if (period === "semana") {
-      // Garante que todos os dias da semana estejam presentes no eixo X
+    if (period === "semana" || period === "mes" || period === "periodo") {
+      // Garante que todos os dias do período estejam presentes no eixo X
       const d = new Date(range.from + "T00:00:00");
       const end = new Date(range.to + "T00:00:00");
       while (d <= end) {
