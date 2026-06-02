@@ -273,8 +273,9 @@ export const AccountCashFlow = () => {
 
 
   const filteredData = useMemo(() => {
-    if (period === "total") return unifiedData;
-    
+    const today = todayISO();
+    if (period === "total") return unifiedData.filter(t => t.date <= today);
+
     let start = fromDate;
     let end = toDate;
 
