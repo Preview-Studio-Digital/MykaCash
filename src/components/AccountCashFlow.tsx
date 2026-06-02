@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { calculate, formatBRL, type Installment } from "@/lib/calc";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { DateField } from "@/components/DateField";
 import { 
   Plus, 
   ArrowUpCircle, 
@@ -871,28 +872,25 @@ export const AccountCashFlow = () => {
             </Select>
 
             {period === 'dia' && (
-              <Input 
-                type="date" 
-                className="h-9 w-[130px] bg-background/50 border-border/40 font-mono text-xs" 
+              <DateField 
+                className="h-9 w-[130px] [&>input]:bg-background/50 [&>input]:border-border/40 [&>input]:h-9 text-xs" 
                 value={fromDate}
-                onChange={e => setFromDate(e.target.value)}
+                onChange={setFromDate}
               />
             )}
             
             {period === 'periodo' && (
               <div className="flex items-center gap-2">
-                <Input 
-                  type="date" 
-                  className="h-9 w-[130px] bg-background/50 border-border/40 font-mono text-xs" 
+                <DateField 
+                  className="h-9 w-[130px] [&>input]:bg-background/50 [&>input]:border-border/40 [&>input]:h-9 text-xs" 
                   value={fromDate}
-                  onChange={e => setFromDate(e.target.value)}
+                  onChange={setFromDate}
                 />
                 <span className="text-muted-foreground text-[10px] font-mono shrink-0">ATÉ</span>
-                <Input 
-                  type="date" 
-                  className="h-9 w-[130px] bg-background/50 border-border/40 font-mono text-xs" 
+                <DateField 
+                  className="h-9 w-[130px] [&>input]:bg-background/50 [&>input]:border-border/40 [&>input]:h-9 text-xs" 
                   value={toDate}
-                  onChange={e => setToDate(e.target.value)}
+                  onChange={setToDate}
                 />
               </div>
             )}
@@ -1139,12 +1137,9 @@ export const AccountCashFlow = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="date">Data</Label>
-                      <Input 
-                        id="date" 
-                        type="date" 
+                      <DateField 
                         value={formDate} 
-                        onChange={e => setFormDate(e.target.value)} 
-                        required
+                        onChange={setFormDate} 
                       />
                     </div>
                   </div>

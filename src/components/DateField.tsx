@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { CalendarIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ type Props = {
   onChange: (iso: string) => void;
   className?: string;
   max?: string; // ISO yyyy-mm-dd
+  id?: string;
 };
 
 const toISO = (d: Date) => {
@@ -19,20 +21,58 @@ const toISO = (d: Date) => {
   return `${y}-${m}-${day}`;
 };
 
-export const DateField = ({ value, onChange, className, max }: Props) => {
+export const DateField = ({ value, onChange, className, max, id }: Props) => {
   const selected = value ? new Date(value + "T00:00:00") : undefined;
   const maxDate = max ? new Date(max + "T00:00:00") : undefined;
+
+  const [displayValue, setDisplayValue] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (value) {
+      const [y, m, d] = value.split("-");
+      if (y && m && d) setDisplayValue(`${d}/${m}/${y}`);
+    } else {
+      setDisplayValue("");
+    }
+  }, [value]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value.replace(/\D/g, "");
+    if (raw.length > 8) raw = raw.slice(0, 8);
+    
+    let formatted = raw;
+    if (raw.length > 4) {
+      formatted = `${raw.slice(0, 2)}/${raw.slice(2, 4)}/${raw.slice(4)}`;
+    } else if (raw.length > 2) {
+      formatted = `${raw.slice(0, 2)}/${raw.slice(2)}`;
+    }
+    
+    setDisplayValue(formatted);
+
+    if (raw.length === 8) {
+      const d = raw.slice(0, 2);
+      const m = raw.slice(2, 4);
+      const y = raw.slice(4);
+      onChange(`${y}-${m}-${d}`);
+    } else if (raw.length === 0) {
+      onChange("");
+    }
+  };
 
   return (
     <div className={cn("relative", className)}>
       <Input
-        type="date"
-        value={value}
-        max={max}
-        onChange={(e) => onChange(e.target.value)}
+        id={id}
+        type="text"
+        inputMode="numeric"
+        placeholder="DD/MM/AAAA"
+        value={displayValue}
+        onChange={handleInputChange}
         className="pr-10 font-mono"
+        maxLength={10}
       />
-      <Popover>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button
             type="button"
@@ -48,7 +88,12 @@ export const DateField = ({ value, onChange, className, max }: Props) => {
           <Calendar
             mode="single"
             selected={selected}
-            onSelect={(d) => d && onChange(toISO(d))}
+            onSelect={(d) => {
+              if (d) {
+                onChange(toISO(d));
+                setIsOpen(false);
+              }
+            }}
             disabled={maxDate ? { after: maxDate } : undefined}
             initialFocus
             className={cn("p-3 pointer-events-auto")}
