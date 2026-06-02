@@ -383,12 +383,8 @@ const Historico = () => {
       // Para TODAS, INICIADAS, ANDAMENTO e VENCIDAS:
       // Gráfico de SALDO EM ABERTO: Início (+) e Liquidação (-)
       for (const r of filteredRows) {
-        // Regra: Operações VENCIDAS entram no gráfico na DATA DE VENCIMENTO.
-        // As demais (em andamento ou já liquidadas) entram na DATA DE OPERAÇÃO.
-        const isOverdue = !r.settled && r.dueDate < todayStr;
-        const evDate = isOverdue
-          ? r.dueDate.slice(0, 10)
-          : ((period === "data") ? r.createdAt : r.operationDate.slice(0, 10));
+        // As operações entram no gráfico na DATA DE OPERAÇÃO.
+        const evDate = (period === "data") ? r.createdAt : r.operationDate.slice(0, 10);
           
         allEvents.push({ date: evDate, delta: r.value });
         
