@@ -402,7 +402,14 @@ export const AccountCashFlow = () => {
   const chartData = useMemo(() => {
     if (unifiedData.length === 0) return [];
 
-    const sortedAll = [...unifiedData].sort((a, b) => a.date.localeCompare(b.date));
+    const today = todayISO();
+    const visibleTransactions = period === "total"
+      ? unifiedData.filter((t) => t.date <= today)
+      : unifiedData;
+
+    if (visibleTransactions.length === 0) return [];
+
+    const sortedAll = [...visibleTransactions].sort((a, b) => a.date.localeCompare(b.date));
     const firstDate = sortedAll[0].date;
     
     // Create baseline point (0 balance) one day before the first record
@@ -422,7 +429,6 @@ export const AccountCashFlow = () => {
     });
 
     // Ensure today is included in the balance map
-    const today = todayISO();
     const sortedDates = Object.keys(dailyBalances).sort();
     if (sortedDates.length > 0) {
       const lastDate = sortedDates[sortedDates.length - 1];
