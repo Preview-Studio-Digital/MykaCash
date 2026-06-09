@@ -213,6 +213,17 @@
   animation: swap-label-b 1.6s steps(1, end) infinite;
 }
 
+/* Dollar spinner — gira e alterna entre verde e vermelho gradativamente */
+@keyframes dollar-spin-color {
+  0%   { transform: rotate(0deg);   color: hsl(var(--net-green));  text-shadow: 0 0 24px hsl(var(--net-green) / 0.8); }
+  50%  { transform: rotate(180deg); color: hsl(var(--cost-red));   text-shadow: 0 0 24px hsl(var(--cost-red) / 0.8); }
+  100% { transform: rotate(360deg); color: hsl(var(--net-green));  text-shadow: 0 0 24px hsl(var(--net-green) / 0.8); }
+}
+.dollar-spinner {
+  display: inline-block;
+  animation: dollar-spin-color 2.4s linear infinite;
+}
+
 
 @keyframes color-cycle {
   0%, 100% { background-color: hsl(var(--primary)); box-shadow: 0 0 12px hsl(var(--primary)/0.8); }
