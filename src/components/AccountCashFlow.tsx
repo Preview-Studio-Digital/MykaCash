@@ -247,10 +247,16 @@ export const AccountCashFlow = () => {
       });
     });
 
+    // Entradas (depósitos/parcelas recebidas) sempre antes das saídas no mesmo dia
+    const inflowPriority = (t: UnifiedTransaction) =>
+      (t.type === "deposit" || t.type === "installment_in") ? 0 : 1;
+
     // Calculate cumulative balance
     const sortedAsc = [...data].sort((a, b) => {
       const dateCompare = a.date.localeCompare(b.date);
       if (dateCompare !== 0) return dateCompare;
+      const flowCompare = inflowPriority(a) - inflowPriority(b);
+      if (flowCompare !== 0) return flowCompare;
       const timeCompare = (a.created_at || "").localeCompare(b.created_at || "");
       if (timeCompare !== 0) return timeCompare;
       return a.description.localeCompare(b.description);
@@ -266,6 +272,8 @@ export const AccountCashFlow = () => {
     return withBalance.sort((a, b) => {
       const dateCompare = b.date.localeCompare(a.date);
       if (dateCompare !== 0) return dateCompare;
+      const flowCompare = inflowPriority(a) - inflowPriority(b);
+      if (flowCompare !== 0) return flowCompare;
       const timeCompare = (b.created_at || "").localeCompare(a.created_at || "");
       if (timeCompare !== 0) return timeCompare;
       return b.description.localeCompare(a.description);
