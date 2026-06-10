@@ -272,7 +272,7 @@ export const AccountCashFlow = () => {
     return withBalance.sort((a, b) => {
       const dateCompare = b.date.localeCompare(a.date);
       if (dateCompare !== 0) return dateCompare;
-      const flowCompare = inflowPriority(a) - inflowPriority(b);
+      const flowCompare = inflowPriority(b) - inflowPriority(a);
       if (flowCompare !== 0) return flowCompare;
       const timeCompare = (b.created_at || "").localeCompare(a.created_at || "");
       if (timeCompare !== 0) return timeCompare;
