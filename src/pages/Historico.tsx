@@ -373,8 +373,8 @@ const Historico = () => {
     } else if (statusFilter === "liquidadas") {
       for (const r of filteredRows) {
         if (r.settled) {
-          // No gráfico de liquidadas, usamos a data de vencimento (regra: liq = venc)
-          const rawDate = r.dueDate;
+          // Usa a data de LIQUIDAÇÃO quando registrada; fallback para vencimento (entradas legadas)
+          const rawDate = r.settledDate || r.dueDate;
           const setDate = (period === "data") ? rawDate : rawDate.slice(0, 10);
           allEvents.push({ date: setDate, delta: r.value });
         }
@@ -389,8 +389,8 @@ const Historico = () => {
         allEvents.push({ date: evDate, delta: r.value });
         
         if (r.settled) {
-          // Liquidada: Abate do saldo na data de vencimento (histórico ou futuro)
-          const rawDate = r.dueDate;
+          // Liquidada: Abate do saldo na DATA DE LIQUIDAÇÃO (quando registrada); fallback vencimento
+          const rawDate = r.settledDate || r.dueDate;
           const setDate = (period === "data") ? rawDate : rawDate.slice(0, 10);
           allEvents.push({ date: setDate, delta: -r.value });
         } else if (r.dueDate > todayStr) {
