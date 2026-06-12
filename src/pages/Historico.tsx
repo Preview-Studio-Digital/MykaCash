@@ -141,6 +141,11 @@ const Historico = () => {
   const [settlementDate, setSettlementDate] = useState<string>("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState<boolean>(false);
   const [activeAlertTab, setActiveAlertTab] = useState<"diaria" | "mensal" | "anual">("diaria");
+  const [manualTransactions, setManualTransactions] = useState<any[]>([]);
+  const [initialBalance, setInitialBalance] = useState(() => {
+    const saved = localStorage.getItem("mykacash_initial_balance");
+    return saved ? parseFloat(saved) : 0;
+  });
 
   // tick every 30s so the 5-minute edit window updates
   useEffect(() => {
@@ -150,18 +155,28 @@ const Historico = () => {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("invoices")
-      .select(
-        "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, created_by, ordem, clients(name), profiles:created_by(display_name, username)"
-      )
-      .order("operation_date", { ascending: false });
-    if (error) {
+    const [invoicesRes, manualRes] = await Promise.all([
+      supabase
+        .from("invoices")
+        .select(
+          "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, created_by, ordem, clients(name), profiles:created_by(display_name, username)"
+        )
+        .order("operation_date", { ascending: false }),
+      supabase
+        .from("account_transactions")
+        .select("*")
+        .order("date", { ascending: false })
+    ]);
+
+    if (invoicesRes.error) {
       toast.error("Erro ao carregar histórico");
       setLoading(false);
       return;
     }
-    setInvoices((data ?? []) as any);
+    
+    // Batch state updates to prevent UI flashing negative balance
+    setInvoices((invoicesRes.data ?? []) as any);
+    setManualTransactions(manualRes.data || []);
     setLoading(false);
   };
 
@@ -404,8 +419,39 @@ const Historico = () => {
       }
     }
 
+    const accountEvents: { date: string; delta: number }[] = [];
+    manualTransactions.forEach(t => {
+      accountEvents.push({
+        date: t.date.slice(0, 10),
+        delta: t.type === "deposit" ? Number(t.amount) : -Number(t.amount),
+      });
+    });
+    rows.forEach(r => {
+      accountEvents.push({ date: r.operationDate.slice(0, 10), delta: -r.presentValue });
+      if (r.settled) {
+        const inDate = r.settledDate || r.dueDate;
+        accountEvents.push({ date: inDate.slice(0, 10), delta: r.value });
+      }
+    });
+    accountEvents.sort((a, b) => a.date.localeCompare(b.date));
+    const dailyAccount: Record<string, number> = {};
+    let currAcc = initialBalance;
+    accountEvents.forEach(e => {
+      currAcc += e.delta;
+      dailyAccount[e.date] = currAcc;
+    });
+    const getAccountBalance = (targetDate: string) => {
+      const sortedDates = Object.keys(dailyAccount).sort();
+      let lastBal = initialBalance;
+      for (const d of sortedDates) {
+        if (d > targetDate) break;
+        lastBal = dailyAccount[d];
+      }
+      return lastBal;
+    };
+
     if (allEvents.length === 0)
-      return [] as { date: string; label: string; labelShort: string; saldo: number | null; saldoFuturo?: number }[];
+      return [] as { date: string; label: string; labelShort: string; saldo: number | null; saldoFuturo?: number; saldoConta?: number }[];
 
     // Para filtros de saldo, precisamos do saldo anterior ao início do período
     let carryOver = 0;
@@ -447,7 +493,7 @@ const Historico = () => {
 
     const sortedDates = Array.from(byDate.keys()).sort();
 
-    const series: { date: string; label: string; labelShort: string; saldo: number | null; saldoFuturo?: number }[] = [];
+    const series: { date: string; label: string; labelShort: string; saldo: number | null; saldoFuturo?: number; saldoConta?: number }[] = [];
 
     const allDatesSorted = allEvents.map((e) => e.date).sort();
     const firstHistoricalDate = allDatesSorted[0];
@@ -459,13 +505,13 @@ const Historico = () => {
       const baseDate = new Date(anchor + "T00:00:00");
       baseDate.setDate(baseDate.getDate() - 1);
       const baseline = localISO(baseDate);
-      series.push({ date: baseline, label: fmtDate(baseline), labelShort: fmtDayMonth(baseline), saldo: 0 });
+      series.push({ date: baseline, label: fmtDate(baseline), labelShort: fmtDayMonth(baseline), saldo: 0, saldoConta: getAccountBalance(baseline) });
     } else if (period === "total" && includesFirst && statusFilter !== "a_vencer") {
       // Começa em zero UM DIA ANTES da primeira operação histórica
       const d = new Date(sortedDates[0] + "T00:00:00");
       d.setDate(d.getDate() - 1);
       const baseline = localISO(d);
-      series.push({ date: baseline, label: fmtDate(baseline), labelShort: fmtDayMonth(baseline), saldo: 0 });
+      series.push({ date: baseline, label: fmtDate(baseline), labelShort: fmtDayMonth(baseline), saldo: 0, saldoConta: getAccountBalance(baseline) });
     } else {
       // Período NÃO é total ou não engloba a primeira operação: começa com o saldo acumulado real
       // ancorado no início do intervalo
@@ -478,6 +524,7 @@ const Historico = () => {
         labelShort: (period === "data") ? "00:00" : fmtDayMonth(anchor),
         saldo: isAnchorFuture ? null : startVal,
         saldoFuturo: isAnchorFuture ? startVal : undefined,
+        saldoConta: getAccountBalance(anchor),
       });
     }
 
@@ -498,6 +545,7 @@ const Historico = () => {
             labelShort: fmtDayMonth(firstStr),
             saldo: isGapFuture ? null : val,
             saldoFuturo: isGapFuture ? val : undefined,
+            saldoConta: getAccountBalance(firstStr),
           });
         }
         temp.setMonth(temp.getMonth() + 1);
@@ -519,6 +567,7 @@ const Historico = () => {
       if (series.length && series[series.length - 1].date === d) {
         if (useFuture) series[series.length - 1].saldoFuturo = currentVal;
         else series[series.length - 1].saldo = currentVal;
+        series[series.length - 1].saldoConta = getAccountBalance(d);
       } else {
         series.push({
           date: d,
@@ -526,6 +575,7 @@ const Historico = () => {
           labelShort: (period === "data") ? fmtTime(d) : fmtDayMonth(d),
           saldo: useFuture ? null : currentVal,
           saldoFuturo: useFuture ? currentVal : undefined,
+          saldoConta: getAccountBalance(d),
         });
       }
     }
@@ -539,6 +589,7 @@ const Historico = () => {
           labelShort: "AGORA",
           saldo: last.saldo,
           saldoFuturo: (last as any).saldoFuturo,
+          saldoConta: getAccountBalance(todayStr),
         });
       }
     } else if (period !== "data") {
@@ -554,6 +605,7 @@ const Historico = () => {
             labelShort: fmtDayMonth(todayStr),
             saldo: isAVencer ? null : lastSaldo,
             saldoFuturo: isAVencer ? lastSaldo : undefined,
+            saldoConta: getAccountBalance(todayStr),
           });
         } else if (last && last.date > todayStr) {
           const insertIdx = series.findIndex((s) => s.date > todayStr);
@@ -566,6 +618,7 @@ const Historico = () => {
               labelShort: fmtDayMonth(todayStr),
               saldo: isAVencer ? null : prevVal,
               saldoFuturo: isAVencer ? prevVal : undefined,
+              saldoConta: getAccountBalance(todayStr),
             });
           }
         }
@@ -1412,8 +1465,13 @@ const Historico = () => {
                                   {data.label}
                                 </div>
                                 <div style={{ color: "hsl(var(--foreground))" }}>
-                                  {formatBRL(payload[0].value as number)}
+                                  Saldo Aberto: {formatBRL(payload[0].value as number)}
                                 </div>
+                                {data.saldoConta !== undefined && (
+                                  <div style={{ color: "hsl(var(--muted-foreground))", marginTop: 4, fontSize: 11 }}>
+                                    Saldo Conta: {formatBRL(data.saldoConta)}
+                                  </div>
+                                )}
                               </div>
                             );
                           }
