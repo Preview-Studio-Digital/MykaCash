@@ -962,7 +962,8 @@ export const AccountCashFlow = () => {
                     const d = new Date(rawDate + "T00:00:00");
                     const day = d.getDate();
                     const month = d.toLocaleDateString('pt-BR', { month: 'long' });
-                    return `Data: ${day} de ${month}`;
+                    const weekday = d.toLocaleDateString('pt-BR', { weekday: 'long' }).toUpperCase().split('-')[0];
+                    return `Data: ${day} de ${month} - ${weekday}`;
                   }
                   return value;
                 }}

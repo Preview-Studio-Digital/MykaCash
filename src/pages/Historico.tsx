@@ -1462,7 +1462,7 @@ const Historico = () => {
                                 }}
                               >
                                 <div style={{ color: "hsl(var(--foreground))", marginBottom: 4, fontWeight: 500 }}>
-                                  {data.label}
+                                  {data.label} {data.date !== "agora" ? `- ${weekdayShortPt(data.date.slice(0, 10))}` : ""}
                                 </div>
                                 <div style={{ color: "hsl(var(--foreground))" }}>
                                   Saldo Aberto: {formatBRL(payload[0].value as number)}
