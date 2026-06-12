@@ -373,8 +373,10 @@ const Historico = () => {
     } else if (statusFilter === "liquidadas") {
       for (const r of filteredRows) {
         if (r.settled) {
-          // No gráfico de liquidadas, usamos a DATA REAL de liquidação (fallback: vencimento)
-          const rawDate = r.settledDate || r.dueDate;
+          // Operações a partir de jun/2026 usam a data REAL de liquidação;
+          // anteriores usam o vencimento (datas de liquidação antigas eram aleatórias).
+          const useSettled = r.operationDate.slice(0, 7) >= "2026-06" && r.settledDate;
+          const rawDate = useSettled ? (r.settledDate as string) : r.dueDate;
           const setDate = (period === "data") ? rawDate : rawDate.slice(0, 10);
           allEvents.push({ date: setDate, delta: r.value });
         }
@@ -389,8 +391,10 @@ const Historico = () => {
         allEvents.push({ date: evDate, delta: r.value });
         
         if (r.settled) {
-          // Liquidada: Abate do saldo na DATA REAL de liquidação (fallback: vencimento)
-          const rawDate = r.settledDate || r.dueDate;
+          // Operações a partir de jun/2026 usam a data REAL de liquidação;
+          // anteriores usam o vencimento (datas de liquidação antigas eram aleatórias).
+          const useSettled = r.operationDate.slice(0, 7) >= "2026-06" && r.settledDate;
+          const rawDate = useSettled ? (r.settledDate as string) : r.dueDate;
           const setDate = (period === "data") ? rawDate : rawDate.slice(0, 10);
           allEvents.push({ date: setDate, delta: -r.value });
         } else if (r.dueDate > todayStr) {
