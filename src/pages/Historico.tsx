@@ -1746,7 +1746,7 @@ const Historico = () => {
 
               {/* Dica Esperta do Consultor */}
               <div
-                key={`advisor-${opsCount}-${alertMetrics.scoreNumeric}`}
+                key={`advisor-${eventCount}-${alertMetrics.scoreNumeric}`}
                 className={cn(
                   "mt-4 p-3 rounded-lg border flex items-start gap-2.5 animate-fade-in",
                   advisorRecommendation.tone === "up" && "border-net-green/40 bg-net-green/5",
