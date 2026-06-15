@@ -1121,7 +1121,7 @@ const Historico = () => {
     ];
     const dominant = [...tiers].sort((a, b) => b.tier - a.tier || b.value - a.value)[0];
 
-    const pick = <T,>(arr: T[]): T => arr[opsCount % arr.length];
+    const pick = <T,>(arr: T[]): T => arr[eventCount % arr.length];
 
     const openings: Record<typeof tone, string[]> = {
       up: [
