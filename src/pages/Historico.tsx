@@ -1778,8 +1778,10 @@ const Historico = () => {
               {/* Placa do Score */}
               <div className="my-4">
                 <div className="font-mono text-xs tracking-widest text-muted-foreground uppercase">SCORE DE SAÚDE</div>
-                <div className={cn("font-display text-6xl font-extrabold tracking-tight mt-2", alertMetrics.scoreColor)}>
-                  {alertMetrics.healthScore}
+                <div className={cn("font-display text-6xl font-extrabold tracking-tight mt-2 flex items-baseline gap-2", alertMetrics.scoreColor)}>
+                  <span>{alertMetrics.scoreNumeric}</span>
+                  <span className="text-3xl opacity-80">,</span>
+                  <span>{alertMetrics.healthScore}</span>
                 </div>
                 <div className="font-mono text-[10px] tracking-widest text-muted-foreground mt-2">MYKA FINANCIAL SCORE</div>
               </div>
