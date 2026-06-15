@@ -1083,6 +1083,8 @@ const Historico = () => {
 
   // === Consultor AI: recomendação adaptativa que muda forma e conteúdo a cada nova operação ===
   const opsCount = rows.length;
+  const settledCount = rows.reduce((n, r) => n + (r.settled ? 1 : 0), 0);
+  const eventCount = opsCount + settledCount;
   const latestOpNumber = rows.reduce((max, r) => {
     const n = Number(r.opNumber) || 0;
     return n > max ? n : max;
@@ -1119,7 +1121,7 @@ const Historico = () => {
     ];
     const dominant = [...tiers].sort((a, b) => b.tier - a.tier || b.value - a.value)[0];
 
-    const pick = <T,>(arr: T[]): T => arr[opsCount % arr.length];
+    const pick = <T,>(arr: T[]): T => arr[eventCount % arr.length];
 
     const openings: Record<typeof tone, string[]> = {
       up: [
@@ -1194,7 +1196,7 @@ const Historico = () => {
       headline: tone === "down" ? "Atenção crítica" : tone === "warn" ? "Recalibrar exposição" : "Saúde financeira positiva",
       body: `${pick(openings[tone])} ${diagnosis} ${pick(actions[tone])}`,
     };
-  }, [opsCount, opLabel, alertMetrics]);
+  }, [opsCount, settledCount, eventCount, opLabel, alertMetrics]);
 
 
 
@@ -1744,7 +1746,7 @@ const Historico = () => {
 
               {/* Dica Esperta do Consultor */}
               <div
-                key={`advisor-${opsCount}-${alertMetrics.scoreNumeric}`}
+                key={`advisor-${eventCount}-${alertMetrics.scoreNumeric}`}
                 className={cn(
                   "mt-4 p-3 rounded-lg border flex items-start gap-2.5 animate-fade-in",
                   advisorRecommendation.tone === "up" && "border-net-green/40 bg-net-green/5",
@@ -1780,8 +1782,7 @@ const Historico = () => {
                 <div className="font-mono text-xs tracking-widest text-muted-foreground uppercase">SCORE DE SAÚDE</div>
                 <div className={cn("font-display text-6xl font-extrabold tracking-tight mt-2 flex items-baseline gap-2", alertMetrics.scoreColor)}>
                   <span>{alertMetrics.scoreNumeric}</span>
-                  <span className="text-3xl opacity-80">,</span>
-                  <span>{alertMetrics.healthScore}</span>
+                  <span className="text-4xl opacity-80">({alertMetrics.healthScore})</span>
                 </div>
                 <div className="font-mono text-[10px] tracking-widest text-muted-foreground mt-2">MYKA FINANCIAL SCORE</div>
               </div>
