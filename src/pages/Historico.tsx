@@ -1083,6 +1083,8 @@ const Historico = () => {
 
   // === Consultor AI: recomendação adaptativa que muda forma e conteúdo a cada nova operação ===
   const opsCount = rows.length;
+  const settledCount = rows.reduce((n, r) => n + (r.settled ? 1 : 0), 0);
+  const eventCount = opsCount + settledCount;
   const latestOpNumber = rows.reduce((max, r) => {
     const n = Number(r.opNumber) || 0;
     return n > max ? n : max;
