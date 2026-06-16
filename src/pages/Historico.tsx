@@ -633,6 +633,58 @@ const Historico = () => {
         }
       }
     }
+
+    // Calcular dias para liquidação
+    const isBalanceFilter = ["todas", "iniciadas", "andamento", "vencidas"].includes(statusFilter);
+    if (isBalanceFilter) {
+      for (const s of series) {
+        let maxExit = "";
+        for (const r of filteredRows) {
+          const evDate = (period === "data") ? r.createdAt : r.operationDate.slice(0, 10);
+          let setDate = "";
+          if (r.settled) {
+            const rawDate = (r.settledDate && r.settledDate >= "2026-06-01") ? r.settledDate : r.dueDate;
+            setDate = (period === "data") ? rawDate : rawDate.slice(0, 10);
+          } else {
+            const rawDate = r.dueDate;
+            setDate = (period === "data") ? rawDate : rawDate.slice(0, 10);
+          }
+
+          let isIncluded = false;
+          if (evDate <= s.date) {
+            if (r.settled) {
+              if (setDate > s.date) isIncluded = true;
+            } else if (r.dueDate > todayStr) {
+              if (setDate > s.date) isIncluded = true;
+            } else {
+              isIncluded = true;
+            }
+          }
+
+          if (isIncluded) {
+            if (setDate > maxExit) maxExit = setDate;
+          }
+        }
+
+        let days = 0;
+        if (maxExit && maxExit > s.date) {
+          const d1 = new Date(s.date.slice(0, 10) + "T00:00:00").getTime();
+          const d2 = new Date(maxExit.slice(0, 10) + "T00:00:00").getTime();
+          days = Math.round((d2 - d1) / 86400000);
+        }
+        (s as any).daysToClearRaw = days;
+      }
+
+      const maxSaldo = series.length > 0 ? Math.max(1, ...series.map(s => Math.max(s.saldo || 0, s.saldoFuturo || 0))) : 1;
+      const maxDays = series.length > 0 ? Math.max(1, ...series.map(s => (s as any).daysToClearRaw || 0)) : 1;
+      const scale = maxDays > 0 ? (maxSaldo / maxDays) : 0;
+
+      for (const s of series) {
+        if ((s as any).daysToClearRaw !== undefined) {
+          (s as any).diasProporcional = (s as any).daysToClearRaw * scale;
+        }
+      }
+    }
     
     return series;
   }, [filteredRows, statusFilter, range.from, range.to, todayStr, period]);
@@ -1452,6 +1504,9 @@ const Historico = () => {
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             const data = payload[0].payload;
+                            // Encontrar o payload real de "saldo" para manter o comportamento anterior,
+                            // evitando mostrar o "diasProporcional" como valor financeiro.
+                            const saldoVal = payload.find(p => p.dataKey === "saldo" || p.dataKey === "saldoFuturo")?.value ?? payload[0].value;
                             return (
                               <div
                                 style={{
@@ -1467,11 +1522,16 @@ const Historico = () => {
                                   {data.label} {data.date !== "agora" ? `- ${weekdayShortPt(data.date.slice(0, 10))}` : ""}
                                 </div>
                                 <div style={{ color: "hsl(var(--foreground))" }}>
-                                  Saldo Aberto: {formatBRL(payload[0].value as number)}
+                                  Saldo Aberto: {formatBRL(saldoVal as number)}
                                 </div>
                                 {data.saldoConta !== undefined && (
                                   <div style={{ color: "hsl(var(--muted-foreground))", marginTop: 4, fontSize: 11 }}>
                                     Saldo Conta: {formatBRL(data.saldoConta)}
+                                  </div>
+                                )}
+                                {data.daysToClearRaw !== undefined && data.daysToClearRaw > 0 && (
+                                  <div style={{ color: "hsl(var(--primary))", marginTop: 4, fontSize: 11 }}>
+                                    Prazo Máx. Liquidação: {data.daysToClearRaw} dias
                                   </div>
                                 )}
                               </div>
@@ -1534,7 +1594,22 @@ const Historico = () => {
                           isAnimationActive={true}
                           animationDuration={900}
                           animationEasing="ease-out"
-
+                        />
+                      )}
+                      {["todas", "iniciadas", "andamento", "vencidas"].includes(statusFilter) && (
+                        <Area
+                          yAxisId="left"
+                          type="monotone"
+                          dataKey="diasProporcional"
+                          name="Esticamento de Prazo"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          strokeDasharray="4 4"
+                          fill="transparent"
+                          connectNulls={true}
+                          isAnimationActive={true}
+                          animationDuration={900}
+                          animationEasing="ease-out"
                         />
                       )}
 
