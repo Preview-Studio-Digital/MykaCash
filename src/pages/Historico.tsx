@@ -142,6 +142,7 @@ const Historico = () => {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState<boolean>(false);
   const [activeAlertTab, setActiveAlertTab] = useState<"diaria" | "mensal" | "anual">("diaria");
   const [manualTransactions, setManualTransactions] = useState<any[]>([]);
+  const [overdueAlertOpen, setOverdueAlertOpen] = useState(false);
   const [initialBalance, setInitialBalance] = useState(() => {
     const saved = localStorage.getItem("mykacash_initial_balance");
     return saved ? parseFloat(saved) : 0;
@@ -275,6 +276,22 @@ const Historico = () => {
     }
     return out;
   }, [invoices, todayStr, now, user]);
+
+  const overdueRows = useMemo(
+    () => rows.filter((r) => !r.settled && r.overdue),
+    [rows]
+  );
+
+  useEffect(() => {
+    if (loading || !user) return;
+    if (overdueRows.length === 0) return;
+    const key = `mykacash_overdue_alert_shown:${user.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    setOverdueAlertOpen(true);
+  }, [loading, user, overdueRows.length]);
+
+
 
   const dataBounds = useMemo(() => {
     if (rows.length === 0) return { from: todayStr, to: todayStr };
@@ -2225,7 +2242,59 @@ const Historico = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Overdue Operations Alert (shown once per login session) */}
+      <Dialog open={overdueAlertOpen} onOpenChange={setOverdueAlertOpen}>
+        <DialogContent className="max-w-md bg-background/95 backdrop-blur-xl border-[hsl(var(--cost-red)/0.5)] shadow-[0_0_40px_hsl(var(--cost-red)/0.25)]">
+          <DialogHeader>
+            <DialogTitle className="font-display text-[hsl(var(--cost-red))] text-2xl tracking-wide">
+              ⚠ OPERAÇÕES VENCIDAS
+            </DialogTitle>
+            <DialogDescription className="font-mono text-[10px] tracking-wider uppercase">
+              Existem parcelas vencidas e ainda não liquidadas
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-3">
+            <div className="text-center">
+              <div className="font-title font-extrabold text-5xl text-[hsl(var(--cost-red))]">
+                {overdueRows.length}
+              </div>
+              <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-muted-foreground mt-1">
+                {overdueRows.length === 1 ? "parcela vencida" : "parcelas vencidas"}
+              </div>
+            </div>
+            <div className="text-center pt-2">
+              <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground">
+                Total em aberto
+              </div>
+              <div className="font-display font-bold text-xl text-foreground mt-1">
+                {formatBRL(overdueRows.reduce((s, r) => s + r.value, 0))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setOverdueAlertOpen(false)}
+              className="font-mono text-[10px] tracking-widest"
+            >
+              FECHAR
+            </Button>
+            <Button
+              onClick={() => {
+                setStatusFilter("vencidas");
+                setPeriod("total");
+                setOverdueAlertOpen(false);
+              }}
+              className="bg-[hsl(var(--cost-red))] text-white hover:bg-[hsl(var(--cost-red)/0.9)] font-mono text-[10px] tracking-widest"
+            >
+              VER VENCIDAS
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 };
 
