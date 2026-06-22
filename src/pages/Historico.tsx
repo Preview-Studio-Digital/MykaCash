@@ -142,6 +142,7 @@ const Historico = () => {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState<boolean>(false);
   const [activeAlertTab, setActiveAlertTab] = useState<"diaria" | "mensal" | "anual">("diaria");
   const [manualTransactions, setManualTransactions] = useState<any[]>([]);
+  const [overdueAlertOpen, setOverdueAlertOpen] = useState(false);
   const [initialBalance, setInitialBalance] = useState(() => {
     const saved = localStorage.getItem("mykacash_initial_balance");
     return saved ? parseFloat(saved) : 0;
