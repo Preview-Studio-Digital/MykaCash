@@ -277,6 +277,22 @@ const Historico = () => {
     return out;
   }, [invoices, todayStr, now, user]);
 
+  const overdueRows = useMemo(
+    () => rows.filter((r) => !r.settled && r.overdue),
+    [rows]
+  );
+
+  useEffect(() => {
+    if (loading || !user) return;
+    if (overdueRows.length === 0) return;
+    const key = `mykacash_overdue_alert_shown:${user.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    setOverdueAlertOpen(true);
+  }, [loading, user, overdueRows.length]);
+
+
+
   const dataBounds = useMemo(() => {
     if (rows.length === 0) return { from: todayStr, to: todayStr };
     let min = todayStr;
