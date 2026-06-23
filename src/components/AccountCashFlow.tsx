@@ -1062,12 +1062,13 @@ export const AccountCashFlow = () => {
 
       {/* Transactions Table */}
       <section className="rounded-2xl border border-border/40 bg-card/30 backdrop-blur-sm overflow-hidden shadow-panel">
-        <div className="p-6 border-b border-border/40 flex items-center justify-between">
+        <div className="p-4 md:p-6 border-b border-border/40 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="flex items-center gap-3">
             <span className="h-2 w-2 rounded-full animate-color-cycle" />
-            <h4 className="font-display text-lg">Histórico de Movimentações</h4>
+            <h4 className="font-display text-base md:text-lg">Histórico de Movimentações</h4>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full md:w-auto">
+
             <Dialog open={isDialogOpen} onOpenChange={(open) => {
               setIsDialogOpen(open);
               if (!open) {
@@ -1077,8 +1078,8 @@ export const AccountCashFlow = () => {
               }
             }}>
               <DialogTrigger asChild>
-                <Button className="rounded-full px-6 h-9 font-mono text-[11px] tracking-[0.3em] bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.4)] hover:bg-primary/90 transition-all gap-2 border-0">
-                  <Plus className="h-3.5 w-3.5" /> NOVA MOVIMENTAÇÃO
+                <Button className="flex-1 md:flex-none rounded-full px-3 md:px-6 h-9 font-mono text-[10px] md:text-[11px] tracking-[0.2em] md:tracking-[0.3em] bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.4)] hover:bg-primary/90 transition-all gap-2 border-0 whitespace-nowrap">
+                  <Plus className="h-3.5 w-3.5" /> <span className="hidden sm:inline">NOVA MOVIMENTAÇÃO</span><span className="sm:hidden">NOVA</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px] bg-background/95 backdrop-blur-xl border-border/50">
@@ -1178,11 +1179,12 @@ export const AccountCashFlow = () => {
               </DialogContent>
             </Dialog>
             <Button 
-              className="rounded-full px-6 h-9 font-mono text-[11px] tracking-[0.3em] bg-muted/50 text-muted-foreground shadow-[0_0_20px_rgba(0,0,0,0.2)] hover:bg-muted/80 hover:text-foreground transition-all gap-2 border border-border/40"
+              className="flex-1 md:flex-none rounded-full px-3 md:px-6 h-9 font-mono text-[10px] md:text-[11px] tracking-[0.2em] md:tracking-[0.3em] bg-muted/50 text-muted-foreground shadow-[0_0_20px_rgba(0,0,0,0.2)] hover:bg-muted/80 hover:text-foreground transition-all gap-2 border border-border/40 whitespace-nowrap"
               onClick={handleExport}
             >
               <Download className="h-3.5 w-3.5" /> EXPORTAR
             </Button>
+
           </div>
         </div>
 
