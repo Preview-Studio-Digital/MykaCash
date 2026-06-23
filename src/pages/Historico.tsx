@@ -290,6 +290,7 @@ const Historico = () => {
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "1");
     setOverdueAlertOpen(true);
+    playSound("confirm");
   }, [loading, user, overdueRows.length]);
 
 
