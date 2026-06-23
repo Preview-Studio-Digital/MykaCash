@@ -1078,7 +1078,7 @@ export const AccountCashFlow = () => {
               }
             }}>
               <DialogTrigger asChild>
-                <Button className="w-full md:w-auto rounded-full px-3 md:px-6 h-9 font-mono text-[10px] md:text-[11px] tracking-[0.2em] md:tracking-[0.3em] bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.4)] hover:bg-primary/90 transition-all gap-2 border-0 whitespace-nowrap">
+                <Button className="flex-1 md:flex-none rounded-full px-3 md:px-6 h-9 font-mono text-[10px] md:text-[11px] tracking-[0.2em] md:tracking-[0.3em] bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.4)] hover:bg-primary/90 transition-all gap-2 border-0 whitespace-nowrap">
                   <Plus className="h-3.5 w-3.5" /> <span className="hidden sm:inline">NOVA MOVIMENTAÇÃO</span><span className="sm:hidden">NOVA</span>
                 </Button>
               </DialogTrigger>
