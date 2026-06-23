@@ -2247,7 +2247,7 @@ const Historico = () => {
 
       {/* Overdue Operations Alert (shown once per login session) */}
       <Dialog open={overdueAlertOpen} onOpenChange={setOverdueAlertOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col bg-background/95 backdrop-blur-xl border-[hsl(var(--cost-red)/0.5)] shadow-[0_0_40px_hsl(var(--cost-red)/0.25)]">
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col bg-background/95 backdrop-blur-xl border-[hsl(var(--cost-red)/0.5)] shadow-[0_0_40px_hsl(var(--cost-red)/0.25)] [&>button]:hidden">
           <DialogHeader>
             <DialogTitle className="font-display text-[hsl(var(--cost-red))] text-2xl tracking-wide">
               ⚠ OPERAÇÕES VENCIDAS
@@ -2271,7 +2271,7 @@ const Historico = () => {
                     key={r.key}
                     className="rounded-lg border border-[hsl(var(--cost-red)/0.3)] bg-[hsl(var(--cost-red)/0.06)] p-3"
                   >
-                    <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="font-display font-bold text-sm truncate">
                           {r.clientName}
@@ -2287,40 +2287,6 @@ const Historico = () => {
                         <div className="font-mono text-[10px] tracking-wider uppercase text-[hsl(var(--cost-red))]">
                           {daysLate} {daysLate === 1 ? "dia" : "dias"} em atraso
                         </div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-[10px]">
-                      <div>
-                        <div className="tracking-widest uppercase text-muted-foreground/70">Operação</div>
-                        <div className="text-foreground">{fmtDate(r.operationDate)}</div>
-                      </div>
-                      <div>
-                        <div className="tracking-widest uppercase text-muted-foreground/70">Vencimento</div>
-                        <div className="text-[hsl(var(--cost-red))]">{fmtDate(r.dueDate)}</div>
-                      </div>
-                      <div>
-                        <div className="tracking-widest uppercase text-muted-foreground/70">Prazo</div>
-                        <div className="text-foreground">{r.days} dias</div>
-                      </div>
-                      <div>
-                        <div className="tracking-widest uppercase text-muted-foreground/70">Taxa a.m.</div>
-                        <div className="text-foreground">{formatPct(r.monthlyRate)}</div>
-                      </div>
-                      <div>
-                        <div className="tracking-widest uppercase text-muted-foreground/70">Valor Presente</div>
-                        <div className="text-foreground">{formatBRL(r.presentValue)}</div>
-                      </div>
-                      <div>
-                        <div className="tracking-widest uppercase text-muted-foreground/70">Custo</div>
-                        <div className="text-foreground">{formatBRL(r.cost)}</div>
-                      </div>
-                      <div>
-                        <div className="tracking-widest uppercase text-muted-foreground/70">Taxa efetiva</div>
-                        <div className="text-foreground">{formatPct(r.effectivePct)}</div>
-                      </div>
-                      <div>
-                        <div className="tracking-widest uppercase text-muted-foreground/70">Autor</div>
-                        <div className="text-foreground truncate">{r.createdBy}</div>
                       </div>
                     </div>
                   </div>
