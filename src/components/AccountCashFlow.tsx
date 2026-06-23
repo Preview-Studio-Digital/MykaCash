@@ -1062,12 +1062,13 @@ export const AccountCashFlow = () => {
 
       {/* Transactions Table */}
       <section className="rounded-2xl border border-border/40 bg-card/30 backdrop-blur-sm overflow-hidden shadow-panel">
-        <div className="p-6 border-b border-border/40 flex items-center justify-between">
+        <div className="p-4 md:p-6 border-b border-border/40 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="flex items-center gap-3">
             <span className="h-2 w-2 rounded-full animate-color-cycle" />
-            <h4 className="font-display text-lg">Histórico de Movimentações</h4>
+            <h4 className="font-display text-base md:text-lg">Histórico de Movimentações</h4>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full md:w-auto">
+
             <Dialog open={isDialogOpen} onOpenChange={(open) => {
               setIsDialogOpen(open);
               if (!open) {
