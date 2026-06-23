@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { calculate, formatBRL, formatPct, FACTORING_MONTHLY_RATE_PCT, type Installment } from "@/lib/calc";
 import { toast } from "sonner";
 import { playSound } from "@/lib/sounds";
-import { CheckCircle2, Circle, Pencil, Trash2, Plus, X, ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal } from "lucide-react";
+import { CheckCircle2, Circle, Pencil, Trash2, Plus, X, ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal, ChevronDown, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import {
@@ -35,6 +35,21 @@ import {
 
 type Period = "data" | "semana" | "mes" | "total" | "periodo";
 type StatusFilter = "todas" | "iniciadas" | "andamento" | "vencidas" | "liquidadas" | "a_vencer";
+
+const MONTHS_PT = [
+  "JANEIRO",
+  "FEVEREIRO",
+  "MARÇO",
+  "ABRIL",
+  "MAIO",
+  "JUNHO",
+  "JULHO",
+  "AGOSTO",
+  "SETEMBRO",
+  "OUTUBRO",
+  "NOVEMBRO",
+  "DEZEMBRO"
+];
 
 type SettledEntry = string | { id: string; date: string };
 type InvoiceRow = {
@@ -883,6 +898,46 @@ const Historico = () => {
     return arr;
   }, [filteredRows, sortKey, sortDir]);
 
+  const [collapsedMonths, setCollapsedMonths] = useState<Record<string, boolean>>({});
+
+  const isMonthOpenByDefault = (monthRows: typeof sortedRows) => {
+    return monthRows.some(r => !r.settled);
+  };
+
+  const isMonthOpen = (monthKey: string, monthRows: typeof sortedRows) => {
+    if (collapsedMonths[monthKey] !== undefined) {
+      return !collapsedMonths[monthKey];
+    }
+    return isMonthOpenByDefault(monthRows);
+  };
+
+  const toggleMonth = (monthKey: string, monthRows: typeof sortedRows) => {
+    setCollapsedMonths(prev => ({
+      ...prev,
+      [monthKey]: isMonthOpen(monthKey, monthRows)
+    }));
+  };
+
+  const groupedByMonth = useMemo(() => {
+    const groups: { [key: string]: typeof sortedRows } = {};
+    for (const r of sortedRows) {
+      const key = r.operationDate.substring(0, 7);
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(r);
+    }
+    return Object.keys(groups)
+      .sort((a, b) => b.localeCompare(a))
+      .map(key => {
+        const [year, month] = key.split("-");
+        const monthName = MONTHS_PT[parseInt(month, 10) - 1] || month;
+        return {
+          key,
+          label: `${monthName} / ${year}`,
+          rows: groups[key]
+        };
+      });
+  }, [sortedRows]);
+
   const SortableTh = ({
     label,
     sKey,
@@ -1639,7 +1694,6 @@ const Historico = () => {
             )}
           </div>
           {chartData.length > 0 && (() => {
-            const MONTHS_PT = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
             // Agrupa meses consecutivos
             const monthSegs: { key: string; label: string; count: number }[] = [];
             for (const p of chartData) {
@@ -1921,261 +1975,319 @@ const Historico = () => {
             </span>
           </div>
 
-          {/* Mobile cards */}
-          <div className="space-y-2 md:hidden">
-            {loading ? (
-              <div className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
-                CARREGANDO...
-              </div>
-            ) : filteredRows.length === 0 ? (
-              <div className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
-                NENHUMA ABERTURA NO PERÍODO
-              </div>
-            ) : (
-              sortedRows.map((r) => {
-                const canManage = isAdmin || (r.isAuthor && r.withinEditWindow);
+          {loading ? (
+            <div className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
+              CARREGANDO...
+            </div>
+          ) : filteredRows.length === 0 ? (
+            <div className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
+              NENHUMA ABERTURA NO PERÍODO
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {groupedByMonth.map((month) => {
+                const isOpen = isMonthOpen(month.key, month.rows);
+                const monthTotals = month.rows.reduce(
+                  (a, r) => ({
+                    value: a.value + r.value,
+                    presentValue: a.presentValue + r.presentValue,
+                    cost: a.cost + r.cost,
+                  }),
+                  { value: 0, presentValue: 0, cost: 0 }
+                );
+                const totalValue = month.rows.reduce((sum, r) => sum + r.value, 0) || 1;
+                const monthEffective = month.rows.reduce((sum, r) => sum + r.effectivePct * r.value, 0) / totalValue;
+
                 return (
-                  <div
-                    key={r.key}
-                    className={
-                      "group/card rounded-lg border border-border/40 p-3 space-y-1 relative " +
-                      (r.settled
-                        ? "bg-[hsl(var(--factoring-amber)/0.18)]"
-                        : r.overdue
-                        ? "bg-[hsl(var(--cost-red)/0.15)]"
-                        : "bg-[hsl(var(--net-green)/0.12)]")
-                    }
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="font-mono text-[10px] tracking-widest text-primary-glow">
-                        REG {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"} · NF {r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {r.settled ? (
-                          <span className="rounded-full bg-factoring-amber/20 px-2 py-0.5 font-mono text-[9px] tracking-widest text-factoring-amber">
-                            LIQUIDADA
-                          </span>
-                        ) : r.overdue ? (
-                          <span className="rounded-full bg-cost-red/20 px-2 py-0.5 font-mono text-[9px] tracking-widest text-cost-red">
-                            VENCIDA
-                          </span>
-                        ) : (
-                          <span className="rounded-full bg-net-green/15 px-2 py-0.5 font-mono text-[9px] tracking-widest text-net-green">
-                            ANDAMENTO
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-sm font-semibold truncate">{r.clientName}</div>
-                    <div className="font-mono text-[10px] text-muted-foreground">
-                      OP {fmtDate(r.operationDate)} · VENC {fmtDate(r.dueDate)} · {r.days} DIAS
-                    </div>
-                    <div className="font-mono text-[10px] text-muted-foreground">
-                      POR {r.createdBy}
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 pt-2 font-mono text-xs tabular-nums">
-                      <div>
-                        <div className="text-[9px] tracking-widest text-muted-foreground">VALOR BRUTO</div>
-                        <div>{formatBRL(r.value)}</div>
-                      </div>
-                      <div>
-                        <div className="text-[9px] tracking-widest text-muted-foreground">VALOR LÍQUIDO</div>
-                        <div className="text-net-green">{formatBRL(r.presentValue)}</div>
-                      </div>
-                      <div>
-                        <div className="text-[9px] tracking-widest text-muted-foreground">CUSTO</div>
-                        <div className="text-cost-red">{formatBRL(r.cost)}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 pt-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => toggleSettlement(r)}
-                        className="font-mono text-[10px] tracking-widest"
-                      >
-                        {r.settled ? (
-                          <>
-                            <CheckCircle2 className="mr-1 h-3 w-3" /> DESFAZER
-                          </>
-                        ) : (
-                          <>
-                            <Circle className="mr-1 h-3 w-3" /> LIQUIDAR
-                          </>
-                        )}
-                      </Button>
-                      {canManage && (
-                        <div className="flex items-center gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => openEdit(r.invoiceId)}
-                            className="text-muted-foreground hover:text-primary"
-                            aria-label="Editar"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleDeleteOperation(r.invoiceId)}
-                            className="text-muted-foreground hover:text-cost-red"
-                            aria-label="Remover"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                  <div key={month.key} className="border border-border/40 rounded-xl overflow-hidden bg-background/20 backdrop-blur-sm shadow-sm transition-all duration-300">
+                    {/* Month Header Button */}
+                    <button
+                      type="button"
+                      onClick={() => toggleMonth(month.key, month.rows)}
+                      className={cn(
+                        "w-full flex flex-wrap items-center justify-between p-4 bg-muted/5 hover:bg-muted/10 transition-all text-left select-none group gap-3",
+                        isOpen && "border-b border-border/40"
                       )}
-                    </div>
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-muted-foreground transition-transform duration-200 group-hover:text-foreground">
+                          {isOpen ? (
+                            <ChevronDown className="h-4 w-4" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" />
+                          )}
+                        </span>
+                        <span className="font-display text-sm font-bold tracking-wider uppercase text-foreground">
+                          {month.label}
+                        </span>
+                        <span className="text-[9px] md:text-[10px] text-muted-foreground font-mono bg-muted/30 border border-border/20 px-2 py-0.5 rounded-full shrink-0">
+                          {month.rows.length} {month.rows.length === 1 ? "parcela" : "parcelas"}
+                        </span>
+                      </div>
+
+                      <div className="font-mono text-[10px] md:text-xs flex flex-wrap gap-x-4 gap-y-1 items-center ml-auto">
+                        <span className="text-muted-foreground">
+                          Bruto: <span className="font-bold text-foreground">{formatBRL(monthTotals.value)}</span>
+                        </span>
+                        <span className="text-muted-foreground">
+                          Líquido: <span className="font-bold text-net-green">{formatBRL(monthTotals.presentValue)}</span>
+                        </span>
+                        <span className="text-muted-foreground">
+                          Custo: <span className="font-bold text-cost-red">{formatBRL(monthTotals.cost)}</span>
+                        </span>
+                      </div>
+                    </button>
+
+                    {/* Month Content */}
+                    {isOpen && (
+                      <div className="animate-fade-in p-2 space-y-4">
+                        {/* Mobile cards */}
+                        <div className="space-y-2 md:hidden">
+                          {month.rows.map((r) => {
+                            const canManage = isAdmin || (r.isAuthor && r.withinEditWindow);
+                            return (
+                              <div
+                                key={r.key}
+                                className={
+                                  "group/card rounded-lg border border-border/40 p-3 space-y-1 relative " +
+                                  (r.settled
+                                    ? "bg-[hsl(var(--factoring-amber)/0.18)]"
+                                    : r.overdue
+                                    ? "bg-[hsl(var(--cost-red)/0.15)]"
+                                    : "bg-[hsl(var(--net-green)/0.12)]")
+                                }
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="font-mono text-[10px] tracking-widest text-primary-glow">
+                                    REG {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"} · NF {r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {r.settled ? (
+                                      <span className="rounded-full bg-factoring-amber/20 px-2 py-0.5 font-mono text-[9px] tracking-widest text-factoring-amber">
+                                        LIQUIDADA
+                                      </span>
+                                    ) : r.overdue ? (
+                                      <span className="rounded-full bg-cost-red/20 px-2 py-0.5 font-mono text-[9px] tracking-widest text-cost-red">
+                                        VENCIDA
+                                      </span>
+                                    ) : (
+                                      <span className="rounded-full bg-net-green/15 px-2 py-0.5 font-mono text-[9px] tracking-widest text-net-green">
+                                        ANDAMENTO
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="text-sm font-semibold truncate">{r.clientName}</div>
+                                <div className="font-mono text-[10px] text-muted-foreground">
+                                  OP {fmtDate(r.operationDate)} · VENC {fmtDate(r.dueDate)} · {r.days} DIAS
+                                </div>
+                                <div className="font-mono text-[10px] text-muted-foreground">
+                                  POR {r.createdBy}
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 pt-2 font-mono text-xs tabular-nums">
+                                  <div>
+                                    <div className="text-[9px] tracking-widest text-muted-foreground">VALOR BRUTO</div>
+                                    <div>{formatBRL(r.value)}</div>
+                                  </div>
+                                  <div>
+                                    <div className="text-[9px] tracking-widest text-muted-foreground">VALOR LÍQUIDO</div>
+                                    <div className="text-net-green">{formatBRL(r.presentValue)}</div>
+                                  </div>
+                                  <div>
+                                    <div className="text-[9px] tracking-widest text-muted-foreground">CUSTO</div>
+                                    <div className="text-cost-red">{formatBRL(r.cost)}</div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center justify-between gap-2 pt-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => toggleSettlement(r)}
+                                    className="font-mono text-[10px] tracking-widest"
+                                  >
+                                    {r.settled ? (
+                                      <>
+                                        <CheckCircle2 className="mr-1 h-3 w-3" /> DESFAZER
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Circle className="mr-1 h-3 w-3" /> LIQUIDAR
+                                      </>
+                                    )}
+                                  </Button>
+                                  {canManage && (
+                                    <div className="flex items-center gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => openEdit(r.invoiceId)}
+                                        className="text-muted-foreground hover:text-primary"
+                                        aria-label="Editar"
+                                      >
+                                        <Pencil className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleDeleteOperation(r.invoiceId)}
+                                        className="text-muted-foreground hover:text-cost-red"
+                                        aria-label="Remover"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Desktop table */}
+                        <div className="hidden md:block rounded-lg border border-border/50 overflow-hidden">
+                          <table className="w-full table-auto text-[10px] lg:text-[11px]">
+                            <thead className="bg-muted/40 font-mono tracking-widest">
+                              <tr className="text-muted-foreground">
+                                <th className="px-1.5 py-2 text-center font-medium">REGISTRO</th>
+                                <th className="px-1.5 py-2 text-center font-medium">STATUS</th>
+                                <SortableTh label="CLIENTE" sKey="clientName" />
+                                <SortableTh label="NF" sKey="invoiceNumber" />
+                                <SortableTh label="ABERTURA" sKey="operationDate" />
+                                <SortableTh label="VENC." sKey="dueDate" />
+                                <SortableTh label="DIAS" sKey="days" />
+                                <SortableTh label="TX MÊS" sKey="monthlyRate" />
+                                <SortableTh label="TX EFET." sKey="effectivePct" />
+                                <SortableTh label="BRUTO (R$)" sKey="value" />
+                                <SortableTh label="LÍQUIDO (R$)" sKey="presentValue" />
+                                <SortableTh label="CUSTO (R$)" sKey="cost" />
+                                <SortableTh label="AUTOR" sKey="createdBy" />
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {month.rows.map((r) => {
+                                const canManage = isAdmin || (r.isAuthor && r.withinEditWindow);
+                                return (
+                                  <tr
+                                    key={r.key}
+                                    className={
+                                      "group/row border-t border-border/40 font-mono tabular-nums text-center transition-colors " +
+                                      rowClass(r)
+                                    }
+                                  >
+                                    <td className="px-1.5 py-2 text-muted-foreground">{r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"}</td>
+                                    <td className="relative px-2 py-2">
+                                      <div className="inline-flex items-center justify-center">
+                                        <button
+                                          type="button"
+                                          onClick={() => toggleSettlement(r)}
+                                          onMouseEnter={() => !r.settled && setHoverKey(r.key)}
+                                          onMouseLeave={() => setHoverKey((k) => (k === r.key ? null : k))}
+                                          onFocus={() => !r.settled && setHoverKey(r.key)}
+                                          onBlur={() => setHoverKey((k) => (k === r.key ? null : k))}
+                                          title={
+                                            r.settled
+                                              ? "Clique para desfazer a liquidação"
+                                              : "Clique para marcar como LIQUIDADA"
+                                          }
+                                          className={
+                                            "group relative inline-block rounded-full px-2 py-0.5 text-[9px] tracking-widest transition-all cursor-pointer " +
+                                            (r.settled
+                                              ? "bg-factoring-amber/20 text-factoring-amber hover:bg-factoring-amber/30"
+                                              : r.overdue
+                                              ? "bg-cost-red/20 text-cost-red hover:bg-factoring-amber/30 hover:text-factoring-amber"
+                                              : "bg-net-green/15 text-net-green hover:bg-factoring-amber/30 hover:text-factoring-amber")
+                                          }
+                                        >
+                                          <span className="group-hover:hidden">
+                                            {r.settled
+                                              ? "LIQUIDADA"
+                                              : r.overdue
+                                              ? "VENCIDA"
+                                              : isDueSoon(r)
+                                              ? weekdayShortPt(r.dueDate)
+                                              : "ANDAMENTO"}
+                                          </span>
+                                          <span className="hidden group-hover:inline">
+                                            {r.settled ? "DESFAZER" : "LIQUIDAR"}
+                                          </span>
+                                        </button>
+                                        {canManage && (
+                                          <div className="absolute left-[calc(100%-0.25rem)] top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 pointer-events-none group-hover/row:opacity-100 group-hover/row:pointer-events-auto transition-all bg-background/95 backdrop-blur-sm border border-border/50 rounded-md p-0.5 shadow-sm z-10">
+                                            <button
+                                              onClick={() => openEdit(r.invoiceId)}
+                                              className="rounded p-1 text-muted-foreground transition-colors hover:bg-primary/15 hover:text-primary"
+                                              title="Editar abertura"
+                                              aria-label="Editar"
+                                            >
+                                              <Pencil className="h-3 w-3" />
+                                            </button>
+                                            <button
+                                              onClick={() => handleDeleteOperation(r.invoiceId)}
+                                              className="rounded p-1 text-muted-foreground transition-colors hover:bg-cost-red/15 hover:text-cost-red"
+                                              title="Remover abertura"
+                                              aria-label="Remover"
+                                            >
+                                              <Trash2 className="h-3 w-3" />
+                                            </button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="px-2 py-2 max-w-[160px] truncate" title={r.clientName}>
+                                      {r.clientName}
+                                    </td>
+                                    <td className="px-1.5 py-2">{r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}</td>
+                                    <td className="px-1.5 py-2">{fmtDateShort(r.operationDate)}</td>
+                                    <td className="px-1.5 py-2">{fmtDateShort(r.dueDate)}</td>
+                                    <td className="px-1.5 py-2">{r.days}</td>
+                                    <td className="px-1.5 py-2">{formatPct(r.monthlyRate)}</td>
+                                    <td className="px-1.5 py-2">{formatPct(r.effectivePct)}</td>
+                                    <td className="px-1.5 py-2">{formatBRLNum(r.value)}</td>
+                                    <td className="px-1.5 py-2 text-net-green">{formatBRLNum(r.presentValue)}</td>
+                                    <td className="px-1.5 py-2 text-cost-red">{formatBRLNum(r.cost)}</td>
+                                    <td className="px-2 py-2 max-w-[120px] truncate" title={r.createdBy}>
+                                      {r.createdBy}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+
+                              <tr className="border-t-2 border-primary-glow/40 bg-primary-glow/[0.07] font-mono tabular-nums text-center font-semibold">
+                                <td className="px-2 py-2">—</td>
+                                <td className="px-2 py-2">—</td>
+                                <td className="px-2 py-2 tracking-widest text-primary-glow">SUBTOTAL</td>
+                                <td className="px-2 py-2">—</td>
+                                <td className="px-2 py-2">—</td>
+                                <td className="px-2 py-2">—</td>
+                                <td className="px-2 py-2">—</td>
+                                <td className="px-2 py-2">—</td>
+                                <td className="px-1.5 py-2 text-center font-medium text-factoring-amber text-muted-foreground">{formatPct(monthEffective)}</td>
+                                <td className="px-1.5 py-2">{formatBRLNum(monthTotals.value)}</td>
+                                <td className="px-1.5 py-2 text-net-green">{formatBRLNum(monthTotals.presentValue)}</td>
+                                <td className="px-1.5 py-2 text-cost-red">{formatBRLNum(monthTotals.cost)}</td>
+                                <td className="px-2 py-2">—</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
-              })
-            )}
-          </div>
+              })}
 
-          {/* Desktop table */}
-          <div className="hidden md:block rounded-lg border border-border/50 overflow-hidden">
-            <table className="w-full table-auto text-[10px] lg:text-[11px]">
-              <thead className="bg-muted/40 font-mono tracking-widest">
-                <tr className="text-muted-foreground">
-                  <th className="px-1.5 py-2 text-center font-medium">REGISTRO</th>
-                  <th className="px-1.5 py-2 text-center font-medium">STATUS</th>
-                  <SortableTh label="CLIENTE" sKey="clientName" />
-                  <SortableTh label="NF" sKey="invoiceNumber" />
-                  <SortableTh label="ABERTURA" sKey="operationDate" />
-                  <SortableTh label="VENC." sKey="dueDate" />
-                  <SortableTh label="DIAS" sKey="days" />
-                  <SortableTh label="TX MÊS" sKey="monthlyRate" />
-                  <SortableTh label="TX EFET." sKey="effectivePct" />
-                  <SortableTh label="BRUTO (R$)" sKey="value" />
-                  <SortableTh label="LÍQUIDO (R$)" sKey="presentValue" />
-                  <SortableTh label="CUSTO (R$)" sKey="cost" />
-                  <SortableTh label="AUTOR" sKey="createdBy" />
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan={13} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
-                      CARREGANDO...
-                    </td>
-                  </tr>
-                ) : filteredRows.length === 0 ? (
-                  <tr>
-                    <td colSpan={13} className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
-                      NENHUMA ABERTURA NO PERÍODO
-                    </td>
-                  </tr>
-                ) : (
-                  sortedRows.map((r) => {
-                    const canManage = isAdmin || (r.isAuthor && r.withinEditWindow);
-                    return (
-                      <tr
-                        key={r.key}
-                        className={
-                          "group/row border-t border-border/40 font-mono tabular-nums text-center transition-colors " +
-                          rowClass(r)
-                        }
-                      >
-                        <td className="px-1.5 py-2 text-muted-foreground">{r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"}</td>
-                        <td className="relative px-2 py-2">
-                          <div className="inline-flex items-center justify-center">
-                            <button
-                              type="button"
-                              onClick={() => toggleSettlement(r)}
-                              onMouseEnter={() => !r.settled && setHoverKey(r.key)}
-                              onMouseLeave={() => setHoverKey((k) => (k === r.key ? null : k))}
-                              onFocus={() => !r.settled && setHoverKey(r.key)}
-                              onBlur={() => setHoverKey((k) => (k === r.key ? null : k))}
-                              title={
-                                r.settled
-                                  ? "Clique para desfazer a liquidação"
-                                  : "Clique para marcar como LIQUIDADA"
-                              }
-                              className={
-                                "group relative inline-block rounded-full px-2 py-0.5 text-[9px] tracking-widest transition-all cursor-pointer " +
-                                (r.settled
-                                  ? "bg-factoring-amber/20 text-factoring-amber hover:bg-factoring-amber/30"
-                                  : r.overdue
-                                  ? "bg-cost-red/20 text-cost-red hover:bg-factoring-amber/30 hover:text-factoring-amber"
-                                  : "bg-net-green/15 text-net-green hover:bg-factoring-amber/30 hover:text-factoring-amber")
-                              }
-                            >
-                              <span className="group-hover:hidden">
-                                {r.settled
-                                  ? "LIQUIDADA"
-                                  : r.overdue
-                                  ? "VENCIDA"
-                                  : isDueSoon(r)
-                                  ? weekdayShortPt(r.dueDate)
-                                  : "ANDAMENTO"}
-                              </span>
-                              <span className="hidden group-hover:inline">
-                                {r.settled ? "DESFAZER" : "LIQUIDAR"}
-                              </span>
-                            </button>
-                            {canManage && (
-                              <div className="absolute left-[calc(100%-0.25rem)] top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 pointer-events-none group-hover/row:opacity-100 group-hover/row:pointer-events-auto transition-all bg-background/95 backdrop-blur-sm border border-border/50 rounded-md p-0.5 shadow-sm z-10">
-                                <button
-                                  onClick={() => openEdit(r.invoiceId)}
-                                  className="rounded p-1 text-muted-foreground transition-colors hover:bg-primary/15 hover:text-primary"
-                                  title="Editar abertura"
-                                  aria-label="Editar"
-                                >
-                                  <Pencil className="h-3 w-3" />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteOperation(r.invoiceId)}
-                                  className="rounded p-1 text-muted-foreground transition-colors hover:bg-cost-red/15 hover:text-cost-red"
-                                  title="Remover abertura"
-                                  aria-label="Remover"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-2 py-2 max-w-[160px] truncate" title={r.clientName}>
-                          {r.clientName}
-                        </td>
-                        <td className="px-1.5 py-2">{r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}</td>
-                        <td className="px-1.5 py-2">{fmtDateShort(r.operationDate)}</td>
-                        <td className="px-1.5 py-2">{fmtDateShort(r.dueDate)}</td>
-                        <td className="px-1.5 py-2">{r.days}</td>
-                        <td className="px-1.5 py-2">{formatPct(r.monthlyRate)}</td>
-                        <td className="px-1.5 py-2">{formatPct(r.effectivePct)}</td>
-                        <td className="px-1.5 py-2">{formatBRLNum(r.value)}</td>
-                        <td className="px-1.5 py-2 text-net-green">{formatBRLNum(r.presentValue)}</td>
-                        <td className="px-1.5 py-2 text-cost-red">{formatBRLNum(r.cost)}</td>
-                        <td className="px-2 py-2 max-w-[120px] truncate" title={r.createdBy}>
-                          {r.createdBy}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-
-                {!loading && filteredRows.length > 0 && (
-                  <tr className="border-t-2 border-primary-glow/40 bg-primary-glow/[0.07] font-mono tabular-nums text-center font-semibold">
-                    <td className="px-2 py-2">—</td>
-                    <td className="px-2 py-2">—</td>
-                    <td className="px-2 py-2 tracking-widest text-primary-glow">TOTAL</td>
-                    <td className="px-2 py-2">—</td>
-                    <td className="px-2 py-2">—</td>
-                    <td className="px-2 py-2">—</td>
-                    <td className="px-2 py-2">—</td>
-                    <td className="px-2 py-2">—</td>
-                    <td className="px-1.5 py-2 text-center font-medium text-factoring-amber text-muted-foreground">{formatPct(totalEffective)}</td>
-                    <td className="px-1.5 py-2">{formatBRLNum(totals.value)}</td>
-                    <td className="px-1.5 py-2 text-net-green">{formatBRLNum(totals.presentValue)}</td>
-                    <td className="px-1.5 py-2 text-cost-red">{formatBRLNum(totals.cost)}</td>
-                    <td className="px-2 py-2">—</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              {/* Overall Total Summary Bar */}
+              <div className="flex flex-wrap justify-between items-center bg-primary-glow/[0.05] border border-border/50 rounded-xl p-4 font-mono text-xs md:text-sm">
+                <span className="font-bold tracking-wider text-primary-glow uppercase">TOTAL GERAL DO PERÍODO</span>
+                <div className="flex flex-wrap gap-x-6 gap-y-2">
+                  <span>Bruto: <strong className="text-foreground">{formatBRL(totals.value)}</strong></span>
+                  <span>Líquido: <strong className="text-net-green">{formatBRL(totals.presentValue)}</strong></span>
+                  <span>Custo: <strong className="text-cost-red">{formatBRL(totals.cost)}</strong></span>
+                  <span className="hidden sm:inline">Taxa Média Efetiva: <strong className="text-factoring-amber">{formatPct(totalEffective)}</strong></span>
+                </div>
+              </div>
+            </div>
+          )}
 
           <p className="mt-4 font-mono text-[10px] tracking-[0.25em] text-muted-foreground text-justify">
             * EDIÇÕES E EXCLUSÕES DE OPERAÇÕES PERMITIDAS DENTRO DE UM MINUTO APÓS O CADASTRO.

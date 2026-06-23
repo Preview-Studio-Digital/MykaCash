@@ -16,7 +16,9 @@ import {
   Search,
   Download,
   Pencil,
-  Trash2
+  Trash2,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 import {
   AlertDialog,
@@ -89,6 +91,21 @@ const localISO = (d: Date) => {
 };
 
 const todayISO = () => localISO(new Date());
+
+const MONTHS_PT = [
+  "JANEIRO",
+  "FEVEREIRO",
+  "MARÇO",
+  "ABRIL",
+  "MAIO",
+  "JUNHO",
+  "JULHO",
+  "AGOSTO",
+  "SETEMBRO",
+  "OUTUBRO",
+  "NOVEMBRO",
+  "DEZEMBRO"
+];
 
 export const AccountCashFlow = () => {
   const [transactions, setTransactions] = useState<UnifiedTransaction[]>([]);
@@ -307,6 +324,51 @@ export const AccountCashFlow = () => {
 
     return unifiedData.filter(t => t.date >= start && t.date <= end);
   }, [unifiedData, period, fromDate, toDate]);
+
+  const [collapsedMonths, setCollapsedMonths] = useState<Record<string, boolean>>({});
+
+  const currentMonthKey = useMemo(() => localISO(new Date()).substring(0, 7), []);
+
+  const isMonthOpen = (monthKey: string) => {
+    if (collapsedMonths[monthKey] !== undefined) {
+      return !collapsedMonths[monthKey];
+    }
+    return monthKey === currentMonthKey;
+  };
+
+  const toggleMonth = (monthKey: string) => {
+    setCollapsedMonths(prev => ({
+      ...prev,
+      [monthKey]: isMonthOpen(monthKey)
+    }));
+  };
+
+  const groupedByMonth = useMemo(() => {
+    const groups: { [key: string]: UnifiedTransaction[] } = {};
+    for (const t of filteredData) {
+      const key = t.date.substring(0, 7); // "YYYY-MM"
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(t);
+    }
+    return Object.keys(groups)
+      .sort((a, b) => b.localeCompare(a))
+      .map(key => {
+        const [year, month] = key.split("-");
+        const monthName = MONTHS_PT[parseInt(month, 10) - 1] || month;
+        return {
+          key,
+          label: `${monthName} / ${year}`,
+          transactions: groups[key]
+        };
+      });
+  }, [filteredData]);
+
+  const monthBalance = (monthTransactions: UnifiedTransaction[]) => {
+    return monthTransactions.reduce((acc, t) => {
+      const isDeposit = t.type === "deposit" || t.type === "installment_in";
+      return acc + (isDeposit ? t.amount : -t.amount);
+    }, 0);
+  };
 
   const stats = useMemo(() => {
 
@@ -1011,7 +1073,6 @@ export const AccountCashFlow = () => {
 
 
         {chartData.length > 0 && (() => {
-          const MONTHS_PT = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
           const monthSegs: { key: string; label: string; count: number }[] = [];
           for (const p of chartData) {
             const [y, m] = p.rawDate.split("-");
@@ -1188,193 +1249,242 @@ export const AccountCashFlow = () => {
           </div>
         </div>
 
-        {/* Mobile: condensed card list */}
-        <div className="md:hidden divide-y divide-border/20">
-          {filteredData.map((t) => {
-            const isIn = t.type === 'deposit' || t.type === 'installment_in';
-            const bg =
-              t.type === 'deposit' ? 'bg-[#bef264]/5' :
-              t.type === 'withdrawal' ? 'bg-[#f472b6]/5' :
-              t.type === 'installment_in' ? 'bg-net-green/5' :
-              'bg-cost-red/5';
-            const amountColor = isIn ? 'text-net-green' : 'text-cost-red';
-            const balanceColor = (t.balanceAfter || 0) >= 0 ? 'text-primary' : 'text-cost-red';
-            const dateStr = new Date(t.date + "T00:00:00").toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-            return (
-              <div key={t.id} className={cn("px-3 py-2.5", bg)}>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    {isIn
-                      ? <ArrowUpCircle className={`h-4 w-4 shrink-0 ${amountColor}`} />
-                      : <ArrowDownCircle className={`h-4 w-4 shrink-0 ${amountColor}`} />}
-                    <span className="font-mono text-[10px] text-muted-foreground shrink-0">{dateStr}</span>
-                    <span className="text-[11px] font-medium truncate">{t.description}</span>
-                  </div>
-                  {(t.type === 'deposit' || t.type === 'withdrawal') && (
-                    <div className="flex items-center shrink-0 -mr-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 text-muted-foreground"
-                        onClick={() => openEdit(t)}
-                      >
-                        <Pencil className="h-3 w-3" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-cost-red">
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Excluir movimentação?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Esta ação não pode ser desfeita. O lançamento "{t.description}" no valor de {formatBRL(t.amount)} será removido permanentemente.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction className="bg-cost-red hover:bg-cost-red/90" onClick={() => handleDeleteTransaction(t.id)}>
-                              Excluir
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+        {/* Divided by Month */}
+        {groupedByMonth.length === 0 ? (
+          <div className="h-32 flex items-center justify-center text-muted-foreground font-mono text-xs">
+            Nenhuma movimentação encontrada para o período selecionado.
+          </div>
+        ) : (
+          <div className="divide-y divide-border/20">
+            {groupedByMonth.map((month) => {
+              const isOpen = isMonthOpen(month.key);
+              const balance = monthBalance(month.transactions);
+              
+              return (
+                <div key={month.key} className="flex flex-col">
+                  {/* Month Header Section */}
+                  <button
+                    onClick={() => toggleMonth(month.key)}
+                    className={cn(
+                      "w-full flex items-center justify-between p-4 bg-muted/5 hover:bg-muted/10 transition-all text-left select-none group",
+                      isOpen && "border-b border-border/10"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-muted-foreground transition-transform duration-200 group-hover:text-foreground">
+                        {isOpen ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                      </span>
+                      <span className="font-mono text-xs md:text-sm font-bold tracking-wider uppercase text-foreground">
+                        {month.label}
+                      </span>
+                      <span className="text-[9px] md:text-[10px] text-muted-foreground font-mono bg-muted/30 border border-border/20 px-2 py-0.5 rounded-full shrink-0">
+                        {month.transactions.length} {month.transactions.length === 1 ? "lançamento" : "lançamentos"}
+                      </span>
+                    </div>
+                    
+                    <div className="font-mono text-[10px] md:text-xs flex gap-4 items-center">
+                      <span className="text-muted-foreground">
+                        Saldo do mês:{" "}
+                        <span className={cn(
+                          "font-bold",
+                          balance >= 0 ? "text-net-green" : "text-cost-red"
+                        )}>
+                          {balance >= 0 ? "+" : ""}{formatBRL(balance)}
+                        </span>
+                      </span>
+                    </div>
+                  </button>
+
+                  {/* Month Transactions List */}
+                  {isOpen && (
+                    <div className="animate-fade-in">
+                      {/* Mobile: condensed card list */}
+                      <div className="md:hidden divide-y divide-border/20">
+                        {month.transactions.map((t) => {
+                          const isIn = t.type === 'deposit' || t.type === 'installment_in';
+                          const bg =
+                            t.type === 'deposit' ? 'bg-[#bef264]/5' :
+                            t.type === 'withdrawal' ? 'bg-[#f472b6]/5' :
+                            t.type === 'installment_in' ? 'bg-net-green/5' :
+                            'bg-cost-red/5';
+                          const amountColor = isIn ? 'text-net-green' : 'text-cost-red';
+                          const balanceColor = (t.balanceAfter || 0) >= 0 ? 'text-primary' : 'text-cost-red';
+                          const dateStr = new Date(t.date + "T00:00:00").toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                          return (
+                            <div key={t.id} className={cn("px-3 py-2.5", bg)}>
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                  {isIn
+                                    ? <ArrowUpCircle className={`h-4 w-4 shrink-0 ${amountColor}`} />
+                                    : <ArrowDownCircle className={`h-4 w-4 shrink-0 ${amountColor}`} />}
+                                  <span className="font-mono text-[10px] text-muted-foreground shrink-0">{dateStr}</span>
+                                  <span className="text-[11px] font-medium truncate">{t.description}</span>
+                                </div>
+                                {(t.type === 'deposit' || t.type === 'withdrawal') && (
+                                  <div className="flex items-center shrink-0 -mr-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 text-muted-foreground"
+                                      onClick={() => openEdit(t)}
+                                    >
+                                      <Pencil className="h-3 w-3" />
+                                    </Button>
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-cost-red">
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Excluir movimentação?</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Esta ação não pode ser desfeita. O lançamento "{t.description}" no valor de {formatBRL(t.amount)} será removido permanentemente.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                          <AlertDialogAction className="bg-cost-red hover:bg-cost-red/90" onClick={() => handleDeleteTransaction(t.id)}>
+                                            Excluir
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="mt-1 flex items-center justify-between gap-2 pl-6">
+                                <span className={`font-mono text-xs font-bold ${amountColor}`}>
+                                  {isIn ? '+' : '-'} {formatBRL(t.amount)}
+                                </span>
+                                <span className={`font-mono text-[11px] ${balanceColor}`}>
+                                  Saldo {formatBRL(t.balanceAfter || 0)}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Desktop: Table */}
+                      <div className="hidden md:block overflow-x-auto">
+                        <Table>
+                          <TableHeader className="bg-muted/30">
+                            <TableRow className="hover:bg-transparent border-border/40">
+                              <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Data</TableHead>
+                              <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Descrição</TableHead>
+                              <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Tipo</TableHead>
+                              <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Valor</TableHead>
+                              <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Saldo</TableHead>
+                              <TableHead className="text-center w-[50px]"></TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {month.transactions.map((t) => (
+                              <TableRow 
+                                key={t.id} 
+                                className={cn(
+                                  "border-border/20 transition-colors group",
+                                  t.type === 'deposit' ? 'bg-[#bef264]/5 hover:bg-[#bef264]/10' :
+                                  t.type === 'withdrawal' ? 'bg-[#f472b6]/5 hover:bg-[#f472b6]/10' :
+                                  t.type === 'installment_in' ? 'bg-net-green/5 hover:bg-net-green/10' :
+                                  'bg-cost-red/5 hover:bg-cost-red/10'
+                                )}
+                              >
+                                <TableCell className="text-center font-mono text-xs">
+                                  {new Date(t.date + "T00:00:00").toLocaleDateString('pt-BR')}
+                                </TableCell>
+                                <TableCell className="text-center text-sm font-medium">
+                                  {t.description}
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-tight uppercase ${
+                                    t.type === 'deposit' ? 'bg-[#bef264]/10 text-[#bef264] border border-[#bef264]/20' :
+                                    t.type === 'withdrawal' ? 'bg-[#f472b6]/10 text-[#f472b6] border border-[#f472b6]/20' :
+                                    t.type === 'installment_in' ? 'bg-net-green/10 text-net-green border border-net-green/20' :
+                                    'bg-cost-red/10 text-cost-red border border-cost-red/20'
+                                  }`}>
+                                    {t.type === 'deposit' && <><ArrowUpCircle className="h-3 w-3" /> Depósito</>}
+                                    {t.type === 'withdrawal' && <><ArrowDownCircle className="h-3 w-3" /> Saque</>}
+                                    {t.type === 'installment_in' && <><ArrowUpCircle className="h-3 w-3" /> Entrada</>}
+                                    {t.type === 'operation_out' && <><ArrowDownCircle className="h-3 w-3" /> Saída</>}
+                                  </span>
+                                </TableCell>
+                                <TableCell className={`text-center font-mono font-bold ${
+                                  (t.type === 'deposit' || t.type === 'installment_in') ? 'text-net-green' : 'text-cost-red'
+                                }`}>
+                                  {(t.type === 'deposit' || t.type === 'installment_in') ? '+' : '-'} {formatBRL(t.amount)}
+                                </TableCell>
+                                <TableCell className={`text-center font-mono font-bold ${
+                                  (t.balanceAfter || 0) >= 0 ? 'text-primary' : 'text-cost-red'
+                                }`}>
+                                  {formatBRL(t.balanceAfter || 0)}
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  {(t.type === 'deposit' || t.type === 'withdrawal') && (
+                                    <div className="flex items-center justify-center gap-1">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className={`h-8 w-8 transition-colors ${
+                                          t.type === 'deposit' 
+                                            ? 'text-blue-400 hover:text-blue-300' 
+                                            : 'text-muted-foreground hover:text-primary'
+                                        }`}
+                                        onClick={() => openEdit(t)}
+                                        title="Editar lançamento manual"
+                                      >
+                                        <Pencil className="h-3.5 w-3.5" />
+                                      </Button>
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-muted-foreground hover:text-cost-red transition-colors"
+                                            title="Excluir lançamento manual"
+                                          >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                          </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle>Excluir movimentação?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                              Esta ação não pode ser desfeita. O lançamento "{t.description}" no valor de {formatBRL(t.amount)} será removido permanentemente.
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                            <AlertDialogAction
+                                              className="bg-cost-red hover:bg-cost-red/90"
+                                              onClick={() => handleDeleteTransaction(t.id)}
+                                            >
+                                              Excluir
+                                            </AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+                                    </div>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
                     </div>
                   )}
                 </div>
-                <div className="mt-1 flex items-center justify-between gap-2 pl-6">
-                  <span className={`font-mono text-xs font-bold ${amountColor}`}>
-                    {isIn ? '+' : '-'} {formatBRL(t.amount)}
-                  </span>
-                  <span className={`font-mono text-[11px] ${balanceColor}`}>
-                    Saldo {formatBRL(t.balanceAfter || 0)}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-          {filteredData.length === 0 && (
-            <div className="h-32 flex items-center justify-center text-muted-foreground font-mono text-xs">
-              Nenhuma movimentação encontrada para o período selecionado.
-            </div>
-          )}
-        </div>
-
-        <div className="hidden md:block overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-muted/30">
-              <TableRow className="hover:bg-transparent border-border/40">
-                <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Data</TableHead>
-                <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Descrição</TableHead>
-                <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Tipo</TableHead>
-                <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Valor</TableHead>
-                <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Saldo</TableHead>
-                <TableHead className="text-center w-[50px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredData.map((t) => (
-                <TableRow 
-                  key={t.id} 
-                  className={cn(
-                    "border-border/20 transition-colors group",
-                    t.type === 'deposit' ? 'bg-[#bef264]/5 hover:bg-[#bef264]/10' :
-                    t.type === 'withdrawal' ? 'bg-[#f472b6]/5 hover:bg-[#f472b6]/10' :
-                    t.type === 'installment_in' ? 'bg-net-green/5 hover:bg-net-green/10' :
-                    'bg-cost-red/5 hover:bg-cost-red/10'
-                  )}
-                >
-                  <TableCell className="text-center font-mono text-xs">
-                    {new Date(t.date + "T00:00:00").toLocaleDateString('pt-BR')}
-                  </TableCell>
-                  <TableCell className="text-center text-sm font-medium">
-                    {t.description}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-tight uppercase ${
-                      t.type === 'deposit' ? 'bg-[#bef264]/10 text-[#bef264] border border-[#bef264]/20' :
-                      t.type === 'withdrawal' ? 'bg-[#f472b6]/10 text-[#f472b6] border border-[#f472b6]/20' :
-                      t.type === 'installment_in' ? 'bg-net-green/10 text-net-green border border-net-green/20' :
-                      'bg-cost-red/10 text-cost-red border border-cost-red/20'
-                    }`}>
-                      {t.type === 'deposit' && <><ArrowUpCircle className="h-3 w-3" /> Depósito</>}
-                      {t.type === 'withdrawal' && <><ArrowDownCircle className="h-3 w-3" /> Saque</>}
-                      {t.type === 'installment_in' && <><ArrowUpCircle className="h-3 w-3" /> Entrada</>}
-                      {t.type === 'operation_out' && <><ArrowDownCircle className="h-3 w-3" /> Saída</>}
-                    </span>
-                  </TableCell>
-                  <TableCell className={`text-center font-mono font-bold ${
-                    (t.type === 'deposit' || t.type === 'installment_in') ? 'text-net-green' : 'text-cost-red'
-                  }`}>
-                    {(t.type === 'deposit' || t.type === 'installment_in') ? '+' : '-'} {formatBRL(t.amount)}
-                  </TableCell>
-                  <TableCell className={`text-center font-mono font-bold ${
-                    (t.balanceAfter || 0) >= 0 ? 'text-primary' : 'text-cost-red'
-                  }`}>
-                    {formatBRL(t.balanceAfter || 0)}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {(t.type === 'deposit' || t.type === 'withdrawal') && (
-                      <div className="flex items-center justify-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={`h-8 w-8 transition-colors ${
-                            t.type === 'deposit' 
-                              ? 'text-blue-400 hover:text-blue-300' 
-                              : 'text-muted-foreground hover:text-primary'
-                          }`}
-                          onClick={() => openEdit(t)}
-                          title="Editar lançamento manual"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-cost-red transition-colors"
-                              title="Excluir lançamento manual"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Excluir movimentação?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Esta ação não pode ser desfeita. O lançamento "{t.description}" no valor de {formatBRL(t.amount)} será removido permanentemente.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction
-                                className="bg-cost-red hover:bg-cost-red/90"
-                                onClick={() => handleDeleteTransaction(t.id)}
-                              >
-                                Excluir
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filteredData.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={4} className="h-32 text-center text-muted-foreground font-mono text-xs">
-                    Nenhuma movimentação encontrada para o período selecionado.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              );
+            })}
+          </div>
+        )}
 
       </section>
     </div>
