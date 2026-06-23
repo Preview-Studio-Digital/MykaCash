@@ -1186,7 +1186,81 @@ export const AccountCashFlow = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Mobile: condensed card list */}
+        <div className="md:hidden divide-y divide-border/20">
+          {filteredData.map((t) => {
+            const isIn = t.type === 'deposit' || t.type === 'installment_in';
+            const bg =
+              t.type === 'deposit' ? 'bg-[#bef264]/5' :
+              t.type === 'withdrawal' ? 'bg-[#f472b6]/5' :
+              t.type === 'installment_in' ? 'bg-net-green/5' :
+              'bg-cost-red/5';
+            const amountColor = isIn ? 'text-net-green' : 'text-cost-red';
+            const balanceColor = (t.balanceAfter || 0) >= 0 ? 'text-primary' : 'text-cost-red';
+            const dateStr = new Date(t.date + "T00:00:00").toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            return (
+              <div key={t.id} className={cn("px-3 py-2.5", bg)}>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    {isIn
+                      ? <ArrowUpCircle className={`h-4 w-4 shrink-0 ${amountColor}`} />
+                      : <ArrowDownCircle className={`h-4 w-4 shrink-0 ${amountColor}`} />}
+                    <span className="font-mono text-[10px] text-muted-foreground shrink-0">{dateStr}</span>
+                    <span className="text-[11px] font-medium truncate">{t.description}</span>
+                  </div>
+                  {(t.type === 'deposit' || t.type === 'withdrawal') && (
+                    <div className="flex items-center shrink-0 -mr-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground"
+                        onClick={() => openEdit(t)}
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-cost-red">
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Excluir movimentação?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta ação não pode ser desfeita. O lançamento "{t.description}" no valor de {formatBRL(t.amount)} será removido permanentemente.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction className="bg-cost-red hover:bg-cost-red/90" onClick={() => handleDeleteTransaction(t.id)}>
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-1 flex items-center justify-between gap-2 pl-6">
+                  <span className={`font-mono text-xs font-bold ${amountColor}`}>
+                    {isIn ? '+' : '-'} {formatBRL(t.amount)}
+                  </span>
+                  <span className={`font-mono text-[11px] ${balanceColor}`}>
+                    Saldo {formatBRL(t.balanceAfter || 0)}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+          {filteredData.length === 0 && (
+            <div className="h-32 flex items-center justify-center text-muted-foreground font-mono text-xs">
+              Nenhuma movimentação encontrada para o período selecionado.
+            </div>
+          )}
+        </div>
+
+        <div className="hidden md:block overflow-x-auto">
           <Table>
             <TableHeader className="bg-muted/30">
               <TableRow className="hover:bg-transparent border-border/40">
@@ -1299,6 +1373,7 @@ export const AccountCashFlow = () => {
             </TableBody>
           </Table>
         </div>
+
       </section>
     </div>
   );
