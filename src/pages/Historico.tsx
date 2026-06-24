@@ -1750,7 +1750,9 @@ const Historico = () => {
             );
           })()}
         </section>
+        )}
 
+        {showAnalytics && (<>
         {/* Inteligência Financeira & Alertas — análise GLOBAL (não responde a filtros de período/status) */}
         <section
           key={`alerts-${rows.length}-${alertMetrics.scoreNumeric}`}
