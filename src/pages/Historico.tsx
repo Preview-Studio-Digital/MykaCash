@@ -1421,7 +1421,7 @@ const Historico = () => {
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <div>
                   <div className="font-mono text-xs tracking-[0.3em] opacity-80">VALOR BRUTO</div>
-                  <div className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap">
+                  <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums whitespace-nowrap">
                     {formatBRL(totals.value)}
                   </div>
                 </div>
@@ -1456,7 +1456,7 @@ const Historico = () => {
               <div className="grid grid-cols-2 gap-3 mt-3">
                 <div>
                   <div className="font-mono text-xs tracking-[0.3em] opacity-80">ECONOMIA FACTORING</div>
-                  <div className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap">
+                  <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums whitespace-nowrap">
                     {formatBRL(factoringSavings)}
                   </div>
                 </div>
@@ -1492,7 +1492,7 @@ const Historico = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <div className="font-mono text-xs tracking-[0.3em] opacity-90">VALOR LIQUIDADO</div>
-                    <div className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap">
+                    <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums whitespace-nowrap">
                       {formatBRL(settledPresent)}
                     </div>
                   </div>
