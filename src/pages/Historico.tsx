@@ -2211,7 +2211,7 @@ const Historico = () => {
         {renderFilters()}
 
         {/* Table */}
-        <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up">
+        <section className="rounded-2xl border border-border/60 bg-gradient-card p-3 sm:p-4 shadow-card animate-fade-up">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="h-2 w-2 rounded-full animate-color-cycle" />
@@ -2288,7 +2288,7 @@ const Historico = () => {
 
                     {/* Month Content */}
                     {isOpen && (
-                      <div className="animate-fade-in p-2 space-y-4">
+                      <div className="animate-fade-in p-2 md:p-0 space-y-4">
                         {/* Mobile cards */}
                         <div className="space-y-2 md:hidden">
                           {month.rows.map((r) => {
@@ -2392,7 +2392,7 @@ const Historico = () => {
                         </div>
 
                         {/* Desktop table */}
-                        <div className="hidden md:block rounded-lg border border-border/50 overflow-hidden">
+                        <div className="hidden md:block overflow-hidden">
                           <table className="w-full table-auto text-xs lg:text-sm">
                             <thead className="bg-muted/40 font-mono tracking-widest">
                               <tr className="text-muted-foreground">
