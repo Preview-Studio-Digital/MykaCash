@@ -347,11 +347,10 @@ export const RegistrationSection = ({
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="h-2 w-2 rounded-full animate-color-cycle" />
-            <h2 className="font-display text-xl font-semibold tracking-tight">
+            <h2 className="font-mono text-sm sm:text-base md:text-lg tracking-[0.2em] font-bold uppercase">
               {invoiceToEdit ? "Edição" : "Cadastro"}
               {operationNumber ? ` - ${String(operationNumber).padStart(4, "0")}` : ""}
             </h2>
-
           </div>
           <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
             {invoiceToEdit ? "EDITAR ABERTURA" : "ABERTURA"}
@@ -360,18 +359,18 @@ export const RegistrationSection = ({
 
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           <div className="space-y-2 lg:col-span-2">
-            <Label>Cliente</Label>
+            <Label className="font-mono text-xs lg:text-sm">Cliente</Label>
             <div className="flex gap-2">
               <Select value={clientId} onValueChange={setClientId}>
-                <SelectTrigger className="flex-1">
+                <SelectTrigger className="flex-1 font-mono text-xs lg:text-sm">
                   <SelectValue placeholder="Selecione um cliente" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="font-mono text-xs lg:text-sm">
                   {clients.length === 0 ? (
-                    <div className="px-3 py-2 text-xs text-muted-foreground">Nenhum cliente. Cadastre um ao lado.</div>
+                    <div className="px-3 py-2 text-xs text-muted-foreground font-mono">Nenhum cliente. Cadastre um ao lado.</div>
                   ) : (
                     clients.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
+                      <SelectItem key={c.id} value={c.id} className="font-mono text-xs lg:text-sm">
                         {c.name}
                       </SelectItem>
                     ))
@@ -387,26 +386,27 @@ export const RegistrationSection = ({
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle className="font-display">Gerenciar clientes</DialogTitle>
+                    <DialogTitle className="font-mono text-xs lg:text-sm uppercase tracking-widest">Gerenciar clientes</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-3">
                     <div className="space-y-2">
-                      <Label>Razão social</Label>
+                      <Label className="font-mono text-xs lg:text-sm">Razão social</Label>
                       <Input
                         value={newClientName}
                         onChange={(e) => setNewClientName(e.target.value.toUpperCase())}
                         style={{ textTransform: "uppercase" }}
+                        className="font-mono text-xs lg:text-sm"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>CNPJ</Label>
+                      <Label className="font-mono text-xs lg:text-sm">CNPJ</Label>
                       <Input
                         value={newClientDoc}
                         onChange={(e) => setNewClientDoc(formatCNPJ(e.target.value))}
                         placeholder="XX.XXX.XXX/XXXX-XX"
                         inputMode="numeric"
                         maxLength={18}
-                        className="font-mono"
+                        className="font-mono text-xs lg:text-sm"
                         required
                       />
                     </div>
@@ -418,11 +418,11 @@ export const RegistrationSection = ({
                         </Label>
                         <div className="max-h-48 overflow-y-auto rounded-md border border-border/50 divide-y divide-border/40">
                           {clients.map((c) => (
-                            <div key={c.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+                            <div key={c.id} className="flex items-center justify-between gap-2 px-3 py-2 text-xs lg:text-sm font-mono">
                               <div className="min-w-0 flex-1">
                                 <div className="truncate font-medium">{c.name}</div>
                                 {c.document && (
-                                  <div className="truncate text-xs text-muted-foreground font-mono">{c.document}</div>
+                                  <div className="truncate text-xs text-muted-foreground">{c.document}</div>
                                 )}
                               </div>
                               <Button
@@ -453,12 +453,12 @@ export const RegistrationSection = ({
           </div>
 
           <div className="space-y-2">
-            <Label>Número da Nota Fiscal</Label>
-            <Input value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder="Ex.: 000123" />
+            <Label className="font-mono text-xs lg:text-sm">Número da Nota Fiscal</Label>
+            <Input value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder="Ex.: 000123" className="font-mono text-xs lg:text-sm" />
           </div>
 
           <div className="space-y-2">
-            <Label>Valor da Nota Fiscal</Label>
+            <Label className="font-mono text-xs lg:text-sm">Valor da Nota Fiscal</Label>
             <div className="relative">
               <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">
                 R$
@@ -475,18 +475,18 @@ export const RegistrationSection = ({
                   setInvoiceValue(n);
                 }}
                 placeholder="0,00"
-                className="pl-10 font-mono"
+                className="pl-10 font-mono text-xs lg:text-sm"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Data da Abertura</Label>
+            <Label className="font-mono text-xs lg:text-sm">Data da Abertura</Label>
             <DateField value={operationDate} onChange={setOperationDate} max={todayISO()} />
           </div>
 
           <div className="space-y-2">
-            <Label>Taxa mensal (%)</Label>
+            <Label className="font-mono text-xs lg:text-sm">Taxa mensal (%)</Label>
             <Input
               inputMode="numeric"
               value={(monthlyRate || 0).toLocaleString("pt-BR", {
@@ -499,7 +499,7 @@ export const RegistrationSection = ({
                 setMonthlyRate(n);
               }}
               placeholder="0,00"
-              className="font-mono"
+              className="font-mono text-xs lg:text-sm"
             />
           </div>
         </div>
@@ -509,7 +509,7 @@ export const RegistrationSection = ({
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="h-2 w-2 rounded-full animate-color-cycle" />
-              <Label className="text-xl font-display font-semibold tracking-tight">Pagamento</Label>
+              <Label className="font-mono text-sm sm:text-base md:text-lg tracking-[0.2em] font-bold uppercase cursor-pointer">Pagamento</Label>
             </div>
             <span className="font-mono text-[11px] tracking-widest text-muted-foreground invisible">
               RESTANTE: <span className="text-primary-glow">{formatBRL(remaining)}</span>
@@ -523,7 +523,7 @@ export const RegistrationSection = ({
                 className="grid grid-cols-[1fr_1fr_2.5rem] items-end gap-3 rounded-lg border border-border/50 bg-background/40 p-3"
               >
                 <div className="space-y-1">
-                  <span className="block font-mono text-[9px] tracking-[0.25em] text-muted-foreground">
+                  <span className="block font-mono text-[10px] lg:text-xs tracking-[0.25em] text-muted-foreground">
                     {installments.length === 1 ? "PARCELA ÚNICA" : `PARCELA ${idx + 1}`}
                   </span>
                   <div className="relative">
@@ -542,18 +542,18 @@ export const RegistrationSection = ({
                         updateInstallmentValue(inst.id, n);
                       }}
                       placeholder="0,00"
-                      className="pl-10 font-mono"
+                      className="pl-10 font-mono text-xs lg:text-sm"
                     />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <span className="block font-mono text-[9px] tracking-[0.25em] text-muted-foreground">
+                  <span className="block font-mono text-[10px] lg:text-xs tracking-[0.25em] text-muted-foreground">
                     DATA DE VENCIMENTO
                   </span>
                   <DateField value={inst.dueDate} onChange={(iso) => updateInstallmentDate(inst.id, iso)} />
                 </div>
                 <div className="space-y-1">
-                  <span className="block font-mono text-[9px] tracking-[0.25em] text-muted-foreground opacity-0">
+                  <span className="block font-mono text-[10px] lg:text-xs tracking-[0.25em] text-muted-foreground opacity-0">
                     .
                   </span>
                   <Button

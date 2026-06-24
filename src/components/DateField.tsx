@@ -69,7 +69,7 @@ export const DateField = ({ value, onChange, className, max, id }: Props) => {
         placeholder="DD/MM/AAAA"
         value={displayValue}
         onChange={handleInputChange}
-        className="pr-10 font-mono"
+        className="pr-10 font-mono text-xs lg:text-sm"
         maxLength={10}
       />
       <Popover open={isOpen} onOpenChange={setIsOpen}>

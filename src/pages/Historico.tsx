@@ -769,9 +769,24 @@ const Historico = () => {
       return scoreNumeric;
     };
 
+    const getScoreLetter = (scoreNumeric: number) => {
+      if (scoreNumeric < 25) {
+        return scoreNumeric >= 17 ? "D+" : scoreNumeric >= 8 ? "D" : "D-";
+      }
+      if (scoreNumeric < 50) {
+        return scoreNumeric >= 42 ? "C+" : scoreNumeric >= 33 ? "C" : "C-";
+      }
+      if (scoreNumeric < 75) {
+        return scoreNumeric >= 67 ? "B+" : scoreNumeric >= 58 ? "B" : "B-";
+      }
+      return scoreNumeric >= 90 ? "A+" : scoreNumeric >= 82 ? "A" : "A-";
+    };
+
     for (const s of series) {
       const d = s.date === "agora" ? todayStr : s.date;
-      (s as any).score = getScoreAtDate(d);
+      const scoreVal = getScoreAtDate(d);
+      (s as any).score = scoreVal;
+      (s as any).scoreLetter = getScoreLetter(scoreVal);
     }
     
     return series;
@@ -1233,34 +1248,42 @@ const Historico = () => {
     let healthScore = "A+";
     let scoreColor = "text-net-green";
     let barColor = "bg-net-green";
+    let cardBg = "bg-net-green/[0.04]";
+    let cardBorder = "border-net-green/20";
 
     if (scoreNumeric < 25) {
       riskLevel = "CRÍTICO";
       riskColor = "text-cost-red";
       riskBg = "bg-cost-red/10 border-cost-red/20";
       riskBorder = "border-cost-red/30";
-      healthScore = "F";
+      healthScore = scoreNumeric >= 17 ? "D+" : scoreNumeric >= 8 ? "D" : "D-";
       scoreColor = "text-cost-red animate-pulse-glow";
       barColor = "bg-cost-red";
+      cardBg = "bg-cost-red/[0.04]";
+      cardBorder = "border-cost-red/20";
     } else if (scoreNumeric < 50) {
       riskLevel = "ALTO";
       riskColor = "text-factoring-amber";
       riskBg = "bg-factoring-amber/10 border-factoring-amber/20";
       riskBorder = "border-factoring-amber/30";
-      healthScore = "D";
+      healthScore = scoreNumeric >= 42 ? "C+" : scoreNumeric >= 33 ? "C" : "C-";
       scoreColor = "text-factoring-amber";
       barColor = "bg-factoring-amber";
+      cardBg = "bg-factoring-amber/[0.04]";
+      cardBorder = "border-factoring-amber/20";
     } else if (scoreNumeric < 75) {
       riskLevel = "MODERADO";
       riskColor = "text-yellow-500";
       riskBg = "bg-yellow-500/10 border-yellow-500/20";
       riskBorder = "border-yellow-500/30";
-      healthScore = scoreNumeric < 65 ? "C" : "B";
+      healthScore = scoreNumeric >= 67 ? "B+" : scoreNumeric >= 58 ? "B" : "B-";
       scoreColor = "text-yellow-500";
       barColor = "bg-yellow-500";
+      cardBg = "bg-yellow-500/[0.04]";
+      cardBorder = "border-yellow-500/20";
     } else {
       riskLevel = "BAIXO";
-      healthScore = scoreNumeric >= 90 ? "A+" : "A";
+      healthScore = scoreNumeric >= 90 ? "A+" : scoreNumeric >= 82 ? "A" : "A-";
     }
 
     return {
@@ -1268,7 +1291,7 @@ const Historico = () => {
       liquidationRate, rolloverRate, monthlyAnticipationVolume,
       cashCommitmentPct, daysToClear, projectedInterest30d,
       projectedInterest1y, annualSavingsProjected,
-      riskLevel, riskColor, riskBg, riskBorder, healthScore, scoreColor, scoreNumeric, barColor,
+      riskLevel, riskColor, riskBg, riskBorder, healthScore, scoreColor, scoreNumeric, barColor, cardBg, cardBorder,
     };
   }, [globalStats]);
 
@@ -1523,7 +1546,10 @@ const Historico = () => {
                       Evolução do Score Financeiro
                     </h2>
                   </div>
-                  <span className="font-mono text-xs lg:text-sm tracking-[0.3em] text-muted-foreground">
+                  <span 
+                    className="font-mono text-xs lg:text-sm tracking-[0.3em] text-muted-foreground"
+                    style={{ marginRight: 60 }}
+                  >
                     PERÍODO: {periodDays} {periodDays === 1 ? "DIA" : "DIAS"}
                   </span>
                 </div>
@@ -1566,7 +1592,7 @@ const Historico = () => {
 
                       return (
                         <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                          <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
                             <defs>
                               <linearGradient id={`areaGradScore-${gradId}`} x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="0%" stopColor="hsl(var(--net-green))" stopOpacity={0.4} />
@@ -1594,6 +1620,7 @@ const Historico = () => {
                               <ReferenceLine
                                 key={dateKey}
                                 x={dateKey}
+                                yAxisId="left"
                                 stroke="hsl(var(--muted-foreground))"
                                 strokeDasharray="4 4"
                                 strokeWidth={2}
@@ -1603,10 +1630,8 @@ const Historico = () => {
                             <XAxis
                               dataKey="date"
                               interval={0}
-                              tickFormatter={(val, index) => {
-                                const total = chartData.length;
-                                const nth = total > 40 ? 10 : total > 20 ? 5 : total > 10 ? 2 : 1;
-                                if (index !== 0 && index !== total - 1 && index % nth !== 0) return "";
+                              tickFormatter={(val) => {
+                                if (val === "agora") return "agora";
                                 const parts = val.split("-");
                                 if (parts.length === 3) return parts[2];
                                 return val;
@@ -1615,6 +1640,20 @@ const Historico = () => {
                               stroke="hsl(var(--border))"
                             />
                             <YAxis
+                              yAxisId="left"
+                              width={60}
+                              domain={[0, 100]}
+                              axisLine={false}
+                              tickLine={false}
+                              tickMargin={4}
+                              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                              stroke="hsl(var(--border))"
+                              tickFormatter={(v) => `${v}`}
+                            />
+                            <YAxis
+                              yAxisId="right"
+                              orientation="right"
+                              width={60}
                               domain={[0, 100]}
                               axisLine={false}
                               tickLine={false}
@@ -1642,9 +1681,19 @@ const Historico = () => {
                                       <div style={{ color: "hsl(var(--foreground))", marginBottom: 4, fontWeight: 500 }}>
                                         {data.label} {data.date !== "agora" ? `- ${weekdayShortPt(data.date.slice(0, 10))}` : ""}
                                       </div>
-                                      <div style={{ color: "hsl(var(--primary))", fontWeight: 600 }}>
-                                        Score: {data.score}
-                                      </div>
+                                      {(() => {
+                                        const getScoreColorHex = (score: number) => {
+                                          if (score < 25) return "hsl(var(--cost-red))";
+                                          if (score < 50) return "hsl(var(--factoring-amber))";
+                                          if (score < 75) return "#eab308";
+                                          return "hsl(var(--net-green))";
+                                        };
+                                        return (
+                                          <div style={{ color: getScoreColorHex(data.score), fontWeight: 600 }}>
+                                            Score: {data.score} ({data.scoreLetter})
+                                          </div>
+                                        );
+                                      })()}
                                     </div>
                                   );
                                 }
@@ -1652,6 +1701,7 @@ const Historico = () => {
                               }}
                             />
                             <Area
+                              yAxisId="left"
                               type="monotone"
                               dataKey="score"
                               name="Score"
@@ -1688,7 +1738,7 @@ const Historico = () => {
                   const total = chartData.length;
                   return (
                     <>
-                      <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: 30, marginRight: 20 }}>
+                      <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: 60, marginRight: 60 }}>
                         {monthSegs.map((s, i) => (
                           <div
                             key={i}
@@ -1699,7 +1749,7 @@ const Historico = () => {
                           </div>
                         ))}
                       </div>
-                      <div className="mt-1 flex" style={{ marginLeft: 30, marginRight: 20 }}>
+                      <div className="mt-1 flex" style={{ marginLeft: 60, marginRight: 60 }}>
                         {segs.map((s, i) => (
                           <div
                             key={i}
@@ -1717,7 +1767,7 @@ const Historico = () => {
             </div>
 
             {/* Right: Placa de Diagnóstico/Score Card */}
-            <div className="md:col-span-4 lg:col-span-3 flex flex-col justify-between rounded-xl border border-border/50 bg-background/30 p-6 shadow-panel items-center text-center">
+            <div className={cn("md:col-span-4 lg:col-span-3 flex flex-col justify-between rounded-xl border p-6 shadow-panel items-center text-center backdrop-blur-sm transition-all duration-300", alertMetrics.cardBorder, alertMetrics.cardBg)}>
               <div className="space-y-2">
                 <div className="font-mono text-xs tracking-widest text-muted-foreground uppercase">DIAGNÓSTICO DE RISCO</div>
                 <div className={cn("inline-flex items-center rounded-full px-3 py-1 font-mono text-xs tracking-widest font-bold", alertMetrics.riskColor, alertMetrics.riskBg)}>
@@ -1766,7 +1816,10 @@ const Historico = () => {
                 Gráfico Evolutivo
               </h2>
             </div>
-            <span className="font-mono text-xs lg:text-sm tracking-[0.3em] text-muted-foreground">
+            <span 
+              className="font-mono text-xs lg:text-sm tracking-[0.3em] text-muted-foreground"
+              style={{ marginRight: 60 }}
+            >
               PERÍODO: {periodDays} {periodDays === 1 ? "DIA" : "DIAS"}
             </span>
           </div>
@@ -1859,10 +1912,8 @@ const Historico = () => {
                       <XAxis
                         dataKey="date"
                         interval={0}
-                        tickFormatter={(val, index) => {
-                          const total = chartData.length;
-                          const nth = total > 40 ? 10 : total > 20 ? 5 : total > 10 ? 2 : 1;
-                          if (index !== 0 && index !== total - 1 && index % nth !== 0) return "";
+                        tickFormatter={(val) => {
+                          if (val === "agora") return "agora";
                           const parts = val.split("-");
                           if (parts.length === 3) return parts[2];
                           return val;
@@ -1923,9 +1974,22 @@ const Historico = () => {
                                 )}
                                 {data.daysToClearRaw !== undefined && data.daysToClearRaw > 0 && (
                                   <div style={{ color: "hsl(var(--primary))", marginTop: 4, fontSize: 12 }}>
-                                    Prazo Máx. Liquidação: {data.daysToClearRaw} dias
+                                    Liquidação: {data.daysToClearRaw} dias
                                   </div>
                                 )}
+                                {data.score !== undefined && (() => {
+                                  const getScoreColorHex = (score: number) => {
+                                    if (score < 25) return "hsl(var(--cost-red))";
+                                    if (score < 50) return "hsl(var(--factoring-amber))";
+                                    if (score < 75) return "#eab308";
+                                    return "hsl(var(--net-green))";
+                                  };
+                                  return (
+                                    <div style={{ color: getScoreColorHex(data.score), marginTop: 4, fontSize: 12 }}>
+                                      Score: {data.score} ({data.scoreLetter})
+                                    </div>
+                                  );
+                                })()}
                               </div>
                             );
                           }
@@ -2536,10 +2600,6 @@ const Historico = () => {
               </div>
             </div>
           )}
-
-          <p className="mt-4 font-mono text-[10px] tracking-[0.25em] text-muted-foreground text-justify">
-            * EDIÇÕES E EXCLUSÕES DE OPERAÇÕES PERMITIDAS DENTRO DE UM MINUTO APÓS O CADASTRO.
-          </p>
         </section>
         </>)}
 
