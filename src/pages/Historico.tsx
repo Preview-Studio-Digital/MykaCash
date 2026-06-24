@@ -1,5 +1,6 @@
 // v2 - filtros fixos na base
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 import { AppHeader } from "@/components/AppHeader";
 import { PageNav } from "@/components/PageNav";
 import { RegistrationSection } from "@/components/RegistrationSection";
@@ -159,6 +160,9 @@ const Historico = () => {
   const [activeAlertTab, setActiveAlertTab] = useState<"diaria" | "mensal" | "anual">("diaria");
   const [manualTransactions, setManualTransactions] = useState<any[]>([]);
   const [overdueAlertOpen, setOverdueAlertOpen] = useState(false);
+  const { pathname } = useLocation();
+  const showAnalytics = pathname === "/analises";
+  const showHistory = pathname === "/";
   const [initialBalance, setInitialBalance] = useState(() => {
     const saved = localStorage.getItem("mykacash_initial_balance");
     return saved ? parseFloat(saved) : 0;
@@ -300,13 +304,14 @@ const Historico = () => {
 
   useEffect(() => {
     if (loading || !user) return;
+    if (pathname !== "/") return;
     if (overdueRows.length === 0) return;
     const key = `mykacash_overdue_alert_shown:${user.id}`;
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "1");
     setOverdueAlertOpen(true);
     playSound("confirm");
-  }, [loading, user, overdueRows.length]);
+  }, [loading, user, overdueRows.length, pathname]);
 
 
 
@@ -1333,6 +1338,7 @@ const Historico = () => {
         <PageNav />
 
         {/* Summary panels — reflect selected period */}
+        {showAnalytics && (<>
         <section className="grid gap-4 md:grid-cols-3 animate-fade-up">
           <div className="relative overflow-hidden rounded-xl bg-gradient-net p-4 text-net-green-foreground panel-glow-net">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
@@ -1958,7 +1964,9 @@ const Historico = () => {
             </div>
           </div>
         </section>
+        </>)}
 
+        {showHistory && (<>
         {/* Secondary filters (Middle) */}
         {renderFilters()}
 
@@ -2293,10 +2301,11 @@ const Historico = () => {
             * EDIÇÕES E EXCLUSÕES DE OPERAÇÕES PERMITIDAS DENTRO DE UM MINUTO APÓS O CADASTRO.
           </p>
         </section>
+        </>)}
       </main>
 
       {/* Fixed bottom filter bar */}
-      {renderFiltersBar()}
+      {showHistory && renderFiltersBar()}
 
       {/* Edit operation dialog */}
       <Dialog open={!!editingId} onOpenChange={(o) => !o && closeEdit()}>

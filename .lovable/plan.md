@@ -1,48 +1,52 @@
-# Alertas sonoros para cadastro/edição de operações
+# Reorganização da navegação
 
-## Comportamento
+## 1. Menu principal (`PageNav`)
 
-1. Ao abrir a tela de confirmação (clique em "CADASTRAR E EXPORTAR" / "SALVAR ALTERAÇÕES"): toca **som de aviso** ("alerta").
-2. Ao confirmar de fato a operação (salvar nova OU edição com sucesso): toca **som de sucesso**.
-3. Se o áudio falhar (autoplay bloqueado, etc.), não quebra o fluxo — apenas ignora silenciosamente.
+- Remover o item **FINANCEIRO** (passa a viver dentro de Admin).
+- Adicionar **ANÁLISES** apontando para `/analises`, ao lado de Cadastro e Histórico.
+- Fixar o menu no topo durante a rolagem: envolver em um wrapper `sticky top-0 z-40` com fundo `bg-background/80 backdrop-blur-md` e uma borda inferior sutil para destacar quando estiver "grudado". O menu já é centralizado e continua assim.
 
-## Sons (biblioteca livre)
+## 2. Nova página `/analises`
 
-Adicionar 4–5 opções curtas (<2s) para cada categoria, hospedadas localmente em `public/sounds/`:
+- Criar `src/pages/Analises.tsx` com `AppHeader` + `PageNav` + um novo componente `AnalyticsSection`.
+- Mover de `Historico.tsx` para esse novo componente as três seções de análise:
+  - Painéis de resumo (médias/totais por período)
+  - Gráfico Evolutivo
+  - Análise de Compromisso e Saúde Financeira (consultor AI, alertas, score)
+- Toda a lógica que alimenta essas seções (carregamento de invoices/eventos, `alertMetrics`, `chartData`, `aiRecommendation`, filtros de período) vai junto para o novo componente.
+- `Historico.tsx` mantém: filtros, tabela de operações, diálogos de edição/liquidação, e o alerta de vencimentos no login.
+- Rota adicionada em `App.tsx` dentro de `ProtectedRoute`.
 
-- **Aviso/Confirmação aberta**: `chime-soft.mp3`, `ding.mp3`, `pop.mp3`, `notify.mp3`
-- **Sucesso**: `success-bell.mp3`, `cash-register.mp3`, `success-chord.mp3`, `level-up.mp3`
+## 3. Admin com menu lateral
 
-Fonte: Pixabay/Mixkit (royalty-free). Baixados via `curl` na fase de build.
+- Refatorar `Admin.tsx` para usar um layout de duas colunas:
+  - Sidebar à esquerda (sticky, ~220px no desktop, recolhível em mobile usando `Sheet`).
+  - Conteúdo à direita.
+- Itens do menu lateral:
+  1. **Criar usuário** — formulário atual de criação.
+  2. **Usuários existentes** — listagem atual.
+  3. **Financeiro** — renderiza `<AccountCashFlow />`.
+  4. **Configurações** — mantém aba atual (sons).
+- Substituir as abas atuais por seleção via sidebar (`activeTab` passa a ter mais opções).
 
-## Seleção pelo usuário
+## 4. Rota `/financeiro`
 
-Nova página **`/configuracoes`** (link no `AppHeader`, ícone engrenagem) com:
+- Remover do menu principal e do `App.tsx`. Acesso passa a ser via Admin (somente admins, como já era de fato).
+- `Financeiro.tsx` pode ser apagado.
 
-- Toggle "Ativar alertas sonoros" (default: ligado)
-- Slider de volume (0–100%, default 70%)
-- Para cada categoria (Confirmação / Sucesso): `Select` com a lista de sons + botão ▶ para pré-ouvir
-- Botão "Restaurar padrões"
-- Preferências salvas em `localStorage` (chave `mikacash:sound-prefs`) — sem necessidade de backend
+## Detalhes técnicos
 
-## Implementação técnica
+- `AnalyticsSection` recebe `userId` via `useAuth` internamente; replica os mesmos `useEffect` de carga de dados de `Historico` (mesmas tabelas: `invoices`, `account_events`). Para não duplicar fetches quando o usuário visita as duas páginas em sequência, mantemos cada página com seu próprio fetch — simples e isolado.
+- `PageNav` sticky: o `<main>` das páginas hoje começa com `py-4 md:py-6`; o sticky funciona porque o `<main>` é o container rolante natural (não há overflow no pai).
+- Sidebar do Admin: usar componentes existentes (`Button` + `cn`), não introduzir `shadcn/sidebar` para evitar mudanças no shell global. Em mobile, um botão "MENU" abre um `Sheet` lateral com os mesmos itens.
+- Sem mudanças de schema/backend.
 
-**`src/lib/sounds.ts`** (novo):
-- Catálogo dos arquivos: `SOUND_CATALOG = { confirm: [...], success: [...] }`
-- Hook `useSoundPrefs()` → lê/grava no localStorage
-- `playSound(kind: "confirm" | "success")` → instancia `new Audio(url)`, aplica volume, `play().catch(()=>{})`
+## Arquivos afetados
 
-**`src/pages/Configuracoes.tsx`** (novo): UI do seletor + pré-escuta.
-
-**`src/App.tsx`**: registrar rota `/configuracoes`.
-
-**`src/components/AppHeader.tsx`**: adicionar link "Configurações" (ícone `Settings` do lucide).
-
-**`src/components/RegistrationSection.tsx`**:
-- Em `handleOpenConfirm` (após validação bem-sucedida, antes/junto de abrir dialog): `playSound("confirm")`.
-- No fim de `handleSaveInvoice`, após salvar com sucesso (tanto criação quanto edição): `playSound("success")`.
-
-## Fora do escopo
-
-- Não há mudança de backend, schema ou RLS.
-- Sons são estáticos no bundle (não há upload pelo usuário neste plano — pode ser adicionado depois).
+- `src/components/PageNav.tsx` — itens + sticky.
+- `src/pages/Historico.tsx` — remover seções de análise + estado/cálculos correlatos.
+- `src/components/AnalyticsSection.tsx` — novo, contém análises.
+- `src/pages/Analises.tsx` — novo.
+- `src/pages/Admin.tsx` — layout com sidebar + integra `AccountCashFlow`.
+- `src/App.tsx` — adiciona `/analises`, remove `/financeiro`.
+- `src/pages/Financeiro.tsx` — removido.
