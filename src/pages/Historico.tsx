@@ -2288,7 +2288,7 @@ const Historico = () => {
 
                     {/* Month Content */}
                     {isOpen && (
-                      <div className="animate-fade-in p-2 md:p-0 space-y-4">
+                      <div className="animate-fade-in p-2 md:p-0">
                         {/* Mobile cards */}
                         <div className="space-y-2 md:hidden">
                           {month.rows.map((r) => {
