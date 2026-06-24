@@ -160,6 +160,9 @@ const Historico = () => {
   const [activeAlertTab, setActiveAlertTab] = useState<"diaria" | "mensal" | "anual">("diaria");
   const [manualTransactions, setManualTransactions] = useState<any[]>([]);
   const [overdueAlertOpen, setOverdueAlertOpen] = useState(false);
+  const { pathname } = useLocation();
+  const showAnalytics = pathname === "/analises";
+  const showHistory = pathname === "/";
   const [initialBalance, setInitialBalance] = useState(() => {
     const saved = localStorage.getItem("mykacash_initial_balance");
     return saved ? parseFloat(saved) : 0;
