@@ -6,8 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, Pencil, Trash2, Shield, Users, Settings } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, Shield, Users, Settings, UserPlus, Wallet, Menu } from "lucide-react";
 import SoundSettings from "@/components/SoundSettings";
+import { AccountCashFlow } from "@/components/AccountCashFlow";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -57,7 +60,8 @@ const Admin = () => {
   // Delete confirm state
   const [deleting, setDeleting] = useState<ProfileRow | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
-  const [activeTab, setActiveTab] = useState<"usuarios" | "configuracoes">("usuarios");
+  const [activeTab, setActiveTab] = useState<"criar" | "usuarios" | "financeiro" | "configuracoes">("criar");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const loadUsers = async () => {
     const [{ data: profilesData, error: profilesErr }, { data: rolesData, error: rolesErr }] =
