@@ -2300,10 +2300,11 @@ const Historico = () => {
             * EDIÇÕES E EXCLUSÕES DE OPERAÇÕES PERMITIDAS DENTRO DE UM MINUTO APÓS O CADASTRO.
           </p>
         </section>
+        </>)}
       </main>
 
       {/* Fixed bottom filter bar */}
-      {renderFiltersBar()}
+      {showHistory && renderFiltersBar()}
 
       {/* Edit operation dialog */}
       <Dialog open={!!editingId} onOpenChange={(o) => !o && closeEdit()}>
