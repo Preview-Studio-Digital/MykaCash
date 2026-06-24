@@ -1523,7 +1523,7 @@ const Historico = () => {
                       Evolução do Score Financeiro
                     </h2>
                   </div>
-                  <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
+                  <span className="font-mono text-xs lg:text-sm tracking-[0.3em] text-muted-foreground">
                     PERÍODO: {periodDays} {periodDays === 1 ? "DIA" : "DIAS"}
                   </span>
                 </div>
@@ -1766,7 +1766,7 @@ const Historico = () => {
                 Gráfico Evolutivo
               </h2>
             </div>
-            <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
+            <span className="font-mono text-xs lg:text-sm tracking-[0.3em] text-muted-foreground">
               PERÍODO: {periodDays} {periodDays === 1 ? "DIA" : "DIAS"}
             </span>
           </div>
@@ -2217,7 +2217,7 @@ const Historico = () => {
               <span className="h-2 w-2 rounded-full animate-color-cycle" />
               <h2 className="font-mono text-sm sm:text-base md:text-lg tracking-[0.2em] font-bold uppercase">Histórico de Operações</h2>
             </div>
-            <span className="font-mono text-xs md:text-sm tracking-[0.3em] text-muted-foreground">
+            <span className="font-mono text-xs lg:text-sm tracking-[0.3em] text-muted-foreground">
               {invoices.length} {invoices.length === 1 ? "OPERAÇÃO" : "OPERAÇÕES"} · {filteredRows.length}{" "}
               {filteredRows.length === 1 ? "PARCELA" : "PARCELAS"}
             </span>
