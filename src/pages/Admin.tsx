@@ -209,7 +209,23 @@ const Admin = () => {
   return (
     <div className="min-h-screen">
       <header className="border-b border-border/60 px-6 py-3 flex items-center justify-between bg-background/50 backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 md:gap-6">
+          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="sm" className="md:hidden h-8 px-2">
+                <Menu className="h-4 w-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-64">
+              <SidebarMenu
+                activeTab={activeTab}
+                onSelect={(t) => {
+                  setActiveTab(t);
+                  setSidebarOpen(false);
+                }}
+              />
+            </SheetContent>
+          </Sheet>
           <Link
             to="/"
             className="inline-flex items-center gap-2 font-mono text-[10px] tracking-widest text-muted-foreground hover:text-primary transition-colors"
@@ -218,141 +234,138 @@ const Admin = () => {
           </Link>
           <h1 className="font-title title-gradient text-lg font-bold tracking-tight">ADMINISTRAÇÃO</h1>
         </div>
-
-        <div className="flex items-center gap-1 rounded-lg bg-muted/40 p-1 border border-border/40">
-          <button
-            onClick={() => setActiveTab("usuarios")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono tracking-wider transition-colors ${
-              activeTab === "usuarios"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Users className="h-3.5 w-3.5" /> USUÁRIOS
-          </button>
-          <button
-            onClick={() => setActiveTab("configuracoes")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono tracking-wider transition-colors ${
-              activeTab === "configuracoes"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Settings className="h-3.5 w-3.5" /> CONFIGURAÇÕES
-          </button>
-        </div>
       </header>
 
-      {activeTab === "usuarios" && (
-        <main className="mx-auto w-full max-w-[1600px] px-4 md:px-8 lg:px-12 py-10 space-y-10">
-          <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 shadow-panel">
-            <h2 className="font-display text-lg mb-4">Criar novo usuário</h2>
-            <form onSubmit={onCreate} className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="username">E-mail ou Usuário</Label>
-                <Input
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="ex: joao.silva@gmail.com ou joao.silva"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="display">Nome de exibição</Label>
-                <Input
-                  id="display"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="João Silva"
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="password">Senha (mín. 6)</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  autoComplete="new-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <label className="flex items-center gap-2 text-sm md:col-span-2">
-                <input
-                  type="checkbox"
-                  checked={makeAdmin}
-                  onChange={(e) => setMakeAdmin(e.target.checked)}
-                />
-                Tornar este usuário também administrador
-              </label>
-              <Button type="submit" disabled={busy} className="md:col-span-2 font-display tracking-wide">
-                {busy ? "Criando..." : "Criar usuário"}
-              </Button>
-            </form>
-          </section>
+      <div className="flex">
+        {/* Desktop sidebar */}
+        <aside className="hidden md:block w-56 shrink-0 border-r border-border/60 min-h-[calc(100vh-57px)] sticky top-[57px] self-start">
+          <SidebarMenu activeTab={activeTab} onSelect={setActiveTab} />
+        </aside>
 
-          <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 shadow-panel">
-            <h2 className="font-display text-lg mb-4">Usuários ({users.length})</h2>
-            <div className="divide-y divide-border/40">
-              {users.map((u) => {
-                const isUserAdmin = adminIds.has(u.id);
-                const isSelf = user?.id === u.id;
-                return (
-                  <div key={u.id} className="py-3 flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-mono text-sm flex items-center gap-2">
-                        <span className="truncate">{u.username ?? "—"}</span>
-                        {isUserAdmin && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 font-mono text-[9px] tracking-widest text-primary">
-                            <Shield className="h-3 w-3" /> ADMIN
-                          </span>
-                        )}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">{u.display_name}</p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="hidden sm:inline font-mono text-[10px] tracking-widest text-muted-foreground">
-                        {new Date(u.created_at).toLocaleDateString("pt-BR")}
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => openEdit(u)}
-                        aria-label="Editar"
-                        title="Editar usuário"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setDeleting(u)}
-                        disabled={isSelf}
-                        aria-label="Excluir"
-                        title={isSelf ? "Você não pode excluir seu próprio usuário" : "Excluir usuário"}
-                        className="text-muted-foreground hover:text-cost-red disabled:opacity-40"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+        <div className="flex-1 min-w-0">
+          {activeTab === "criar" && (
+            <main className="mx-auto w-full max-w-[1200px] px-4 md:px-8 lg:px-12 py-10">
+              <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 shadow-panel">
+                <h2 className="font-display text-lg mb-4">Criar novo usuário</h2>
+                <form onSubmit={onCreate} className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="username">E-mail ou Usuário</Label>
+                    <Input
+                      id="username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="ex: joao.silva@gmail.com ou joao.silva"
+                      required
+                    />
                   </div>
-                );
-              })}
-              {users.length === 0 && (
-                <p className="text-sm text-muted-foreground py-6 text-center">Nenhum usuário ainda.</p>
-              )}
-            </div>
-          </section>
-        </main>
-      )}
+                  <div className="space-y-2">
+                    <Label htmlFor="display">Nome de exibição</Label>
+                    <Input
+                      id="display"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder="João Silva"
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="password">Senha (mín. 6)</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      autoComplete="new-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 text-sm md:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={makeAdmin}
+                      onChange={(e) => setMakeAdmin(e.target.checked)}
+                    />
+                    Tornar este usuário também administrador
+                  </label>
+                  <Button type="submit" disabled={busy} className="md:col-span-2 font-display tracking-wide">
+                    {busy ? "Criando..." : "Criar usuário"}
+                  </Button>
+                </form>
+              </section>
+            </main>
+          )}
 
-      {activeTab === "configuracoes" && (
-        <main className="mx-auto w-full max-w-3xl px-4 md:px-8 py-10">
-          <h2 className="font-display text-2xl tracking-wide mb-6">CONFIGURAÇÕES</h2>
-          <SoundSettings />
-        </main>
-      )}
+          {activeTab === "usuarios" && (
+            <main className="mx-auto w-full max-w-[1200px] px-4 md:px-8 lg:px-12 py-10">
+              <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 shadow-panel">
+                <h2 className="font-display text-lg mb-4">Usuários ({users.length})</h2>
+                <div className="divide-y divide-border/40">
+                  {users.map((u) => {
+                    const isUserAdmin = adminIds.has(u.id);
+                    const isSelf = user?.id === u.id;
+                    return (
+                      <div key={u.id} className="py-3 flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-mono text-sm flex items-center gap-2">
+                            <span className="truncate">{u.username ?? "—"}</span>
+                            {isUserAdmin && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 font-mono text-[9px] tracking-widest text-primary">
+                                <Shield className="h-3 w-3" /> ADMIN
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">{u.display_name}</p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="hidden sm:inline font-mono text-[10px] tracking-widest text-muted-foreground">
+                            {new Date(u.created_at).toLocaleDateString("pt-BR")}
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openEdit(u)}
+                            aria-label="Editar"
+                            title="Editar usuário"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setDeleting(u)}
+                            disabled={isSelf}
+                            aria-label="Excluir"
+                            title={isSelf ? "Você não pode excluir seu próprio usuário" : "Excluir usuário"}
+                            className="text-muted-foreground hover:text-cost-red disabled:opacity-40"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {users.length === 0 && (
+                    <p className="text-sm text-muted-foreground py-6 text-center">Nenhum usuário ainda.</p>
+                  )}
+                </div>
+              </section>
+            </main>
+          )}
+
+          {activeTab === "financeiro" && (
+            <main className="mx-auto w-full max-w-[1600px] px-4 md:px-8 lg:px-12 py-6">
+              <AccountCashFlow />
+            </main>
+          )}
+
+          {activeTab === "configuracoes" && (
+            <main className="mx-auto w-full max-w-3xl px-4 md:px-8 py-10">
+              <h2 className="font-display text-2xl tracking-wide mb-6">CONFIGURAÇÕES</h2>
+              <SoundSettings />
+            </main>
+          )}
+        </div>
+      </div>
+
 
       {/* Edit dialog */}
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
