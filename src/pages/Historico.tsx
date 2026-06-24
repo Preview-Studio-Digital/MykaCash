@@ -1337,6 +1337,7 @@ const Historico = () => {
         <PageNav />
 
         {/* Summary panels — reflect selected period */}
+        {showAnalytics && (<>
         <section className="grid gap-4 md:grid-cols-3 animate-fade-up">
           <div className="relative overflow-hidden rounded-xl bg-gradient-net p-4 text-net-green-foreground panel-glow-net">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
