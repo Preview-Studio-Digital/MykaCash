@@ -451,4 +451,45 @@ const Admin = () => {
   );
 };
 
+type TabKey = "criar" | "usuarios" | "financeiro" | "configuracoes";
+
+const SidebarMenu = ({
+  activeTab,
+  onSelect,
+}: {
+  activeTab: TabKey;
+  onSelect: (t: TabKey) => void;
+}) => {
+  const items: { key: TabKey; label: string; icon: typeof Users }[] = [
+    { key: "criar", label: "CRIAR USUÁRIO", icon: UserPlus },
+    { key: "usuarios", label: "USUÁRIOS", icon: Users },
+    { key: "financeiro", label: "FINANCEIRO", icon: Wallet },
+    { key: "configuracoes", label: "CONFIGURAÇÕES", icon: Settings },
+  ];
+  return (
+    <nav className="p-3 space-y-1">
+      {items.map((it) => {
+        const Icon = it.icon;
+        const active = activeTab === it.key;
+        return (
+          <button
+            key={it.key}
+            onClick={() => onSelect(it.key)}
+            className={cn(
+              "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-mono tracking-wider transition-colors text-left",
+              active
+                ? "bg-primary/15 text-primary"
+                : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+            )}
+          >
+            <Icon className="h-4 w-4 shrink-0" />
+            <span className="truncate">{it.label}</span>
+          </button>
+        );
+      })}
+    </nav>
+  );
+};
+
 export default Admin;
+
