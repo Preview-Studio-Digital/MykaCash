@@ -304,13 +304,14 @@ const Historico = () => {
 
   useEffect(() => {
     if (loading || !user) return;
+    if (pathname !== "/") return;
     if (overdueRows.length === 0) return;
     const key = `mykacash_overdue_alert_shown:${user.id}`;
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "1");
     setOverdueAlertOpen(true);
     playSound("confirm");
-  }, [loading, user, overdueRows.length]);
+  }, [loading, user, overdueRows.length, pathname]);
 
 
 
