@@ -33,7 +33,8 @@ export default function SoundSettings() {
 
   const preview = (kind: SoundKind) => {
     const opt = SOUND_CATALOG[kind].find((o) => o.id === prefs[kind]);
-    if (opt) previewSound(opt.file, prefs.volume);
+    const soundVolume = kind === "overdue" ? (prefs.overdueVolume ?? 0.8) : prefs.volume;
+    if (opt) previewSound(opt.file, soundVolume);
   };
 
   const reset = () => {
@@ -78,19 +79,25 @@ export default function SoundSettings() {
         </div>
       </section>
 
-      {(["confirm", "success"] as const).map((kind) => (
+      {(["confirm", "success", "overdue"] as const).map((kind) => (
         <section
           key={kind}
           className="rounded-lg border border-border/60 bg-card/40 p-6 space-y-3"
         >
           <div>
             <Label className="text-base">
-              {kind === "confirm" ? "Som de confirmação (ao abrir tela)" : "Som de sucesso (ao salvar)"}
+              {kind === "confirm"
+                ? "Som de confirmação (ao abrir tela)"
+                : kind === "success"
+                ? "Som de sucesso (ao salvar)"
+                : "Som do alerta de vencidos"}
             </Label>
             <p className="text-xs text-muted-foreground mt-0.5">
               {kind === "confirm"
                 ? "Tocado quando a tela de confirmação da operação aparece."
-                : "Tocado quando uma operação nova ou editada é salva com sucesso."}
+                : kind === "success"
+                ? "Tocado quando uma operação nova ou editada é salva com sucesso."
+                : "Tocado ao fazer login se houverem operações vencidas."}
             </p>
           </div>
           <div className="flex gap-2">
@@ -120,6 +127,26 @@ export default function SoundSettings() {
               <Play className="h-4 w-4" />
             </Button>
           </div>
+
+          {kind === "overdue" && (
+            <div className="space-y-2 mt-4 pt-4 border-t border-border/40">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-2 text-xs">
+                  <Volume2 className="h-3.5 w-3.5" /> Volume do Alerta
+                </Label>
+                <span className="text-xs tabular-nums text-muted-foreground">
+                  {Math.round((prefs.overdueVolume ?? 0.8) * 100)}%
+                </span>
+              </div>
+              <Slider
+                value={[Math.round((prefs.overdueVolume ?? 0.8) * 100)]}
+                onValueChange={([v]) => update({ overdueVolume: v / 100 })}
+                max={100}
+                step={5}
+                disabled={!prefs.enabled}
+              />
+            </div>
+          )}
         </section>
       ))}
 

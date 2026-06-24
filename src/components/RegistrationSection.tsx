@@ -1166,7 +1166,7 @@ export const RegistrationSection = ({
               position: "relative",
             }}
           >
-            ◆ MYKACA$H · VERSÃO 2.6 · DOCUMENTO GERADO EM {new Date().toLocaleString("pt-BR")}
+            ◆ MYKACA$H · VERSÃO 3.0 · DOCUMENTO GERADO EM {new Date().toLocaleString("pt-BR")}
             {authorName ? ` · POR ${authorName.toUpperCase()}` : ""} ◆
           </div>
         </div>

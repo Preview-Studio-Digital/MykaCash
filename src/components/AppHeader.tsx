@@ -32,12 +32,13 @@ export const AppHeader = () => {
       <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-[500px] w-[900px] rounded-full bg-primary/20 blur-3xl animate-pulse-glow pointer-events-none" />
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/80 to-transparent" />
 
-      {/* User bar */}
-      <div className="relative z-10 flex items-center justify-between px-6 pt-4 text-xs font-mono tracking-widest text-muted-foreground">
-        <span className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full animate-color-cycle" />
-          SISTEMA ONLINE
-        </span>
+      {/* Header bar */}
+      <div className="relative z-10 flex items-center justify-between px-6 py-4 text-xs font-mono tracking-widest text-muted-foreground">
+        <Link to="/" className="hover:opacity-80 transition-opacity">
+          <span className="font-title title-gradient title-shimmer font-extrabold leading-none tracking-tighter text-3xl md:text-4xl lg:text-5xl">
+            MYKACA$H
+          </span>
+        </Link>
         <div className="flex items-center gap-4">
           <span className="hidden sm:inline">{headerName}</span>
           {isAdmin && (
@@ -63,14 +64,6 @@ export const AppHeader = () => {
             SAIR
           </Button>
         </div>
-      </div>
-
-      {/* Hero title block */}
-      <div className="relative z-10 flex flex-col items-center justify-center px-6 pt-1 pb-4 text-center">
-        <h1 className="font-title title-gradient title-shimmer font-extrabold leading-[0.9] tracking-tighter animate-fade-up text-3xl lg:text-5xl">
-          MYKACA$H
-        </h1>
-        <p className="mt-1 font-mono text-[10px] tracking-[0.4em] text-muted-foreground animate-fade-up uppercase">VERSÃO 2.6</p>
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />

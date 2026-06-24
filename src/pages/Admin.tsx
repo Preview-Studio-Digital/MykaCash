@@ -60,8 +60,9 @@ const Admin = () => {
   // Delete confirm state
   const [deleting, setDeleting] = useState<ProfileRow | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
-  const [activeTab, setActiveTab] = useState<"criar" | "usuarios" | "financeiro" | "configuracoes">("criar");
+  const [activeTab, setActiveTab] = useState<TabKey>("financeiro");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const loadUsers = async () => {
     const [{ data: profilesData, error: profilesErr }, { data: rolesData, error: rolesErr }] =
@@ -132,6 +133,7 @@ const Admin = () => {
       setPassword("");
       setDisplayName("");
       setMakeAdmin(false);
+      setShowCreateModal(false);
       await loadUsers();
     } catch (err: any) {
       toast.error(err.message ?? "Falha ao criar usuário");
@@ -243,61 +245,16 @@ const Admin = () => {
         </aside>
 
         <div className="flex-1 min-w-0">
-          {activeTab === "criar" && (
-            <main className="mx-auto w-full max-w-[1200px] px-4 md:px-8 lg:px-12 py-10">
-              <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 shadow-panel">
-                <h2 className="font-display text-lg mb-4">Criar novo usuário</h2>
-                <form onSubmit={onCreate} className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="username">E-mail ou Usuário</Label>
-                    <Input
-                      id="username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      placeholder="ex: joao.silva@gmail.com ou joao.silva"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="display">Nome de exibição</Label>
-                    <Input
-                      id="display"
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="João Silva"
-                    />
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="password">Senha (mín. 6)</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      autoComplete="new-password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <label className="flex items-center gap-2 text-sm md:col-span-2">
-                    <input
-                      type="checkbox"
-                      checked={makeAdmin}
-                      onChange={(e) => setMakeAdmin(e.target.checked)}
-                    />
-                    Tornar este usuário também administrador
-                  </label>
-                  <Button type="submit" disabled={busy} className="md:col-span-2 font-display tracking-wide">
-                    {busy ? "Criando..." : "Criar usuário"}
-                  </Button>
-                </form>
-              </section>
-            </main>
-          )}
 
           {activeTab === "usuarios" && (
-            <main className="mx-auto w-full max-w-[1200px] px-4 md:px-8 lg:px-12 py-10">
+            <main className="mx-auto w-full max-w-[1200px] px-2 md:px-4 lg:px-6 py-10">
               <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 shadow-panel">
-                <h2 className="font-display text-lg mb-4">Usuários ({users.length})</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-display text-lg">Usuários ({users.length})</h2>
+                  <Button onClick={() => setShowCreateModal(true)} size="sm" className="gap-2">
+                    <UserPlus className="h-4 w-4" /> Criar Usuário
+                  </Button>
+                </div>
                 <div className="divide-y divide-border/40">
                   {users.map((u) => {
                     const isUserAdmin = adminIds.has(u.id);
@@ -352,13 +309,13 @@ const Admin = () => {
           )}
 
           {activeTab === "financeiro" && (
-            <main className="mx-auto w-full max-w-[1600px] px-4 md:px-8 lg:px-12 py-6">
+            <main className="mx-auto w-full max-w-[1600px] px-2 md:px-4 lg:px-6 py-6">
               <AccountCashFlow />
             </main>
           )}
 
           {activeTab === "configuracoes" && (
-            <main className="mx-auto w-full max-w-3xl px-4 md:px-8 py-10">
+            <main className="mx-auto w-full max-w-3xl px-2 md:px-4 py-10">
               <h2 className="font-display text-2xl tracking-wide mb-6">CONFIGURAÇÕES</h2>
               <SoundSettings />
             </main>
@@ -366,6 +323,66 @@ const Admin = () => {
         </div>
       </div>
 
+
+      {/* Create user dialog */}
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Criar novo usuário</DialogTitle>
+            <DialogDescription>
+              Cadastre um novo usuário para acesso à plataforma.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={onCreate} className="grid gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="username">E-mail ou Usuário</Label>
+              <Input
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="ex: joao.silva@gmail.com ou joao.silva"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="display">Nome de exibição</Label>
+              <Input
+                id="display"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="João Silva"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha (mín. 6)</Label>
+              <Input
+                id="password"
+                type="password"
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={makeAdmin}
+                onChange={(e) => setMakeAdmin(e.target.checked)}
+              />
+              Tornar este usuário também administrador
+            </label>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowCreateModal(false)} disabled={busy}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={busy}>
+                {busy ? "Criando..." : "Criar usuário"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit dialog */}
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
@@ -451,7 +468,7 @@ const Admin = () => {
   );
 };
 
-type TabKey = "criar" | "usuarios" | "financeiro" | "configuracoes";
+type TabKey = "usuarios" | "financeiro" | "configuracoes";
 
 const SidebarMenu = ({
   activeTab,
@@ -461,9 +478,8 @@ const SidebarMenu = ({
   onSelect: (t: TabKey) => void;
 }) => {
   const items: { key: TabKey; label: string; icon: typeof Users }[] = [
-    { key: "criar", label: "CRIAR USUÁRIO", icon: UserPlus },
-    { key: "usuarios", label: "USUÁRIOS", icon: Users },
     { key: "financeiro", label: "FINANCEIRO", icon: Wallet },
+    { key: "usuarios", label: "USUÁRIOS", icon: Users },
     { key: "configuracoes", label: "CONFIGURAÇÕES", icon: Settings },
   ];
   return (

@@ -984,9 +984,13 @@ export const AccountCashFlow = () => {
                 dataKey="rawDate" 
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                 dy={10}
-                tickFormatter={(val) => {
+                interval={0}
+                tickFormatter={(val, index) => {
+                  const total = chartData.length;
+                  const nth = total > 40 ? 10 : total > 20 ? 5 : total > 10 ? 2 : 1;
+                  if (index !== 0 && index !== total - 1 && index % nth !== 0) return "";
                   const parts = val.split("-");
                   if (parts.length === 3) return parts[2];
                   return val;
@@ -997,7 +1001,7 @@ export const AccountCashFlow = () => {
                 width={60}
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
                 tickFormatter={(v) => `R$${Math.abs(v) >= 1000 ? (v/1000).toFixed(0) + 'K' : v}`}
               />
               <YAxis 
@@ -1006,7 +1010,7 @@ export const AccountCashFlow = () => {
                 width={60}
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
                 tickFormatter={(v) => `R$${Math.abs(v) >= 1000 ? (v/1000).toFixed(0) + 'K' : v}`}
               />
               <Tooltip 
@@ -1016,7 +1020,7 @@ export const AccountCashFlow = () => {
                   borderColor: 'hsl(var(--border)/0.5)',
                   borderRadius: '12px',
                   boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-                  fontSize: '12px'
+                  fontSize: '13px'
                 }}
                 labelFormatter={(value, payload) => {
                   if (payload && payload.length > 0) {
@@ -1315,14 +1319,14 @@ export const AccountCashFlow = () => {
                           const balanceColor = (t.balanceAfter || 0) >= 0 ? 'text-primary' : 'text-cost-red';
                           const dateStr = new Date(t.date + "T00:00:00").toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
                           return (
-                            <div key={t.id} className={cn("px-3 py-2.5", bg)}>
+                            <div key={t.id} className={cn("px-3 py-2", bg)}>
                               <div className="flex items-start justify-between gap-2">
                                 <div className="flex items-center gap-2 min-w-0 flex-1">
                                   {isIn
                                     ? <ArrowUpCircle className={`h-4 w-4 shrink-0 ${amountColor}`} />
                                     : <ArrowDownCircle className={`h-4 w-4 shrink-0 ${amountColor}`} />}
-                                  <span className="font-mono text-[10px] text-muted-foreground shrink-0">{dateStr}</span>
-                                  <span className="text-[11px] font-medium truncate">{t.description}</span>
+                                  <span className="font-mono text-xs text-muted-foreground shrink-0">{dateStr}</span>
+                                  <span className="font-mono text-sm font-semibold truncate">{t.description}</span>
                                 </div>
                                 {(t.type === 'deposit' || t.type === 'withdrawal') && (
                                   <div className="flex items-center shrink-0 -mr-1">
@@ -1362,7 +1366,7 @@ export const AccountCashFlow = () => {
                                 <span className={`font-mono text-xs font-bold ${amountColor}`}>
                                   {isIn ? '+' : '-'} {formatBRL(t.amount)}
                                 </span>
-                                <span className={`font-mono text-[11px] ${balanceColor}`}>
+                                <span className={`font-mono text-xs ${balanceColor}`}>
                                   Saldo {formatBRL(t.balanceAfter || 0)}
                                 </span>
                               </div>
@@ -1373,15 +1377,15 @@ export const AccountCashFlow = () => {
 
                       {/* Desktop: Table */}
                       <div className="hidden md:block overflow-x-auto">
-                        <Table>
+                        <Table className="text-xs lg:text-sm">
                           <TableHeader className="bg-muted/30">
                             <TableRow className="hover:bg-transparent border-border/40">
-                              <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Data</TableHead>
-                              <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Descrição</TableHead>
-                              <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Tipo</TableHead>
-                              <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Valor</TableHead>
-                              <TableHead className="text-center text-[10px] tracking-widest uppercase font-mono">Saldo</TableHead>
-                              <TableHead className="text-center w-[50px]"></TableHead>
+                              <TableHead className="text-center tracking-widest uppercase font-mono py-2 text-xs lg:text-sm">Data</TableHead>
+                              <TableHead className="text-center tracking-widest uppercase font-mono py-2 text-xs lg:text-sm">Descrição</TableHead>
+                              <TableHead className="text-center tracking-widest uppercase font-mono py-2 text-xs lg:text-sm">Tipo</TableHead>
+                              <TableHead className="text-center tracking-widest uppercase font-mono py-2 text-xs lg:text-sm">Valor</TableHead>
+                              <TableHead className="text-center tracking-widest uppercase font-mono py-2 text-xs lg:text-sm">Saldo</TableHead>
+                              <TableHead className="text-center w-[50px] py-2"></TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -1396,14 +1400,14 @@ export const AccountCashFlow = () => {
                                   'bg-cost-red/5 hover:bg-cost-red/10'
                                 )}
                               >
-                                <TableCell className="text-center font-mono text-xs">
+                                <TableCell className="text-center font-mono py-2">
                                   {new Date(t.date + "T00:00:00").toLocaleDateString('pt-BR')}
                                 </TableCell>
-                                <TableCell className="text-center text-sm font-medium">
+                                <TableCell className="text-center font-mono font-medium py-2">
                                   {t.description}
                                 </TableCell>
-                                <TableCell className="text-center">
-                                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-tight uppercase ${
+                                <TableCell className="text-center py-2">
+                                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-tight uppercase ${
                                     t.type === 'deposit' ? 'bg-[#bef264]/10 text-[#bef264] border border-[#bef264]/20' :
                                     t.type === 'withdrawal' ? 'bg-[#f472b6]/10 text-[#f472b6] border border-[#f472b6]/20' :
                                     t.type === 'installment_in' ? 'bg-net-green/10 text-net-green border border-net-green/20' :
@@ -1415,12 +1419,12 @@ export const AccountCashFlow = () => {
                                     {t.type === 'operation_out' && <><ArrowDownCircle className="h-3 w-3" /> Saída</>}
                                   </span>
                                 </TableCell>
-                                <TableCell className={`text-center font-mono font-bold ${
+                                <TableCell className={`text-center font-mono font-bold py-2 ${
                                   (t.type === 'deposit' || t.type === 'installment_in') ? 'text-net-green' : 'text-cost-red'
                                 }`}>
                                   {(t.type === 'deposit' || t.type === 'installment_in') ? '+' : '-'} {formatBRL(t.amount)}
                                 </TableCell>
-                                <TableCell className={`text-center font-mono font-bold ${
+                                <TableCell className={`text-center font-mono font-bold py-2 ${
                                   (t.balanceAfter || 0) >= 0 ? 'text-primary' : 'text-cost-red'
                                 }`}>
                                   {formatBRL(t.balanceAfter || 0)}

@@ -157,7 +157,6 @@ const Historico = () => {
   const [settlingRow, setSettlingRow] = useState<any | null>(null);
   const [settlementDate, setSettlementDate] = useState<string>("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState<boolean>(false);
-  const [activeAlertTab, setActiveAlertTab] = useState<"diaria" | "mensal" | "anual">("diaria");
   const [manualTransactions, setManualTransactions] = useState<any[]>([]);
   const [overdueAlertOpen, setOverdueAlertOpen] = useState(false);
   const { pathname } = useLocation();
@@ -310,7 +309,7 @@ const Historico = () => {
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "1");
     setOverdueAlertOpen(true);
-    playSound("confirm");
+    playSound("overdue");
   }, [loading, user, overdueRows.length, pathname]);
 
 
@@ -724,6 +723,56 @@ const Historico = () => {
         }
       }
     }
+
+    // Calcular a evolução do score para cada ponto do gráfico
+    const getScoreAtDate = (dStr: string) => {
+      const rowsUpToDate = rows.filter(r => r.operationDate <= dStr);
+      if (rowsUpToDate.length === 0) return 100;
+
+      const g = rowsUpToDate.reduce(
+        (accStats, r) => {
+          const isSettledByDate = r.settled && r.settledDate && r.settledDate <= dStr;
+          return {
+            value: accStats.value + r.value,
+            cost: accStats.cost + r.cost,
+            factoring: accStats.factoring + r.factoringCost,
+            settled: accStats.settled + (isSettledByDate ? r.value : 0),
+            open: accStats.open + (isSettledByDate ? 0 : r.value),
+          };
+        },
+        { value: 0, cost: 0, factoring: 0, settled: 0, open: 0 }
+      );
+
+      const effective = g.value > 0 ? (g.cost / g.value) * 100 : 0;
+      const savings = Math.max(0, g.factoring - g.cost);
+      
+      const firstDate = dataBounds.from;
+      const bDays = countBusinessDays(firstDate, dStr);
+      const dailySpeed = g.value / bDays;
+
+      const totalDebt = g.open;
+      const totalSettled = g.settled;
+      const totalBorrowed = g.value;
+
+      const liquidationRate = totalBorrowed > 0 ? (totalSettled / totalBorrowed) * 100 : 0;
+      const rolloverRate = Math.max(0, 100 - liquidationRate);
+
+      const monthlyAnticipationVolume = dailySpeed * 22;
+      const cashCommitmentPct = monthlyAnticipationVolume > 0 ? (totalDebt / monthlyAnticipationVolume) * 100 : 0;
+
+      const clamp = (n: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
+      const penCommit = clamp((cashCommitmentPct / 80) * 45, 0, 45);
+      const penRoll   = clamp((rolloverRate / 100) * 30, 0, 30);
+      const penRate   = clamp((effective / 6) * 25, 0, 25);
+      const scoreNumeric = Math.round(clamp(100 - penCommit - penRoll - penRate));
+
+      return scoreNumeric;
+    };
+
+    for (const s of series) {
+      const d = s.date === "agora" ? todayStr : s.date;
+      (s as any).score = getScoreAtDate(d);
+    }
     
     return series;
   }, [filteredRows, statusFilter, range.from, range.to, todayStr, period]);
@@ -1005,7 +1054,7 @@ const Historico = () => {
 
       <div className="flex flex-col items-center gap-2 px-4 py-3">
         {/* Period label */}
-        <span className="font-mono text-[9px] tracking-[0.3em] text-muted-foreground/70">
+        <span className="font-mono text-xs md:text-sm tracking-[0.3em] text-muted-foreground/70">
           {period === "total" ? (
             (() => {
               const label = {
@@ -1028,17 +1077,17 @@ const Historico = () => {
           <div className="flex items-center justify-center gap-3">
             {period === "data" ? (
               <div className="flex items-center gap-2">
-                <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">DATA</span>
+                <span className="font-mono text-xs tracking-[0.25em] text-muted-foreground">DATA</span>
                 <DateField value={from} onChange={(v) => { setFrom(v); setTo(v); }} />
               </div>
             ) : (
               <>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">DE</span>
+                  <span className="font-mono text-xs tracking-[0.25em] text-muted-foreground">DE</span>
                   <DateField value={from} onChange={setFrom} />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">ATÉ</span>
+                  <span className="font-mono text-xs tracking-[0.25em] text-muted-foreground">ATÉ</span>
                   <DateField value={to} onChange={setTo} />
                 </div>
               </>
@@ -1049,7 +1098,7 @@ const Historico = () => {
         {/* Mobile toggle */}
         <button
           onClick={() => setMobileFiltersOpen((v) => !v)}
-          className="sm:hidden inline-flex items-center gap-2 rounded-full border border-border/50 bg-background/60 px-3 py-1.5 font-mono text-[9px] tracking-[0.25em] text-muted-foreground hover:text-foreground transition-all"
+          className="sm:hidden inline-flex items-center gap-2 rounded-full border border-border/50 bg-background/60 px-3 py-1.5 font-mono text-xs tracking-[0.25em] text-muted-foreground hover:text-foreground transition-all"
         >
           <SlidersHorizontal className="h-3 w-3" />
           {mobileFiltersOpen ? "OCULTAR FILTROS" : "MOSTRAR FILTROS"}
@@ -1059,7 +1108,7 @@ const Historico = () => {
         <div className={cn("flex flex-wrap items-center justify-center gap-4 sm:gap-6", !mobileFiltersOpen && "hidden sm:flex")}>
           {/* Period pills */}
           <div className="flex flex-col items-center gap-1.5">
-            <span className="font-mono text-[8px] tracking-[0.2em] text-muted-foreground/60 uppercase">PERÍODO DE TEMPO</span>
+            <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground/60 uppercase">PERÍODO DE TEMPO</span>
             <div className="inline-flex flex-wrap justify-center rounded-full border border-border/50 bg-background/60 p-1 gap-1 shadow-panel">
               {periodOptions.map((opt) => {
                 const active = period === opt.id;
@@ -1068,7 +1117,7 @@ const Historico = () => {
                     key={opt.id}
                     onClick={() => setPeriod(opt.id)}
                     className={
-                      "inline-flex items-center rounded-full px-3 py-1 font-mono text-[9px] tracking-[0.25em] transition-all whitespace-nowrap " +
+                      "inline-flex items-center rounded-full px-3 py-1 font-mono text-xs tracking-[0.25em] transition-all whitespace-nowrap " +
                       (active
                         ? "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.5)]"
                         : "text-muted-foreground hover:text-foreground")
@@ -1086,7 +1135,7 @@ const Historico = () => {
 
           {/* Status pills */}
           <div className="flex flex-col items-center gap-1.5">
-            <span className="font-mono text-[8px] tracking-[0.2em] text-muted-foreground/60 uppercase">STATUS DAS OPERAÇÕES</span>
+            <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground/60 uppercase">STATUS DAS OPERAÇÕES</span>
             <div className="inline-flex flex-wrap justify-center rounded-full border border-border/50 bg-background/60 p-1 gap-1 shadow-panel">
               {statusOptions.map((opt) => {
                 const active = statusFilter === opt.id;
@@ -1095,7 +1144,7 @@ const Historico = () => {
                     key={opt.id}
                     onClick={() => setStatusFilter(opt.id)}
                     className={
-                      "inline-flex items-center rounded-full px-3 py-1 font-mono text-[9px] tracking-[0.25em] transition-all whitespace-nowrap " +
+                      "inline-flex items-center rounded-full px-3 py-1 font-mono text-xs tracking-[0.25em] transition-all whitespace-nowrap " +
                       (active
                         ? "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.5)]"
                         : "text-muted-foreground hover:text-foreground")
@@ -1177,38 +1226,49 @@ const Historico = () => {
     const penRate   = clamp((effectiveRate / 6) * 25, 0, 25);         // até -25 pts
     const scoreNumeric = Math.round(clamp(100 - penCommit - penRoll - penRate));
 
-    let riskLevel: "BAIXO" | "MODERADO" | "CRÍTICO" = "BAIXO";
+    let riskLevel: "BAIXO" | "MODERADO" | "ALTO" | "CRÍTICO" = "BAIXO";
     let riskColor = "text-net-green";
-    let riskBg = "bg-net-green/10";
-    let riskBorder = "border-net-green/20";
+    let riskBg = "bg-net-green/10 border-net-green/20";
+    let riskBorder = "border-net-green/30";
     let healthScore = "A+";
     let scoreColor = "text-net-green";
+    let barColor = "bg-net-green";
 
-    if (scoreNumeric < 45) {
+    if (scoreNumeric < 25) {
       riskLevel = "CRÍTICO";
       riskColor = "text-cost-red";
       riskBg = "bg-cost-red/10 border-cost-red/20";
       riskBorder = "border-cost-red/30";
-      healthScore = scoreNumeric < 30 ? "D-" : "D";
+      healthScore = "F";
       scoreColor = "text-cost-red animate-pulse-glow";
-    } else if (scoreNumeric < 75) {
-      riskLevel = "MODERADO";
+      barColor = "bg-cost-red";
+    } else if (scoreNumeric < 50) {
+      riskLevel = "ALTO";
       riskColor = "text-factoring-amber";
       riskBg = "bg-factoring-amber/10 border-factoring-amber/20";
       riskBorder = "border-factoring-amber/30";
-      healthScore = scoreNumeric < 60 ? "C" : "B";
+      healthScore = "D";
       scoreColor = "text-factoring-amber";
+      barColor = "bg-factoring-amber";
+    } else if (scoreNumeric < 75) {
+      riskLevel = "MODERADO";
+      riskColor = "text-yellow-500";
+      riskBg = "bg-yellow-500/10 border-yellow-500/20";
+      riskBorder = "border-yellow-500/30";
+      healthScore = scoreNumeric < 65 ? "C" : "B";
+      scoreColor = "text-yellow-500";
+      barColor = "bg-yellow-500";
     } else {
+      riskLevel = "BAIXO";
       healthScore = scoreNumeric >= 90 ? "A+" : "A";
     }
-
 
     return {
       dailySpeed, effectiveRate, totalDebt, totalSettled, totalBorrowed,
       liquidationRate, rolloverRate, monthlyAnticipationVolume,
       cashCommitmentPct, daysToClear, projectedInterest30d,
       projectedInterest1y, annualSavingsProjected,
-      riskLevel, riskColor, riskBg, riskBorder, healthScore, scoreColor, scoreNumeric,
+      riskLevel, riskColor, riskBg, riskBorder, healthScore, scoreColor, scoreNumeric, barColor,
     };
   }, [globalStats]);
 
@@ -1334,24 +1394,24 @@ const Historico = () => {
   return (
     <div className="min-h-screen">
       <AppHeader />
-      <main className="mx-auto w-full max-w-[1600px] px-4 md:px-8 lg:px-12 py-4 md:py-6 pb-36 space-y-8">
+      <main className="mx-auto w-full max-w-[1600px] px-2 md:px-4 lg:px-6 py-4 md:py-6 pb-36 space-y-8">
         <PageNav />
 
         {/* Summary panels — reflect selected period */}
-        {showAnalytics && (<>
+        {showHistory && (<>
         <section className="grid gap-4 md:grid-cols-3 animate-fade-up">
           <div className="relative overflow-hidden rounded-xl bg-gradient-net p-4 text-net-green-foreground panel-glow-net">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
             <div className="relative">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
+                  <div className="font-mono text-xs tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
                   <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums whitespace-nowrap">
                     {formatBRL(totals.presentValue)}
                   </div>
                 </div>
                 <div>
-                  <div className="font-mono text-[9px] tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
+                  <div className="font-mono text-xs tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
                   <div className="mt-1 font-display text-xl font-bold tabular-nums text-right opacity-90 whitespace-nowrap md:text-lg">
                     {formatBRL(dailyAvgNet)}
                   </div>
@@ -1360,13 +1420,13 @@ const Historico = () => {
               <div className="mt-3 h-px bg-white/20" />
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <div>
-                  <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">VALOR BRUTO</div>
+                  <div className="font-mono text-xs tracking-[0.3em] opacity-80">VALOR BRUTO</div>
                   <div className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap">
                     {formatBRL(totals.value)}
                   </div>
                 </div>
                 <div>
-                  <div className="font-mono text-[9px] tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
+                  <div className="font-mono text-xs tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
                   <div className="mt-1 font-display text-lg font-semibold tabular-nums text-right opacity-90 whitespace-nowrap">
                     {formatBRL(dailyAvgBruto)}
                   </div>
@@ -1380,13 +1440,13 @@ const Historico = () => {
             <div className="relative">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">CUSTO</div>
+                  <div className="font-mono text-xs tracking-[0.3em] opacity-80">CUSTO</div>
                   <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums whitespace-nowrap">
                     {formatBRL(totals.cost)}
                   </div>
                 </div>
                 <div>
-                  <div className="font-mono text-[9px] tracking-[0.3em] opacity-80 text-right">TAXA EFETIVA</div>
+                  <div className="font-mono text-xs tracking-[0.3em] opacity-80 text-right">TAXA EFETIVA</div>
                   <div className="mt-1 font-display text-xl font-bold tabular-nums text-right whitespace-nowrap md:text-lg">
                     {formatPct(totalEffective)}
                   </div>
@@ -1395,13 +1455,13 @@ const Historico = () => {
               <div className="mt-3 h-px bg-white/20" />
               <div className="grid grid-cols-2 gap-3 mt-3">
                 <div>
-                  <div className="font-mono text-[9px] tracking-[0.3em] opacity-80">ECONOMIA FACTORING</div>
+                  <div className="font-mono text-xs tracking-[0.3em] opacity-80">ECONOMIA FACTORING</div>
                   <div className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap">
                     {formatBRL(factoringSavings)}
                   </div>
                 </div>
                 <div>
-                  <div className="font-mono text-[9px] tracking-[0.3em] opacity-80 text-right">TAXA EFETIVA</div>
+                  <div className="font-mono text-xs tracking-[0.3em] opacity-80 text-right">TAXA EFETIVA</div>
                   <div className="mt-1 font-display text-lg font-semibold tabular-nums text-right whitespace-nowrap">
                     {formatPct(factoringEffectiveRate)}
                   </div>
@@ -1415,13 +1475,13 @@ const Historico = () => {
             <div className="relative flex flex-col h-full">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">VALOR EM ABERTO</div>
+                  <div className="font-mono text-xs tracking-[0.3em] opacity-90">VALOR EM ABERTO</div>
                   <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums whitespace-nowrap">
                     {formatBRL(openPresent)}
                   </div>
                 </div>
                 <div>
-                  <div className="font-mono text-[9px] tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
+                  <div className="font-mono text-xs tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
                   <div className="mt-1 font-display text-lg font-semibold tabular-nums text-right opacity-90 whitespace-nowrap">
                     {formatBRL(dailyAvgOpen)}
                   </div>
@@ -1431,13 +1491,13 @@ const Historico = () => {
               <div className="mt-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <div className="font-mono text-[9px] tracking-[0.3em] opacity-90">VALOR LIQUIDADO</div>
+                    <div className="font-mono text-xs tracking-[0.3em] opacity-90">VALOR LIQUIDADO</div>
                     <div className="mt-1 font-display text-lg font-semibold tabular-nums whitespace-nowrap">
                       {formatBRL(settledPresent)}
                     </div>
                   </div>
                   <div>
-                    <div className="font-mono text-[9px] tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
+                    <div className="font-mono text-xs tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
                     <div className="mt-1 font-display text-lg font-semibold tabular-nums text-right opacity-90 whitespace-nowrap">
                       {formatBRL(dailyAvgSettled)}
                     </div>
@@ -1448,6 +1508,253 @@ const Historico = () => {
           </div>
         </section>
         </>)}
+
+        {showAnalytics && (
+        /* Score Evolution Chart */
+        <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up">
+          <div className="grid gap-6 md:grid-cols-12 items-stretch">
+            {/* Left: Score chart */}
+            <div className="md:col-span-8 lg:col-span-9 flex flex-col justify-between">
+              <div>
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                    <h2 className="font-display text-xl font-semibold tracking-tight">
+                      Evolução do Score Financeiro
+                    </h2>
+                  </div>
+                  <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
+                    PERÍODO: {periodDays} {periodDays === 1 ? "DIA" : "DIAS"}
+                  </span>
+                </div>
+                <div className="h-64 w-full">
+                  {chartData.length === 0 ? (
+                    <div className="flex h-full items-center justify-center font-mono text-xs tracking-widest text-muted-foreground">
+                      SEM DADOS NO PERÍODO
+                    </div>
+                  ) : (
+                    (() => {
+                      const gradId = "scoreGrad-" + chartGradId;
+                      const monthBoundaries: string[] = [];
+                      for (let i = 1; i < chartData.length; i++) {
+                        const prevMonth = chartData[i - 1].date.slice(5, 7);
+                        const currMonth = chartData[i].date.slice(5, 7);
+                        if (prevMonth !== currMonth) {
+                          monthBoundaries.push(chartData[i].date);
+                        }
+                      }
+                      const maxScore = Math.max(1, ...chartData.map((d) => d.score ?? 0));
+                      const minScore = Math.min(maxScore, ...chartData.map((d) => d.score ?? 0));
+                      const lineRange = maxScore - minScore;
+                      const clamp = (val: number) => Math.max(0, Math.min(1, val));
+                      
+                      // Area stops: 0 to maxScore
+                      const areaStopGreen = clamp((maxScore - 75) / maxScore);
+                      const areaStopYellow = clamp((maxScore - 50) / maxScore);
+                      const areaStopOrange = clamp((maxScore - 25) / maxScore);
+
+                      // Line stops: minScore to maxScore
+                      const lineStopGreen = lineRange > 0
+                        ? clamp((maxScore - 75) / lineRange)
+                        : (maxScore >= 75 ? 1 : 0);
+                      const lineStopYellow = lineRange > 0
+                        ? clamp((maxScore - 50) / lineRange)
+                        : (maxScore >= 50 ? 1 : 0);
+                      const lineStopOrange = lineRange > 0
+                        ? clamp((maxScore - 25) / lineRange)
+                        : (maxScore >= 25 ? 1 : 0);
+
+                      return (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                            <defs>
+                              <linearGradient id={`areaGradScore-${gradId}`} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="hsl(var(--net-green))" stopOpacity={0.4} />
+                                <stop offset={`${areaStopGreen * 100}%`} stopColor="hsl(var(--net-green))" stopOpacity={0.4} />
+                                <stop offset={`${areaStopGreen * 100}%`} stopColor="#eab308" stopOpacity={0.4} />
+                                <stop offset={`${areaStopYellow * 100}%`} stopColor="#eab308" stopOpacity={0.4} />
+                                <stop offset={`${areaStopYellow * 100}%`} stopColor="hsl(var(--factoring-amber))" stopOpacity={0.4} />
+                                <stop offset={`${areaStopOrange * 100}%`} stopColor="hsl(var(--factoring-amber))" stopOpacity={0.4} />
+                                <stop offset={`${areaStopOrange * 100}%`} stopColor="hsl(var(--cost-red))" stopOpacity={0.4} />
+                                <stop offset="100%" stopColor="hsl(var(--cost-red))" stopOpacity={0.4} />
+                              </linearGradient>
+                              <linearGradient id={`lineGradScore-${gradId}`} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="hsl(var(--net-green))" stopOpacity={1} />
+                                <stop offset={`${lineStopGreen * 100}%`} stopColor="hsl(var(--net-green))" stopOpacity={1} />
+                                <stop offset={`${lineStopGreen * 100}%`} stopColor="#eab308" stopOpacity={1} />
+                                <stop offset={`${lineStopYellow * 100}%`} stopColor="#eab308" stopOpacity={1} />
+                                <stop offset={`${lineStopYellow * 100}%`} stopColor="hsl(var(--factoring-amber))" stopOpacity={1} />
+                                <stop offset={`${lineStopOrange * 100}%`} stopColor="hsl(var(--factoring-amber))" stopOpacity={1} />
+                                <stop offset={`${lineStopOrange * 100}%`} stopColor="hsl(var(--cost-red))" stopOpacity={1} />
+                                <stop offset="100%" stopColor="hsl(var(--cost-red))" stopOpacity={1} />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--muted-foreground))" opacity={0.4} vertical={true} horizontal={true} />
+                            {monthBoundaries.map((dateKey) => (
+                              <ReferenceLine
+                                key={dateKey}
+                                x={dateKey}
+                                stroke="hsl(var(--muted-foreground))"
+                                strokeDasharray="4 4"
+                                strokeWidth={2}
+                                opacity={0.6}
+                              />
+                            ))}
+                            <XAxis
+                              dataKey="date"
+                              interval={0}
+                              tickFormatter={(val, index) => {
+                                const total = chartData.length;
+                                const nth = total > 40 ? 10 : total > 20 ? 5 : total > 10 ? 2 : 1;
+                                if (index !== 0 && index !== total - 1 && index % nth !== 0) return "";
+                                const parts = val.split("-");
+                                if (parts.length === 3) return parts[2];
+                                return val;
+                              }}
+                              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                              stroke="hsl(var(--border))"
+                            />
+                            <YAxis
+                              domain={[0, 100]}
+                              axisLine={false}
+                              tickLine={false}
+                              tickMargin={4}
+                              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                              stroke="hsl(var(--border))"
+                              tickFormatter={(v) => `${v}`}
+                            />
+                            <Tooltip
+                              cursor={{ strokeWidth: 0, stroke: "transparent", fill: "transparent" }}
+                              content={({ active, payload }) => {
+                                if (active && payload && payload.length) {
+                                  const data = payload[0].payload;
+                                  return (
+                                    <div
+                                      style={{
+                                        background: "hsl(var(--popover))",
+                                        border: "1px solid hsl(var(--border))",
+                                        borderRadius: 8,
+                                        padding: "8px 12px",
+                                        fontFamily: "JetBrains Mono, monospace",
+                                        fontSize: 13,
+                                      }}
+                                    >
+                                      <div style={{ color: "hsl(var(--foreground))", marginBottom: 4, fontWeight: 500 }}>
+                                        {data.label} {data.date !== "agora" ? `- ${weekdayShortPt(data.date.slice(0, 10))}` : ""}
+                                      </div>
+                                      <div style={{ color: "hsl(var(--primary))", fontWeight: 600 }}>
+                                        Score: {data.score}
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              }}
+                            />
+                            <Area
+                              type="monotone"
+                              dataKey="score"
+                              name="Score"
+                              stroke={`url(#lineGradScore-${gradId})`}
+                              strokeWidth={2.5}
+                              fill={`url(#areaGradScore-${gradId})`}
+                              isAnimationActive={true}
+                              animationDuration={900}
+                              animationEasing="ease-out"
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      );
+                    })()
+                  )}
+                </div>
+                {chartData.length > 0 && (() => {
+                  const monthSegs: { key: string; label: string; count: number }[] = [];
+                  for (const p of chartData) {
+                    const [y, m] = p.date.split("-");
+                    const key = `${y}-${m}`;
+                    const label = MONTHS_PT[parseInt(m, 10) - 1] || m;
+                    const last = monthSegs[monthSegs.length - 1];
+                    if (last && last.key === key) last.count += 1;
+                    else monthSegs.push({ key, label, count: 1 });
+                  }
+                  const segs: { year: string; count: number }[] = [];
+                  for (const p of chartData) {
+                    const y = yearOf(p.date);
+                    const last = segs[segs.length - 1];
+                    if (last && last.year === y) last.count += 1;
+                    else segs.push({ year: y, count: 1 });
+                  }
+                  const total = chartData.length;
+                  return (
+                    <>
+                      <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: 30, marginRight: 20 }}>
+                        {monthSegs.map((s, i) => (
+                          <div
+                            key={i}
+                            className="text-center font-mono text-[10px] tracking-[0.2em] text-muted-foreground py-1 overflow-hidden whitespace-nowrap"
+                            style={{ flex: s.count / total }}
+                          >
+                            {s.label}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-1 flex" style={{ marginLeft: 30, marginRight: 20 }}>
+                        {segs.map((s, i) => (
+                          <div
+                            key={i}
+                            className="text-center font-mono text-[10px] tracking-[0.25em] text-muted-foreground"
+                            style={{ flex: s.count / total }}
+                          >
+                            {s.year}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* Right: Placa de Diagnóstico/Score Card */}
+            <div className="md:col-span-4 lg:col-span-3 flex flex-col justify-between rounded-xl border border-border/50 bg-background/30 p-6 shadow-panel items-center text-center">
+              <div className="space-y-2">
+                <div className="font-mono text-xs tracking-widest text-muted-foreground uppercase">DIAGNÓSTICO DE RISCO</div>
+                <div className={cn("inline-flex items-center rounded-full px-3 py-1 font-mono text-xs tracking-widest font-bold", alertMetrics.riskColor, alertMetrics.riskBg)}>
+                  {alertMetrics.riskLevel}
+                </div>
+              </div>
+
+              {/* Placa do Score */}
+              <div className="my-4">
+                <div className="font-mono text-xs tracking-widest text-muted-foreground uppercase">SCORE DE SAÚDE</div>
+                <div className={cn("font-display text-6xl font-extrabold tracking-tight mt-2 flex items-baseline gap-2", alertMetrics.scoreColor)}>
+                  <span>{alertMetrics.scoreNumeric}</span>
+                  <span className="text-4xl opacity-80">({alertMetrics.healthScore})</span>
+                </div>
+                <div className="font-mono text-[10px] tracking-widest text-muted-foreground mt-2">MYKA FINANCIAL SCORE</div>
+              </div>
+
+              {/* Pequeno gráfico de progresso (comprometimento de receita) */}
+              <div className="w-full space-y-2">
+                <div className="flex justify-between font-mono text-[10px] tracking-widest text-muted-foreground">
+                  <span>RECEITA FUTURA COMPROMETIDA</span>
+                  <span>{formatPct(alertMetrics.cashCommitmentPct)}</span>
+                </div>
+                <div className="h-1.5 w-full bg-muted/60 rounded-full overflow-hidden">
+                  <div 
+                    className={cn(
+                      "h-full rounded-full transition-all duration-500",
+                      alertMetrics.barColor
+                    )}
+                    style={{ width: `${Math.min(100, alertMetrics.cashCommitmentPct)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        )}
 
         {showHistory && (
         /* Chart */
@@ -1551,13 +1858,16 @@ const Historico = () => {
                       <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--muted-foreground))" opacity={0.4} vertical={true} horizontal={true} />
                       <XAxis
                         dataKey="date"
-                        interval={period === "semana" ? 0 : "preserveStartEnd"}
-                        tickFormatter={(val) => {
+                        interval={0}
+                        tickFormatter={(val, index) => {
+                          const total = chartData.length;
+                          const nth = total > 40 ? 10 : total > 20 ? 5 : total > 10 ? 2 : 1;
+                          if (index !== 0 && index !== total - 1 && index % nth !== 0) return "";
                           const parts = val.split("-");
                           if (parts.length === 3) return parts[2];
                           return val;
                         }}
-                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                         stroke="hsl(var(--border))"
                       />
                       <YAxis
@@ -1566,7 +1876,7 @@ const Historico = () => {
                         axisLine={false}
                         tickLine={false}
                         tickMargin={4}
-                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                         stroke="hsl(var(--border))"
                         tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}K`}
                       />
@@ -1577,7 +1887,7 @@ const Historico = () => {
                         axisLine={false}
                         tickLine={false}
                         tickMargin={4}
-                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                         stroke="hsl(var(--border))"
                         tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}K`}
                       />
@@ -1597,7 +1907,7 @@ const Historico = () => {
                                   borderRadius: 8,
                                   padding: "8px 12px",
                                   fontFamily: "JetBrains Mono, monospace",
-                                  fontSize: 12,
+                                  fontSize: 13,
                                 }}
                               >
                                 <div style={{ color: "hsl(var(--foreground))", marginBottom: 4, fontWeight: 500 }}>
@@ -1607,12 +1917,12 @@ const Historico = () => {
                                   Saldo Aberto: {formatBRL(saldoVal as number)}
                                 </div>
                                 {data.saldoConta !== undefined && (
-                                  <div style={{ color: "hsl(var(--muted-foreground))", marginTop: 4, fontSize: 11 }}>
+                                  <div style={{ color: "hsl(var(--muted-foreground))", marginTop: 4, fontSize: 12 }}>
                                     Saldo Conta: {formatBRL(data.saldoConta)}
                                   </div>
                                 )}
                                 {data.daysToClearRaw !== undefined && data.daysToClearRaw > 0 && (
-                                  <div style={{ color: "hsl(var(--primary))", marginTop: 4, fontSize: 11 }}>
+                                  <div style={{ color: "hsl(var(--primary))", marginTop: 4, fontSize: 12 }}>
                                     Prazo Máx. Liquidação: {data.daysToClearRaw} dias
                                   </div>
                                 )}
@@ -1768,202 +2078,128 @@ const Historico = () => {
                 Análise de Compromisso e Saúde Financeira
               </h2>
             </div>
-            
-            {/* Tabs para navegar nas análises */}
-            <div className="inline-flex rounded-lg border border-border/50 bg-background/40 p-0.5 gap-0.5 self-start md:self-auto font-mono text-[9px] tracking-widest">
-              <button
-                onClick={() => setActiveAlertTab("diaria")}
-                className={cn(
-                  "rounded-md px-3 py-1.5 transition-all",
-                  activeAlertTab === "diaria"
-                    ? "bg-primary text-primary-foreground font-semibold"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                DIÁRIA & VELOCIDADE
-              </button>
-              <button
-                onClick={() => setActiveAlertTab("mensal")}
-                className={cn(
-                  "rounded-md px-3 py-1.5 transition-all",
-                  activeAlertTab === "mensal"
-                    ? "bg-primary text-primary-foreground font-semibold"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                PROJEÇÃO MENSAL
-              </button>
-              <button
-                onClick={() => setActiveAlertTab("anual")}
-                className={cn(
-                  "rounded-md px-3 py-1.5 transition-all",
-                  activeAlertTab === "anual"
-                    ? "bg-primary text-primary-foreground font-semibold"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                VISÃO ANUAL & SCORE
-              </button>
-            </div>
           </div>
 
-
-
-
-
-          <div className="grid gap-6 md:grid-cols-12 items-stretch">
-            {/* Esquerda: O diagnóstico em texto corrido e interativo */}
-            <div className="md:col-span-8 space-y-4 flex flex-col justify-between">
-              {activeAlertTab === "diaria" && (
-                <div className="space-y-4 animate-fade-in">
-                  <p className="text-sm text-justify text-foreground/90 leading-relaxed font-sans">
-                    A empresa está antecipando recebíveis a uma velocidade média de{" "}
-                    <strong className="text-primary-glow font-mono text-base">{formatBRL(alertMetrics.dailySpeed)}/dia útil</strong>. 
-                    Isso significa que seu fluxo de caixa futuro está sendo consumido de forma contínua para cobrir despesas de curto prazo.
-                  </p>
-                  <p className="text-sm text-justify text-foreground/90 leading-relaxed font-sans">
-                    Atualmente, o saldo bruto total já antecipado e em aberto é de{" "}
-                    <strong className="text-cost-red font-mono text-base">{formatBRL(alertMetrics.totalDebt)}</strong>. 
-                    Se a empresa parasse de realizar novas antecipações hoje, ela levaria aproximadamente{" "}
-                    <strong className="text-foreground font-mono text-base">{Math.ceil(alertMetrics.daysToClear)} dias úteis</strong> para liquidar todo o saldo devedor pendente através dos recebimentos normais.
-                  </p>
-                  <p className="text-sm text-justify text-foreground/90 leading-relaxed font-sans">
-                    Adicionalmente, detectamos um comportamento de **Rolagem de Recebíveis (Re-empréstimo)**. Do volume total captado no período (<strong>{formatBRL(alertMetrics.totalBorrowed)}</strong>), apenas <strong>{formatPct(alertMetrics.liquidationRate)}</strong> foi liquidado de fato (<strong>{formatBRL(alertMetrics.totalSettled)}</strong>). Isso significa que <strong>{formatPct(alertMetrics.rolloverRate)}</strong> do capital está sendo re-emprestado de imediato, gerando um acúmulo acelerado de juros e dependência de novas antecipações para pagar títulos antigos.
-                  </p>
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 font-mono text-[9px] tracking-wider text-primary border border-primary/20">
-                      VELOCIDADE DIÁRIA: {formatBRL(alertMetrics.dailySpeed)}
-                    </span>
-                    <span className="inline-flex items-center rounded-full bg-white/5 px-2.5 py-0.5 font-mono text-[9px] tracking-wider text-muted-foreground border border-border/30">
-                      TAXA EFETIVA MÉDIA: {formatPct(alertMetrics.effectiveRate)}
-                    </span>
-                    <span className={cn(
-                      "inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[9px] tracking-wider border",
-                      alertMetrics.rolloverRate >= 70 
-                        ? "bg-cost-red/10 text-cost-red border-cost-red/20" 
-                        : "bg-white/5 text-muted-foreground border-border/30"
-                    )}>
-                      ÍNDICE DE RE-EMPRÉSTIMO (ROLAGEM): {formatPct(alertMetrics.rolloverRate)}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {activeAlertTab === "mensal" && (
-                <div className="space-y-4 animate-fade-in">
-                  <p className="text-sm text-justify text-foreground/90 leading-relaxed font-sans">
-                    Com ritmo de antecipações atual, o volume projetado de novos recebíveis antecipados para os próximos 30 dias é de{" "}
-                    <strong className="text-primary-glow font-mono text-base">{formatBRL(alertMetrics.monthlyAnticipationVolume)}</strong>. 
-                    Deste montante, o custo financeiro direto de juros e taxas consumirá cerca de{" "}
-                    <strong className="text-cost-red font-mono text-base">{formatBRL(alertMetrics.projectedInterest30d)}</strong> de caixa líquido.
-                  </p>
-                  <p className="text-sm text-justify text-foreground/90 leading-relaxed font-sans">
-                    O grau de comprometimento da receita mensal está em{" "}
-                    <strong className={cn("font-mono text-base", alertMetrics.riskColor)}>{formatPct(alertMetrics.cashCommitmentPct)}</strong>.
-                    {alertMetrics.cashCommitmentPct >= 60 ? (
-                      <span> Este nível é considerado <strong className="text-cost-red">Crítico</strong>, o que significa que mais da metade do faturamento projetado já está pré-comprometido antes mesmo de entrar, criando um ciclo contínuo de dependência financeira.</span>
-                    ) : alertMetrics.cashCommitmentPct >= 25 ? (
-                      <span> Este nível requer <strong className="text-factoring-amber">Atenção</strong>. Embora administrável, recomenda-se alongar prazos com fornecedores para reduzir o ritmo de antecipações diárias.</span>
-                    ) : (
-                      <span> Este nível é considerado <strong className="text-net-green">Saudável</strong>. As antecipações estão alinhadas à capacidade operacional de curto prazo sem pressionar o fluxo de caixa futuro.</span>
-                    )}
-                  </p>
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    <span className="inline-flex items-center rounded-full bg-white/5 px-2.5 py-0.5 font-mono text-[9px] tracking-wider text-muted-foreground border border-border/30">
-                      JUROS PROJETADOS (30D): {formatBRL(alertMetrics.projectedInterest30d)}
-                    </span>
-                    <span className="inline-flex items-center rounded-full bg-white/5 px-2.5 py-0.5 font-mono text-[9px] tracking-wider text-muted-foreground border border-border/30">
-                      COMPROMETIMENTO: {formatPct(alertMetrics.cashCommitmentPct)}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {activeAlertTab === "anual" && (
-                <div className="space-y-4 animate-fade-in">
-                  <p className="text-sm text-justify text-foreground/90 leading-relaxed font-sans">
-                    A projeção em escala anual mantendo a atual taxa efetiva indica um pagamento acumulado de juros de{" "}
-                    <strong className="text-cost-red font-mono text-base">{formatBRL(alertMetrics.projectedInterest1y)}</strong> ao ano.
-                    Esta é a quantia que deixará de entrar diretamente no caixa líquido da sua empresa.
-                  </p>
-                  <p className="text-sm text-justify text-foreground/90 leading-relaxed font-sans">
-                    Por outro lado, o uso do MykaCash em comparação com as taxas tradicionais de mercado (Factoring) está gerando uma economia anual projetada de{" "}
-                    <strong className="text-net-green font-mono text-base">{formatBRL(alertMetrics.annualSavingsProjected)}</strong>. 
-                    Isto demonstra o impacto positivo da gestão interna de crédito e taxas de repasse.
-                  </p>
-                  <div className="flex flex-wrap gap-2 pt-2 font-mono text-[9px] tracking-wider">
-                    <span className="inline-flex items-center rounded-full bg-cost-red/10 px-2.5 py-0.5 text-cost-red border border-cost-red/20">
-                      CUSTO DE ANTECIPAÇÃO ANUAL PROJETADO: {formatBRL(alertMetrics.projectedInterest1y)}
-                    </span>
-                    <span className="inline-flex items-center rounded-full bg-net-green/10 px-2.5 py-0.5 text-net-green border border-net-green/20">
-                      ECONOMIA ANUAL GERADA: {formatBRL(alertMetrics.annualSavingsProjected)}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Dica Esperta do Consultor */}
-              <div
-                key={`advisor-${eventCount}-${alertMetrics.scoreNumeric}`}
-                className={cn(
-                  "mt-4 p-3 rounded-lg border flex items-start gap-2.5 animate-fade-in",
-                  advisorRecommendation.tone === "up" && "border-net-green/40 bg-net-green/5",
-                  advisorRecommendation.tone === "warn" && "border-factoring-amber/40 bg-factoring-amber/5",
-                  advisorRecommendation.tone === "down" && "border-cost-red/40 bg-cost-red/5",
-                  advisorRecommendation.tone === "neutral" && "border-border/40 bg-muted/20",
-                )}
-              >
-                <span className="text-xs animate-pulse drop-shadow-[0_0_6px_rgba(250,204,21,0.8)]">💡</span>
-                <div className="space-y-0.5">
-                  <div className="font-mono text-[9px] tracking-wider text-muted-foreground uppercase">
-                    Recomendação do Consultor AI · {advisorRecommendation.headline}
-                  </div>
-                  <p className="text-xs text-justify text-muted-foreground leading-normal font-sans">
-                    {advisorRecommendation.body}
-                  </p>
+          <div className="w-full space-y-6 flex flex-col justify-between">
+            <div className="space-y-6">
+              {/* Diária & Velocidade */}
+              <div className="space-y-3">
+                <h3 className="font-mono text-sm tracking-wider text-primary font-bold uppercase">
+                  Diária & Velocidade
+                </h3>
+                <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
+                  A empresa está antecipando recebíveis a uma velocidade média de{" "}
+                  <strong className="text-primary-glow font-mono text-base">{formatBRL(alertMetrics.dailySpeed)}/dia útil</strong>. 
+                  Isso significa que seu fluxo de caixa futuro está sendo consumido de forma contínua para cobrir despesas de curto prazo.
+                </p>
+                <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
+                  Atualmente, o saldo bruto total já antecipado e em aberto é de{" "}
+                  <strong className="text-cost-red font-mono text-base">{formatBRL(alertMetrics.totalDebt)}</strong>. 
+                  Se a empresa parasse de realizar novas antecipações hoje, ela levaria aproximadamente{" "}
+                  <strong className="text-foreground font-mono text-base">{Math.ceil(alertMetrics.daysToClear)} dias úteis</strong> para liquidar todo o saldo devedor pendente através dos recebimentos normais.
+                </p>
+                <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
+                  Adicionalmente, detectamos um comportamento de **Rolagem de Recebíveis (Re-empréstimo)**. Do volume total captado no período (<strong>{formatBRL(alertMetrics.totalBorrowed)}</strong>), apenas <strong>{formatPct(alertMetrics.liquidationRate)}</strong> foi liquidado de fato (<strong>{formatBRL(alertMetrics.totalSettled)}</strong>). Isso significa que <strong>{formatPct(alertMetrics.rolloverRate)}</strong> do capital está sendo re-emprestado de imediato, gerando um acúmulo acelerado de juros e dependência de novas antecipações para pagar títulos antigos.
+                </p>
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 font-mono text-[9px] tracking-wider text-primary border border-primary/20">
+                    VELOCIDADE DIÁRIA: {formatBRL(alertMetrics.dailySpeed)}
+                  </span>
+                  <span className="inline-flex items-center rounded-full bg-white/5 px-2.5 py-0.5 font-mono text-[9px] tracking-wider text-muted-foreground border border-border/30">
+                    TAXA EFETIVA MÉDIA: {formatPct(alertMetrics.effectiveRate)}
+                  </span>
+                  <span className={cn(
+                    "inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[9px] tracking-wider border",
+                    alertMetrics.rolloverRate >= 70 
+                      ? "bg-cost-red/10 text-cost-red border-cost-red/20" 
+                      : "bg-white/5 text-muted-foreground border-border/30"
+                  )}>
+                    ÍNDICE DE RE-EMPRÉSTIMO (ROLAGEM): {formatPct(alertMetrics.rolloverRate)}
+                  </span>
                 </div>
               </div>
 
+              <hr className="border-border/30" />
+
+              {/* Projeção Mensal */}
+              <div className="space-y-3">
+                <h3 className="font-mono text-sm tracking-wider text-primary font-bold uppercase">
+                  Projeção Mensal
+                </h3>
+                <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
+                  Com ritmo de antecipações atual, o volume projetado de novos recebíveis antecipados para os próximos 30 dias é de{" "}
+                  <strong className="text-primary-glow font-mono text-base">{formatBRL(alertMetrics.monthlyAnticipationVolume)}</strong>. 
+                  Deste montante, o custo financeiro direto de juros e taxas consumirá cerca de{" "}
+                  <strong className="text-cost-red font-mono text-base">{formatBRL(alertMetrics.projectedInterest30d)}</strong> de caixa líquido.
+                </p>
+                <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
+                  O grau de comprometimento da receita mensal está em{" "}
+                  <strong className={cn("font-mono text-base", alertMetrics.riskColor)}>{formatPct(alertMetrics.cashCommitmentPct)}</strong>.
+                  {alertMetrics.cashCommitmentPct >= 60 ? (
+                    <span> Este nível é considerado <strong className="text-cost-red">Crítico</strong>, o que significa que mais da metade do faturamento projetado já está pré-comprometido antes mesmo de entrar, criando um ciclo contínuo de dependência financeira.</span>
+                  ) : alertMetrics.cashCommitmentPct >= 25 ? (
+                    <span> Este nível requer <strong className="text-factoring-amber">Atenção</strong>. Embora administrável, recomenda-se alongar prazos com fornecedores para reduzir o ritmo de antecipações diárias.</span>
+                  ) : (
+                    <span> Este nível é considerado <strong className="text-net-green">Saudável</strong>. As antecipações estão alinhadas à capacidade operacional de curto prazo sem pressionar o fluxo de caixa futuro.</span>
+                  )}
+                </p>
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <span className="inline-flex items-center rounded-full bg-white/5 px-2.5 py-0.5 font-mono text-[9px] tracking-wider text-muted-foreground border border-border/30">
+                    JUROS PROJETADOS (30D): {formatBRL(alertMetrics.projectedInterest30d)}
+                  </span>
+                  <span className="inline-flex items-center rounded-full bg-white/5 px-2.5 py-0.5 font-mono text-[9px] tracking-wider text-muted-foreground border border-border/30">
+                    COMPROMETIMENTO: {formatPct(alertMetrics.cashCommitmentPct)}
+                  </span>
+                </div>
+              </div>
+
+              <hr className="border-border/30" />
+
+              {/* Visão Anual */}
+              <div className="space-y-3">
+                <h3 className="font-mono text-sm tracking-wider text-primary font-bold uppercase">
+                  Visão Anual
+                </h3>
+                <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
+                  A projeção em escala anual mantendo a atual taxa efetiva indica um pagamento acumulado de juros de{" "}
+                  <strong className="text-cost-red font-mono text-base">{formatBRL(alertMetrics.projectedInterest1y)}</strong> ao ano.
+                  Esta é a quantia que deixará de entrar diretamente no caixa líquido da sua empresa.
+                </p>
+                <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
+                  Por outro lado, o uso do MykaCash em comparação com as taxas tradicionais de mercado (Factoring) está gerando uma economia anual projetada de{" "}
+                  <strong className="text-net-green font-mono text-base">{formatBRL(alertMetrics.annualSavingsProjected)}</strong>. 
+                  Isto demonstra o impacto positivo da gestão interna de crédito e taxas de repasse.
+                </p>
+                <div className="flex flex-wrap gap-2 pt-2 font-mono text-[9px] tracking-wider">
+                  <span className="inline-flex items-center rounded-full bg-cost-red/10 px-2.5 py-0.5 text-cost-red border border-cost-red/20">
+                    CUSTO DE ANTECIPAÇÃO ANUAL PROJETADO: {formatBRL(alertMetrics.projectedInterest1y)}
+                  </span>
+                  <span className="inline-flex items-center rounded-full bg-net-green/10 px-2.5 py-0.5 text-net-green border border-net-green/20">
+                    ECONOMIA ANUAL GERADA: {formatBRL(alertMetrics.annualSavingsProjected)}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            {/* Direita: Placa de Diagnóstico/Score Card */}
-            <div className="md:col-span-4 flex flex-col justify-between rounded-xl border border-border/50 bg-background/30 p-6 shadow-panel items-center text-center">
-              <div className="space-y-2">
-                <div className="font-mono text-xs tracking-widest text-muted-foreground uppercase">DIAGNÓSTICO DE RISCO</div>
-                <div className={cn("inline-flex items-center rounded-full px-3 py-1 font-mono text-xs tracking-widest font-bold", alertMetrics.riskColor, alertMetrics.riskBg)}>
-                  {alertMetrics.riskLevel}
+            {/* Dica Esperta do Consultor */}
+            <div
+              key={`advisor-${eventCount}-${alertMetrics.scoreNumeric}`}
+              className={cn(
+                "mt-4 p-3 rounded-lg border flex items-start gap-2.5 animate-fade-in",
+                advisorRecommendation.tone === "up" && "border-net-green/40 bg-net-green/5",
+                advisorRecommendation.tone === "warn" && "border-factoring-amber/40 bg-factoring-amber/5",
+                advisorRecommendation.tone === "down" && "border-cost-red/40 bg-cost-red/5",
+                advisorRecommendation.tone === "neutral" && "border-border/40 bg-muted/20",
+              )}
+            >
+              <span className="text-xs animate-pulse drop-shadow-[0_0_6px_rgba(250,204,21,0.8)]">💡</span>
+              <div className="space-y-0.5">
+                <div className="font-mono text-[9px] tracking-wider text-muted-foreground uppercase">
+                  Recomendação do Consultor AI · {advisorRecommendation.headline}
                 </div>
-              </div>
-
-              {/* Placa do Score */}
-              <div className="my-4">
-                <div className="font-mono text-xs tracking-widest text-muted-foreground uppercase">SCORE DE SAÚDE</div>
-                <div className={cn("font-display text-6xl font-extrabold tracking-tight mt-2 flex items-baseline gap-2", alertMetrics.scoreColor)}>
-                  <span>{alertMetrics.scoreNumeric}</span>
-                  <span className="text-4xl opacity-80">({alertMetrics.healthScore})</span>
-                </div>
-                <div className="font-mono text-[10px] tracking-widest text-muted-foreground mt-2">MYKA FINANCIAL SCORE</div>
-              </div>
-
-              {/* Pequeno gráfico de progresso (comprometimento de receita) */}
-              <div className="w-full space-y-2">
-                <div className="flex justify-between font-mono text-[10px] tracking-widest text-muted-foreground">
-                  <span>RECEITA FUTURA COMPROMETIDA</span>
-                  <span>{formatPct(alertMetrics.cashCommitmentPct)}</span>
-                </div>
-                <div className="h-1.5 w-full bg-muted/60 rounded-full overflow-hidden">
-                  <div 
-                    className={cn(
-                      "h-full rounded-full transition-all duration-500",
-                      alertMetrics.cashCommitmentPct >= 60 
-                        ? "bg-cost-red" 
-                        : alertMetrics.cashCommitmentPct >= 25 
-                        ? "bg-factoring-amber" 
-                        : "bg-net-green"
-                    )}
-                    style={{ width: `${Math.min(100, alertMetrics.cashCommitmentPct)}%` }}
-                  />
-                </div>
+                <p className="text-sm text-justify text-muted-foreground leading-normal font-sans">
+                  {advisorRecommendation.body}
+                </p>
               </div>
             </div>
           </div>
@@ -1981,7 +2217,7 @@ const Historico = () => {
               <span className="h-2 w-2 rounded-full animate-color-cycle" />
               <h2 className="font-display text-xl font-semibold tracking-tight">Histórico de Operações</h2>
             </div>
-            <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground">
+            <span className="font-mono text-xs md:text-sm tracking-[0.3em] text-muted-foreground">
               {invoices.length} {invoices.length === 1 ? "OPERAÇÃO" : "OPERAÇÕES"} · {filteredRows.length}{" "}
               {filteredRows.length === 1 ? "PARCELA" : "PARCELAS"}
             </span>
@@ -2032,12 +2268,12 @@ const Historico = () => {
                         <span className="font-display text-sm font-bold tracking-wider uppercase text-foreground">
                           {month.label}
                         </span>
-                        <span className="text-[9px] md:text-[10px] text-muted-foreground font-mono bg-muted/30 border border-border/20 px-2 py-0.5 rounded-full shrink-0">
+                        <span className="text-xs text-muted-foreground font-mono bg-muted/30 border border-border/20 px-2 py-0.5 rounded-full shrink-0">
                           {month.rows.length} {month.rows.length === 1 ? "parcela" : "parcelas"}
                         </span>
                       </div>
 
-                      <div className="font-mono text-[10px] md:text-xs flex flex-wrap gap-x-4 gap-y-1 items-center ml-auto">
+                      <div className="font-mono text-xs md:text-sm flex flex-wrap gap-x-4 gap-y-1 items-center ml-auto">
                         <span className="text-muted-foreground">
                           Bruto: <span className="font-bold text-foreground">{formatBRL(monthTotals.value)}</span>
                         </span>
@@ -2070,43 +2306,43 @@ const Historico = () => {
                                 }
                               >
                                 <div className="flex items-center justify-between">
-                                  <div className="font-mono text-[10px] tracking-widest text-primary-glow">
+                                  <div className="font-mono text-xs tracking-widest text-primary-glow">
                                     REG {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"} · NF {r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}
                                   </div>
                                   <div className="flex items-center gap-2">
                                     {r.settled ? (
-                                      <span className="rounded-full bg-factoring-amber/20 px-2 py-0.5 font-mono text-[9px] tracking-widest text-factoring-amber">
+                                      <span className="rounded-full bg-factoring-amber/20 px-2 py-0.5 font-mono text-[10px] tracking-widest text-factoring-amber">
                                         LIQUIDADA
                                       </span>
                                     ) : r.overdue ? (
-                                      <span className="rounded-full bg-cost-red/20 px-2 py-0.5 font-mono text-[9px] tracking-widest text-cost-red">
+                                      <span className="rounded-full bg-cost-red/20 px-2 py-0.5 font-mono text-[10px] tracking-widest text-cost-red">
                                         VENCIDA
                                       </span>
                                     ) : (
-                                      <span className="rounded-full bg-net-green/15 px-2 py-0.5 font-mono text-[9px] tracking-widest text-net-green">
+                                      <span className="rounded-full bg-net-green/15 px-2 py-0.5 font-mono text-[10px] tracking-widest text-net-green">
                                         ANDAMENTO
                                       </span>
                                     )}
                                   </div>
                                 </div>
                                 <div className="text-sm font-semibold truncate">{r.clientName}</div>
-                                <div className="font-mono text-[10px] text-muted-foreground">
+                                <div className="font-mono text-xs text-muted-foreground">
                                   OP {fmtDate(r.operationDate)} · VENC {fmtDate(r.dueDate)} · {r.days} DIAS
                                 </div>
-                                <div className="font-mono text-[10px] text-muted-foreground">
+                                <div className="font-mono text-xs text-muted-foreground">
                                   POR {r.createdBy}
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 pt-2 font-mono text-xs tabular-nums">
                                   <div>
-                                    <div className="text-[9px] tracking-widest text-muted-foreground">VALOR BRUTO</div>
+                                    <div className="text-[10px] tracking-widest text-muted-foreground">VALOR BRUTO</div>
                                     <div>{formatBRL(r.value)}</div>
                                   </div>
                                   <div>
-                                    <div className="text-[9px] tracking-widest text-muted-foreground">VALOR LÍQUIDO</div>
+                                    <div className="text-[10px] tracking-widest text-muted-foreground">VALOR LÍQUIDO</div>
                                     <div className="text-net-green">{formatBRL(r.presentValue)}</div>
                                   </div>
                                   <div>
-                                    <div className="text-[9px] tracking-widest text-muted-foreground">CUSTO</div>
+                                    <div className="text-[10px] tracking-widest text-muted-foreground">CUSTO</div>
                                     <div className="text-cost-red">{formatBRL(r.cost)}</div>
                                   </div>
                                 </div>
@@ -2115,7 +2351,7 @@ const Historico = () => {
                                     size="sm"
                                     variant="outline"
                                     onClick={() => toggleSettlement(r)}
-                                    className="font-mono text-[10px] tracking-widest"
+                                    className="font-mono text-xs tracking-widest"
                                   >
                                     {r.settled ? (
                                       <>
@@ -2157,7 +2393,7 @@ const Historico = () => {
 
                         {/* Desktop table */}
                         <div className="hidden md:block rounded-lg border border-border/50 overflow-hidden">
-                          <table className="w-full table-auto text-[10px] lg:text-[11px]">
+                          <table className="w-full table-auto text-xs lg:text-sm">
                             <thead className="bg-muted/40 font-mono tracking-widest">
                               <tr className="text-muted-foreground">
                                 <th className="px-1.5 py-2 text-center font-medium">REGISTRO</th>
@@ -2202,7 +2438,7 @@ const Historico = () => {
                                               : "Clique para marcar como LIQUIDADA"
                                           }
                                           className={
-                                            "group relative inline-block rounded-full px-2 py-0.5 text-[9px] tracking-widest transition-all cursor-pointer " +
+                                            "group relative inline-block rounded-full px-2 py-0.5 text-[10px] tracking-widest transition-all cursor-pointer " +
                                             (r.settled
                                               ? "bg-factoring-amber/20 text-factoring-amber hover:bg-factoring-amber/30"
                                               : r.overdue
@@ -2306,6 +2542,10 @@ const Historico = () => {
           </p>
         </section>
         </>)}
+
+        <footer className="border-t border-border/40 py-6 text-center mt-8">
+          <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">MYKACA$H · VERSÃO 3.0</p>
+        </footer>
       </main>
 
       {/* Fixed bottom filter bar */}
@@ -2330,10 +2570,6 @@ const Historico = () => {
           )}
         </DialogContent>
       </Dialog>
-
-      <footer className="border-t border-border/40 py-6 text-center">
-        <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">MYKACA$H · VERSÃO 2.6</p>
-      </footer>
 
       {/* Settlement Date Dialog */}
       <Dialog open={!!settlingRow} onOpenChange={(o) => !o && setSettlingRow(null)}>
