@@ -1,5 +1,6 @@
 // v2 - filtros fixos na base
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 import { AppHeader } from "@/components/AppHeader";
 import { PageNav } from "@/components/PageNav";
 import { RegistrationSection } from "@/components/RegistrationSection";
