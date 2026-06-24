@@ -9,7 +9,7 @@ import Index from "./pages/Index.tsx";
 import Login from "./pages/Login.tsx";
 import Admin from "./pages/Admin.tsx";
 import Historico from "./pages/Historico.tsx";
-import Financeiro from "./pages/Financeiro.tsx";
+import Analises from "./pages/Analises.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 import { useEffect } from "react";
@@ -79,10 +79,10 @@ const App = () => (
               }
             />
             <Route
-              path="/financeiro"
+              path="/analises"
               element={
                 <ProtectedRoute>
-                  <Financeiro />
+                  <Analises />
                 </ProtectedRoute>
               }
             />
