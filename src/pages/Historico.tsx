@@ -1447,8 +1447,10 @@ const Historico = () => {
             </div>
           </div>
         </section>
+        </>)}
 
-        {/* Chart */}
+        {showHistory && (
+        /* Chart */
         <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -1748,7 +1750,9 @@ const Historico = () => {
             );
           })()}
         </section>
+        )}
 
+        {showAnalytics && (<>
         {/* Inteligência Financeira & Alertas — análise GLOBAL (não responde a filtros de período/status) */}
         <section
           key={`alerts-${rows.length}-${alertMetrics.scoreNumeric}`}
