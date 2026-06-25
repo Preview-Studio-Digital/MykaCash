@@ -2386,7 +2386,7 @@ const Historico = () => {
                                         : "bg-net-green/15 text-net-green active:bg-factoring-amber/30 active:text-factoring-amber")
                                     }
                                   >
-                                    {r.settled ? "LIQ" : r.overdue ? "VENC" : "AND"}
+                                    {r.settled ? "LIQUIDADA" : r.overdue ? "VENCIDA" : "ANDAMENTO"}
                                   </button>
                                 </div>
                                 <div className="mt-0.5 flex items-center justify-between gap-2">
