@@ -33,23 +33,23 @@ export const AppHeader = () => {
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/80 to-transparent" />
 
       {/* Header bar */}
-      <div className="relative z-10 flex items-center justify-between px-6 py-4 text-xs font-mono tracking-widest text-muted-foreground">
-        <Link to="/" className="hover:opacity-80 transition-opacity">
-          <span className="font-title title-gradient title-shimmer font-extrabold leading-none tracking-tighter text-3xl md:text-4xl lg:text-5xl">
+      <div className="relative z-10 flex items-center justify-between gap-2 px-3 py-3 md:px-6 md:py-4 text-xs font-mono tracking-widest text-muted-foreground">
+        <Link to="/" className="hover:opacity-80 transition-opacity shrink-0">
+          <span className="font-title title-gradient title-shimmer font-extrabold leading-none tracking-tighter text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
             MYKACA$H
           </span>
         </Link>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1 sm:gap-3 md:gap-4 shrink-0">
           <span className="hidden sm:inline">{headerName}</span>
           {isAdmin && (
             <Button
               asChild
               variant="ghost"
               size="sm"
-              className="h-8 px-3 text-xs font-mono tracking-wider hover:text-primary"
+              className="h-8 px-2 md:px-3 text-[10px] md:text-xs font-mono tracking-wider hover:text-primary"
             >
               <Link to="/admin">
-                <Shield className="mr-1.5 h-3.5 w-3.5" />
+                <Shield className="mr-1 md:mr-1.5 h-3 w-3 md:h-3.5 md:w-3.5" />
                 ADMIN
               </Link>
             </Button>
@@ -58,9 +58,9 @@ export const AppHeader = () => {
             variant="ghost"
             size="sm"
             onClick={signOut}
-            className="h-8 px-3 text-xs font-mono tracking-wider hover:text-primary"
+            className="h-8 px-2 md:px-3 text-[10px] md:text-xs font-mono tracking-wider hover:text-primary"
           >
-            <LogOut className="mr-1.5 h-3.5 w-3.5" />
+            <LogOut className="mr-1 md:mr-1.5 h-3 w-3 md:h-3.5 md:w-3.5" />
             SAIR
           </Button>
         </div>
