@@ -1569,8 +1569,8 @@ const Historico = () => {
                           monthBoundaries.push(chartData[i].date);
                         }
                       }
-                      const maxScore = Math.max(1, ...chartData.map((d) => d.score ?? 0));
-                      const minScore = Math.min(maxScore, ...chartData.map((d) => d.score ?? 0));
+                      const maxScore = Math.max(1, ...chartData.map((d: any) => d.score ?? 0));
+                      const minScore = Math.min(maxScore, ...chartData.map((d: any) => d.score ?? 0));
                       const lineRange = maxScore - minScore;
                       const clamp = (val: number) => Math.max(0, Math.min(1, val));
                       
