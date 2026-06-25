@@ -1069,7 +1069,7 @@ const Historico = () => {
 
       <div className="flex flex-col items-center gap-2 px-4 py-3">
         {/* Period label */}
-        <span className="font-mono text-xs md:text-sm tracking-[0.3em] text-muted-foreground/70">
+        <span className="font-mono text-[9px] md:text-sm tracking-[0.15em] md:tracking-[0.3em] text-muted-foreground/70 whitespace-nowrap">
           {period === "total" ? (
             (() => {
               const label = {
@@ -1569,8 +1569,8 @@ const Historico = () => {
                           monthBoundaries.push(chartData[i].date);
                         }
                       }
-                      const maxScore = Math.max(1, ...chartData.map((d) => d.score ?? 0));
-                      const minScore = Math.min(maxScore, ...chartData.map((d) => d.score ?? 0));
+                      const maxScore = Math.max(1, ...chartData.map((d: any) => d.score ?? 0));
+                      const minScore = Math.min(maxScore, ...chartData.map((d: any) => d.score ?? 0));
                       const lineRange = maxScore - minScore;
                       const clamp = (val: number) => Math.max(0, Math.min(1, val));
                       
@@ -2374,19 +2374,21 @@ const Historico = () => {
                                     REG {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"} · NF {r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}
                                   </div>
                                   <div className="flex items-center gap-2">
-                                    {r.settled ? (
-                                      <span className="rounded-full bg-factoring-amber/20 px-2 py-0.5 font-mono text-[10px] tracking-widest text-factoring-amber">
-                                        LIQUIDADA
-                                      </span>
-                                    ) : r.overdue ? (
-                                      <span className="rounded-full bg-cost-red/20 px-2 py-0.5 font-mono text-[10px] tracking-widest text-cost-red">
-                                        VENCIDA
-                                      </span>
-                                    ) : (
-                                      <span className="rounded-full bg-net-green/15 px-2 py-0.5 font-mono text-[10px] tracking-widest text-net-green">
-                                        ANDAMENTO
-                                      </span>
-                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleSettlement(r)}
+                                      title={r.settled ? "Tocar para desfazer a liquidação" : "Tocar para marcar como LIQUIDADA"}
+                                      className={
+                                        "rounded-full px-2 py-0.5 font-mono text-[10px] tracking-widest transition-colors " +
+                                        (r.settled
+                                          ? "bg-factoring-amber/20 text-factoring-amber active:bg-factoring-amber/40"
+                                          : r.overdue
+                                          ? "bg-cost-red/20 text-cost-red active:bg-factoring-amber/30 active:text-factoring-amber"
+                                          : "bg-net-green/15 text-net-green active:bg-factoring-amber/30 active:text-factoring-amber")
+                                      }
+                                    >
+                                      {r.settled ? "LIQUIDADA" : r.overdue ? "VENCIDA" : "ANDAMENTO"}
+                                    </button>
                                   </div>
                                 </div>
                                 <div className="text-sm font-semibold truncate">{r.clientName}</div>
@@ -2410,46 +2412,28 @@ const Historico = () => {
                                     <div className="text-cost-red">{formatBRL(r.cost)}</div>
                                   </div>
                                 </div>
-                                <div className="flex items-center justify-between gap-2 pt-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => toggleSettlement(r)}
-                                    className="font-mono text-xs tracking-widest"
-                                  >
-                                    {r.settled ? (
-                                      <>
-                                        <CheckCircle2 className="mr-1 h-3 w-3" /> DESFAZER
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Circle className="mr-1 h-3 w-3" /> LIQUIDAR
-                                      </>
-                                    )}
-                                  </Button>
-                                  {canManage && (
-                                    <div className="flex items-center gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => openEdit(r.invoiceId)}
-                                        className="text-muted-foreground hover:text-primary"
-                                        aria-label="Editar"
-                                      >
-                                        <Pencil className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => handleDeleteOperation(r.invoiceId)}
-                                        className="text-muted-foreground hover:text-cost-red"
-                                        aria-label="Remover"
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  )}
-                                </div>
+                                {canManage && (
+                                  <div className="flex items-center justify-end gap-1 pt-2">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => openEdit(r.invoiceId)}
+                                      className="text-muted-foreground hover:text-primary"
+                                      aria-label="Editar"
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleDeleteOperation(r.invoiceId)}
+                                      className="text-muted-foreground hover:text-cost-red"
+                                      aria-label="Remover"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
