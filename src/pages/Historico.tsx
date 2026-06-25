@@ -1069,7 +1069,7 @@ const Historico = () => {
 
       <div className="flex flex-col items-center gap-2 px-4 py-3">
         {/* Period label */}
-        <span className="font-mono text-xs md:text-sm tracking-[0.3em] text-muted-foreground/70">
+        <span className="font-mono text-[9px] md:text-sm tracking-[0.15em] md:tracking-[0.3em] text-muted-foreground/70 whitespace-nowrap">
           {period === "total" ? (
             (() => {
               const label = {
