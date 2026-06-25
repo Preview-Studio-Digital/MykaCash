@@ -2374,19 +2374,21 @@ const Historico = () => {
                                     REG {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"} · NF {r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}
                                   </div>
                                   <div className="flex items-center gap-2">
-                                    {r.settled ? (
-                                      <span className="rounded-full bg-factoring-amber/20 px-2 py-0.5 font-mono text-[10px] tracking-widest text-factoring-amber">
-                                        LIQUIDADA
-                                      </span>
-                                    ) : r.overdue ? (
-                                      <span className="rounded-full bg-cost-red/20 px-2 py-0.5 font-mono text-[10px] tracking-widest text-cost-red">
-                                        VENCIDA
-                                      </span>
-                                    ) : (
-                                      <span className="rounded-full bg-net-green/15 px-2 py-0.5 font-mono text-[10px] tracking-widest text-net-green">
-                                        ANDAMENTO
-                                      </span>
-                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleSettlement(r)}
+                                      title={r.settled ? "Tocar para desfazer a liquidação" : "Tocar para marcar como LIQUIDADA"}
+                                      className={
+                                        "rounded-full px-2 py-0.5 font-mono text-[10px] tracking-widest transition-colors " +
+                                        (r.settled
+                                          ? "bg-factoring-amber/20 text-factoring-amber active:bg-factoring-amber/40"
+                                          : r.overdue
+                                          ? "bg-cost-red/20 text-cost-red active:bg-factoring-amber/30 active:text-factoring-amber"
+                                          : "bg-net-green/15 text-net-green active:bg-factoring-amber/30 active:text-factoring-amber")
+                                      }
+                                    >
+                                      {r.settled ? "LIQUIDADA" : r.overdue ? "VENCIDA" : "ANDAMENTO"}
+                                    </button>
                                   </div>
                                 </div>
                                 <div className="text-sm font-semibold truncate">{r.clientName}</div>
