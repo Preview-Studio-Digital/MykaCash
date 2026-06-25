@@ -2361,7 +2361,7 @@ const Historico = () => {
                               <div
                                 key={r.key}
                                 className={
-                                  "group/card rounded-lg border border-border/40 p-3 space-y-1 relative " +
+                                  "group/card rounded-md border border-border/40 px-2.5 py-1.5 relative " +
                                   (r.settled
                                     ? "bg-[hsl(var(--factoring-amber)/0.18)]"
                                     : r.overdue
@@ -2369,72 +2369,59 @@ const Historico = () => {
                                     : "bg-[hsl(var(--net-green)/0.12)]")
                                 }
                               >
-                                <div className="flex items-center justify-between">
-                                  <div className="font-mono text-xs tracking-widest text-primary-glow">
-                                    REG {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"} · NF {r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}
+                                <div className="flex items-center justify-between gap-2">
+                                  <div className="font-mono text-[10px] tracking-widest text-primary-glow shrink-0">
+                                    {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"} · NF {r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}
                                   </div>
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleSettlement(r)}
-                                      title={r.settled ? "Tocar para desfazer a liquidação" : "Tocar para marcar como LIQUIDADA"}
-                                      className={
-                                        "rounded-full px-2 py-0.5 font-mono text-[10px] tracking-widest transition-colors " +
-                                        (r.settled
-                                          ? "bg-factoring-amber/20 text-factoring-amber active:bg-factoring-amber/40"
-                                          : r.overdue
-                                          ? "bg-cost-red/20 text-cost-red active:bg-factoring-amber/30 active:text-factoring-amber"
-                                          : "bg-net-green/15 text-net-green active:bg-factoring-amber/30 active:text-factoring-amber")
-                                      }
-                                    >
-                                      {r.settled ? "LIQUIDADA" : r.overdue ? "VENCIDA" : "ANDAMENTO"}
-                                    </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleSettlement(r)}
+                                    title={r.settled ? "Tocar para desfazer a liquidação" : "Tocar para marcar como LIQUIDADA"}
+                                    className={
+                                      "rounded-full px-1.5 py-0.5 font-mono text-[9px] tracking-widest transition-colors shrink-0 " +
+                                      (r.settled
+                                        ? "bg-factoring-amber/20 text-factoring-amber active:bg-factoring-amber/40"
+                                        : r.overdue
+                                        ? "bg-cost-red/20 text-cost-red active:bg-factoring-amber/30 active:text-factoring-amber"
+                                        : "bg-net-green/15 text-net-green active:bg-factoring-amber/30 active:text-factoring-amber")
+                                    }
+                                  >
+                                    {r.settled ? "LIQ" : r.overdue ? "VENC" : "AND"}
+                                  </button>
+                                </div>
+                                <div className="mt-0.5 flex items-center justify-between gap-2">
+                                  <div className="text-xs font-semibold truncate">{r.clientName}</div>
+                                  <div className="font-mono text-[10px] text-muted-foreground shrink-0">
+                                    {fmtDate(r.dueDate)}
                                   </div>
                                 </div>
-                                <div className="text-sm font-semibold truncate">{r.clientName}</div>
-                                <div className="font-mono text-xs text-muted-foreground">
-                                  OP {fmtDate(r.operationDate)} · VENC {fmtDate(r.dueDate)} · {r.days} DIAS
+                                <div className="flex items-center justify-between gap-2">
+                                  <div className="font-mono text-xs tabular-nums">{formatBRL(r.value)}</div>
+                                  {canManage && (
+                                    <div className="flex items-center gap-0.5">
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => openEdit(r.invoiceId)}
+                                        className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
+                                        aria-label="Editar"
+                                      >
+                                        <Pencil className="h-3.5 w-3.5" />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleDeleteOperation(r.invoiceId)}
+                                        className="h-6 w-6 p-0 text-muted-foreground hover:text-cost-red"
+                                        aria-label="Remover"
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                      </Button>
+                                    </div>
+                                  )}
                                 </div>
-                                <div className="font-mono text-xs text-muted-foreground">
-                                  POR {r.createdBy}
-                                </div>
-                                <div className="grid grid-cols-2 gap-2 pt-2 font-mono text-xs tabular-nums">
-                                  <div>
-                                    <div className="text-[10px] tracking-widest text-muted-foreground">VALOR BRUTO</div>
-                                    <div>{formatBRL(r.value)}</div>
-                                  </div>
-                                  <div>
-                                    <div className="text-[10px] tracking-widest text-muted-foreground">VALOR LÍQUIDO</div>
-                                    <div className="text-net-green">{formatBRL(r.presentValue)}</div>
-                                  </div>
-                                  <div>
-                                    <div className="text-[10px] tracking-widest text-muted-foreground">CUSTO</div>
-                                    <div className="text-cost-red">{formatBRL(r.cost)}</div>
-                                  </div>
-                                </div>
-                                {canManage && (
-                                  <div className="flex items-center justify-end gap-1 pt-2">
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => openEdit(r.invoiceId)}
-                                      className="text-muted-foreground hover:text-primary"
-                                      aria-label="Editar"
-                                    >
-                                      <Pencil className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleDeleteOperation(r.invoiceId)}
-                                      className="text-muted-foreground hover:text-cost-red"
-                                      aria-label="Remover"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                )}
                               </div>
+
                             );
                           })}
                         </div>
