@@ -2412,46 +2412,28 @@ const Historico = () => {
                                     <div className="text-cost-red">{formatBRL(r.cost)}</div>
                                   </div>
                                 </div>
-                                <div className="flex items-center justify-between gap-2 pt-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => toggleSettlement(r)}
-                                    className="font-mono text-xs tracking-widest"
-                                  >
-                                    {r.settled ? (
-                                      <>
-                                        <CheckCircle2 className="mr-1 h-3 w-3" /> DESFAZER
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Circle className="mr-1 h-3 w-3" /> LIQUIDAR
-                                      </>
-                                    )}
-                                  </Button>
-                                  {canManage && (
-                                    <div className="flex items-center gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => openEdit(r.invoiceId)}
-                                        className="text-muted-foreground hover:text-primary"
-                                        aria-label="Editar"
-                                      >
-                                        <Pencil className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => handleDeleteOperation(r.invoiceId)}
-                                        className="text-muted-foreground hover:text-cost-red"
-                                        aria-label="Remover"
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  )}
-                                </div>
+                                {canManage && (
+                                  <div className="flex items-center justify-end gap-1 pt-2">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => openEdit(r.invoiceId)}
+                                      className="text-muted-foreground hover:text-primary"
+                                      aria-label="Editar"
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleDeleteOperation(r.invoiceId)}
+                                      className="text-muted-foreground hover:text-cost-red"
+                                      aria-label="Remover"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
