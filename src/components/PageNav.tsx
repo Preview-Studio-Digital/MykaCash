@@ -12,9 +12,9 @@ export const PageNav = () => {
   ];
 
   return (
-    <div className="sticky top-0 z-40 -mx-4 md:-mx-8 lg:-mx-12 mb-6 bg-background/80 backdrop-blur-md border-b border-border/40 py-3 animate-fade-up">
+    <div className="sticky top-0 z-40 mb-4 md:mb-6 py-2 animate-fade-up">
       <nav className="flex items-center justify-center gap-2">
-        <div className="inline-flex rounded-full border border-border/60 bg-background/40 p-1 backdrop-blur-sm">
+        <div className="inline-flex rounded-full border border-border/60 bg-background/80 p-1.5 backdrop-blur-md shadow-lg shadow-black/40">
           {items.map((it) => {
             const active = pathname === it.to;
             const Icon = it.icon;

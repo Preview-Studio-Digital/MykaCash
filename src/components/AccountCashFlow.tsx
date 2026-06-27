@@ -912,12 +912,12 @@ export const AccountCashFlow = () => {
           </h3>
         </div>
 
-        <div className="relative group overflow-hidden rounded-2xl border border-net-green/20 bg-gradient-to-br from-card to-card/50 p-6 shadow-[0_0_20px_-5px_hsl(var(--net-green)/0.3)] transition-all hover:shadow-[0_0_40px_-2px_hsl(var(--net-green)/0.6)]">
+        <div className="relative group overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-card to-card/50 p-6 shadow-[0_0_20px_-5px_hsl(var(--primary)/0.3)] transition-all hover:shadow-[0_0_40px_-2px_hsl(var(--primary)/0.6)]">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <TrendingUp className="h-12 w-12 text-net-green" />
+            <TrendingUp className="h-12 w-12 text-primary" />
           </div>
           <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Ganho Total</p>
-          <h3 className="text-2xl font-bold mt-2 text-net-green">
+          <h3 className="text-2xl font-bold mt-2 text-primary">
             {loading ? <span className="opacity-40">—</span> : formatBRL(stats.periodProfit)}
           </h3>
         </div>
@@ -925,17 +925,15 @@ export const AccountCashFlow = () => {
         <div className={`relative group overflow-hidden rounded-2xl border bg-gradient-to-br from-card to-card/50 p-6 transition-all ${
           loading
             ? 'border-border/30'
-            : statsWithInitial.cumulativeBalance >= 0 
-              ? 'border-net-green/20 shadow-[0_0_20px_-5px_hsl(var(--net-green)/0.3)] hover:shadow-[0_0_40px_-2px_hsl(var(--net-green)/0.6)]' 
-              : 'border-cost-red/20 shadow-[0_0_20px_-5px_hsl(var(--cost-red)/0.3)] hover:shadow-[0_0_40px_-2px_hsl(var(--cost-red)/0.6)]'
+            : 'border-factoring-amber/20 shadow-[0_0_20px_-5px_hsl(var(--factoring-amber)/0.3)] hover:shadow-[0_0_40px_-2px_hsl(var(--factoring-amber)/0.6)]'
         }`}>
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Wallet className={`h-12 w-12 ${loading ? 'text-muted-foreground' : statsWithInitial.cumulativeBalance >= 0 ? 'text-net-green' : 'text-cost-red'}`} />
+            <Wallet className={`h-12 w-12 ${loading ? 'text-muted-foreground' : 'text-factoring-amber'}`} />
           </div>
           <div className="flex justify-between items-start">
             <div>
               <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">Saldo em conta</p>
-              <h3 className={`text-2xl font-bold mt-2 ${loading ? 'text-muted-foreground' : statsWithInitial.cumulativeBalance >= 0 ? 'text-net-green' : 'text-cost-red'}`}>
+              <h3 className={`text-2xl font-bold mt-2 ${loading ? 'text-muted-foreground' : 'text-factoring-amber'}`}>
                 {loading ? <span className="opacity-40">—</span> : formatBRL(statsWithInitial.cumulativeBalance)}
               </h3>
             </div>
@@ -1182,7 +1180,7 @@ export const AccountCashFlow = () => {
               }
             }}>
               <DialogTrigger asChild>
-                <Button className="flex-1 md:flex-none rounded-full px-3 md:px-6 h-9 font-mono text-[10px] md:text-[11px] tracking-[0.2em] md:tracking-[0.3em] bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.4)] hover:bg-primary/90 transition-all gap-2 border-0 whitespace-nowrap">
+                <Button className="flex-1 md:flex-none rounded-full px-3 md:px-6 h-9 font-mono text-[10px] md:text-[11px] tracking-[0.2em] md:tracking-[0.3em] animate-color-cycle text-primary-foreground transition-all gap-2 border-0 whitespace-nowrap">
                   <Plus className="h-3.5 w-3.5" /> <span className="hidden sm:inline">NOVA MOVIMENTAÇÃO</span><span className="sm:hidden">NOVA</span>
                 </Button>
               </DialogTrigger>

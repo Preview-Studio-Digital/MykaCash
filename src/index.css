@@ -239,7 +239,18 @@
 }
 
 .animate-color-cycle {
-  animation: color-cycle 8s ease-in-out infinite;
+  animation: color-cycle 40s ease-in-out infinite;
+}
+
+@keyframes border-color-cycle {
+  0%, 100% { border-color: hsl(var(--primary)/0.3); box-shadow: 0 0 20px -5px hsl(var(--primary)/0.3); color: hsl(var(--primary)); }
+  25% { border-color: hsl(var(--net-green)/0.3); box-shadow: 0 0 20px -5px hsl(var(--net-green)/0.3); color: hsl(var(--net-green)); }
+  50% { border-color: hsl(var(--cost-red)/0.3); box-shadow: 0 0 20px -5px hsl(var(--cost-red)/0.3); color: hsl(var(--cost-red)); }
+  75% { border-color: hsl(var(--factoring-amber)/0.3); box-shadow: 0 0 20px -5px hsl(var(--factoring-amber)/0.3); color: hsl(var(--factoring-amber)); }
+}
+
+.animate-card-color-cycle {
+  animation: border-color-cycle 40s ease-in-out infinite;
 }
 
 /* Custom Scrollbar Styles */

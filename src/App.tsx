@@ -11,6 +11,7 @@ import Admin from "./pages/Admin.tsx";
 import Historico from "./pages/Historico.tsx";
 import Analises from "./pages/Analises.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import HeroWave from "@/components/ui/dynamic-wave-canvas-background";
 
 import { useEffect } from "react";
 
@@ -60,42 +61,52 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Historico />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/cadastro"
-              element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/analises"
-              element={
-                <ProtectedRoute>
-                  <Analises />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute>
-                  <Admin />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <div className="relative min-h-screen w-full overflow-x-hidden">
+            {/* Background Canvas */}
+            <div className="fixed inset-0 z-0 pointer-events-none opacity-50">
+              <HeroWave />
+            </div>
+            
+            {/* App contents */}
+            <div className="relative z-10 min-h-screen w-full">
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <Historico />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/cadastro"
+                  element={
+                    <ProtectedRoute>
+                      <Index />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/analises"
+                  element={
+                    <ProtectedRoute>
+                      <Analises />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute>
+                      <Admin />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+          </div>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
