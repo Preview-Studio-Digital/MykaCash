@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { calculate, formatBRL, type Installment } from "@/lib/calc";
+import { playSound } from "@/lib/sounds";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { DateField } from "@/components/DateField";
@@ -37,6 +38,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -117,6 +119,7 @@ export const AccountCashFlow = () => {
   const [period, setPeriod] = useState<Period>("total");
   const [fromDate, setFromDate] = useState(todayISO());
   const [toDate, setToDate] = useState(todayISO());
+  const [searchTerm, setSearchTerm] = useState("");
   
   // Form State
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -130,6 +133,7 @@ export const AccountCashFlow = () => {
     const saved = localStorage.getItem("mykacash_initial_balance");
     return saved ? parseFloat(saved) : 0;
   });
+  const [negativeBalanceAlertOpen, setNegativeBalanceAlertOpen] = useState(false);
 
   const saveInitialBalance = (val: number) => {
     setInitialBalance(val);
@@ -297,33 +301,48 @@ export const AccountCashFlow = () => {
 
 
   const filteredData = useMemo(() => {
+    let data = unifiedData;
     const today = todayISO();
-    if (period === "total") return unifiedData.filter(t => t.date <= today);
+    if (period === "total") {
+      data = data.filter(t => t.date <= today);
+    } else {
+      let start = fromDate;
+      let end = toDate;
 
-    let start = fromDate;
-    let end = toDate;
-
-    if (period === "dia") {
-      start = fromDate;
-      end = fromDate;
-    } else if (period === "semana") {
-      const d = new Date(fromDate + "T00:00:00");
-      const day = d.getDay();
-      const diff = day === 0 ? -6 : 1 - day;
-      d.setDate(d.getDate() + diff);
-      start = localISO(d);
-      d.setDate(d.getDate() + 6);
-      end = localISO(d);
-    } else if (period === "mes") {
-      const d = new Date(fromDate + "T00:00:00");
-      d.setDate(1);
-      start = localISO(d);
-      const nextMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-      end = localISO(nextMonth);
+      if (period === "dia") {
+        start = fromDate;
+        end = fromDate;
+      } else if (period === "semana") {
+        const d = new Date(fromDate + "T00:00:00");
+        const day = d.getDay();
+        const diff = day === 0 ? -6 : 1 - day;
+        d.setDate(d.getDate() + diff);
+        start = localISO(d);
+        d.setDate(d.getDate() + 6);
+        end = localISO(d);
+      } else if (period === "mes") {
+        const d = new Date(fromDate + "T00:00:00");
+        d.setDate(1);
+        start = localISO(d);
+        const nextMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+        end = localISO(nextMonth);
+      }
+      data = data.filter(t => t.date >= start && t.date <= end);
     }
 
-    return unifiedData.filter(t => t.date >= start && t.date <= end);
-  }, [unifiedData, period, fromDate, toDate]);
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase().trim();
+      data = data.filter(
+        t =>
+          t.description.toLowerCase().includes(term) ||
+          t.type.toLowerCase().includes(term) ||
+          formatBRL(t.amount).toLowerCase().includes(term) ||
+          t.date.includes(term)
+      );
+    }
+
+    return data;
+  }, [unifiedData, period, fromDate, toDate, searchTerm]);
 
   const [collapsedMonths, setCollapsedMonths] = useState<Record<string, boolean>>({});
 
@@ -462,6 +481,20 @@ export const AccountCashFlow = () => {
       cumulativeBalance: stats.cumulativeBalance + initialBalance
     };
   }, [stats, initialBalance]);
+
+  useEffect(() => {
+    if (loading) return;
+    const currentBalance = statsWithInitial.cumulativeBalance;
+    if (currentBalance < 0) {
+      const lastBal = sessionStorage.getItem("mykacash_last_balance");
+      const currentBalStr = String(currentBalance);
+      if (lastBal !== currentBalStr) {
+        sessionStorage.setItem("mykacash_last_balance", currentBalStr);
+        setNegativeBalanceAlertOpen(true);
+        playSound("overdue");
+      }
+    }
+  }, [loading, statsWithInitial.cumulativeBalance]);
 
   const chartData = useMemo(() => {
     if (unifiedData.length === 0) return [];
@@ -1127,7 +1160,18 @@ export const AccountCashFlow = () => {
             <span className="h-2 w-2 rounded-full animate-color-cycle" />
             <h4 className="font-mono text-sm sm:text-base md:text-lg tracking-[0.2em] font-bold uppercase">Histórico de Movimentações</h4>
           </div>
-          <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            {/* Search Input */}
+            <div className="relative flex-1 md:w-64">
+              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Buscar movimentações..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 h-9 bg-background/50 border-border/40 font-mono text-[11px]"
+              />
+            </div>
 
             <Dialog open={isDialogOpen} onOpenChange={(open) => {
               setIsDialogOpen(open);
@@ -1486,6 +1530,39 @@ export const AccountCashFlow = () => {
         )}
 
       </section>
+
+      <Dialog open={negativeBalanceAlertOpen} onOpenChange={setNegativeBalanceAlertOpen}>
+        <DialogContent className="max-w-md bg-background/95 backdrop-blur-xl border-cost-red/40">
+          <DialogHeader>
+            <DialogTitle className="font-display text-cost-red flex items-center gap-2">
+              ⚠️ ALERTA: Saldo de Conta Negativo
+            </DialogTitle>
+            <DialogDescription className="font-mono text-[10px] tracking-wider uppercase text-cost-red/80">
+              Operação gerou inconsistência de caixa
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-3 font-mono text-xs">
+            <p className="text-foreground">
+              O saldo atual projetado da conta está negativo:{" "}
+              <strong className="text-cost-red text-sm">{formatBRL(statsWithInitial.cumulativeBalance)}</strong>
+            </p>
+            <p className="text-muted-foreground leading-relaxed">
+              Isso indica que há operações em aberto (não liquidadas) registradas no sistema sem saldo suficiente em conta para cobri-las.
+            </p>
+            <div className="p-3 rounded-lg bg-cost-red/10 border border-cost-red/20 text-cost-red text-[11px] leading-relaxed">
+              <strong>Importante:</strong> Verifique as operações pendentes e marque-as como liquidadas assim que o crédito entrar no banco, ou registre os aportes/depósitos correspondentes no Painel Financeiro para regularizar o caixa.
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              className="bg-cost-red hover:bg-cost-red/90 text-white font-mono text-[10px] tracking-widest w-full"
+              onClick={() => setNegativeBalanceAlertOpen(false)}
+            >
+              ENTENDIDO
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

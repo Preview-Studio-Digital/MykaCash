@@ -62,5 +62,20 @@ export const useClients = () => {
     return true;
   };
 
-  return { clients, loading, addClient, removeClient, reload: load };
+  const updateClient = async (id: string, name: string, document: string | null) => {
+    const { data, error } = await supabase
+      .from("clients")
+      .update({ name, document })
+      .eq("id", id)
+      .select("id, name, document")
+      .single();
+    if (error) {
+      toast.error(friendlyDbError(error, "Erro ao atualizar cliente"));
+      return null;
+    }
+    toast.success("Cliente atualizado");
+    return data as Client;
+  };
+
+  return { clients, loading, addClient, updateClient, removeClient, reload: load };
 };

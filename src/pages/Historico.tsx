@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { calculate, formatBRL, formatPct, FACTORING_MONTHLY_RATE_PCT, type Installment } from "@/lib/calc";
 import { toast } from "sonner";
 import { playSound } from "@/lib/sounds";
-import { CheckCircle2, Circle, Pencil, Trash2, Plus, X, ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal, ChevronDown, ChevronRight } from "lucide-react";
+import { CheckCircle2, Circle, Pencil, Trash2, Plus, X, ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal, ChevronDown, ChevronRight, Search } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import {
@@ -153,12 +153,15 @@ const Historico = () => {
   const [to, setTo] = useState<string>(todayISO());
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const isInitialLoading = loading && invoices.length === 0;
   const [now, setNow] = useState<number>(Date.now());
   const [settlingRow, setSettlingRow] = useState<any | null>(null);
   const [settlementDate, setSettlementDate] = useState<string>("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState<boolean>(false);
   const [manualTransactions, setManualTransactions] = useState<any[]>([]);
   const [overdueAlertOpen, setOverdueAlertOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [negativeBalanceAlertOpen, setNegativeBalanceAlertOpen] = useState(false);
   const { pathname } = useLocation();
   const showAnalytics = pathname === "/analises";
   const showHistory = pathname === "/";
@@ -314,6 +317,33 @@ const Historico = () => {
 
 
 
+  const currentAccountBalance = useMemo(() => {
+    let curr = initialBalance;
+    manualTransactions.forEach(t => {
+      curr += t.type === "deposit" ? Number(t.amount) : -Number(t.amount);
+    });
+    rows.forEach(r => {
+      curr -= r.presentValue;
+      if (r.settled) {
+        curr += r.value;
+      }
+    });
+    return curr;
+  }, [rows, manualTransactions, initialBalance]);
+
+  useEffect(() => {
+    if (loading || !user) return;
+    if (currentAccountBalance < 0) {
+      const lastBal = sessionStorage.getItem("mykacash_last_balance");
+      const currentBalStr = String(currentAccountBalance);
+      if (lastBal !== currentBalStr) {
+        sessionStorage.setItem("mykacash_last_balance", currentBalStr);
+        setNegativeBalanceAlertOpen(true);
+        playSound("overdue");
+      }
+    }
+  }, [loading, currentAccountBalance, user]);
+
   const dataBounds = useMemo(() => {
     if (rows.length === 0) return { from: todayStr, to: todayStr };
     let min = todayStr;
@@ -345,30 +375,41 @@ const Historico = () => {
   const inRange = (d: string) => d >= range.from && d <= range.to;
 
   const filteredRows = useMemo(() => {
+    let baseRows = [];
     if (statusFilter === "liquidadas") {
-      return rows.filter((r) => r.settled && r.settledDate && inRange(r.settledDate));
-    }
-    if (statusFilter === "andamento") {
-      return rows.filter(
+      baseRows = rows.filter((r) => r.settled && r.settledDate && inRange(r.settledDate));
+    } else if (statusFilter === "andamento") {
+      baseRows = rows.filter(
         (r) => !r.settled && r.operationDate <= range.to && r.dueDate >= range.from
       );
-    }
-    if (statusFilter === "a_vencer") {
-      return rows.filter((r) => !r.settled && inRange(r.dueDate));
-    }
-    if (statusFilter === "todas") {
+    } else if (statusFilter === "a_vencer") {
+      baseRows = rows.filter((r) => !r.settled && inRange(r.dueDate));
+    } else if (statusFilter === "todas") {
       // Para "todas", incluímos tudo que começou até o fim do período.
       // A lógica de carryOver e eventos cuidará de abater o que já foi liquidado.
-      return rows.filter((r) => r.operationDate <= range.to);
+      baseRows = rows.filter((r) => r.operationDate <= range.to);
+    } else if (statusFilter === "vencidas") {
+      baseRows = rows.filter((r) => !r.settled && r.overdue && inRange(r.dueDate));
+    } else {
+      const base = rows.filter((r) => inRange(r.operationDate));
+      baseRows = base.filter((r) => !r.settled); 
     }
 
-    if (statusFilter === "vencidas") {
-      return rows.filter((r) => !r.settled && r.overdue && inRange(r.dueDate));
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase().trim();
+      baseRows = baseRows.filter(
+        (r) =>
+          r.clientName.toLowerCase().includes(term) ||
+          r.invoiceNumber.toLowerCase().includes(term) ||
+          (r.opNumber && String(r.opNumber).includes(term)) ||
+          r.createdBy.toLowerCase().includes(term) ||
+          formatBRL(r.value).includes(term) ||
+          formatBRL(r.presentValue).includes(term)
+      );
     }
 
-    const base = rows.filter((r) => inRange(r.operationDate));
-    return base.filter((r) => !r.settled); 
-  }, [rows, statusFilter, range.from, range.to]);
+    return baseRows;
+  }, [rows, statusFilter, range.from, range.to, searchTerm]);
 
   const totals = filteredRows.reduce(
     (a, r) => ({
@@ -1069,7 +1110,7 @@ const Historico = () => {
 
       <div className="flex flex-col items-center gap-2 px-4 py-3">
         {/* Period label */}
-        <span className="font-mono text-xs md:text-sm tracking-[0.3em] text-muted-foreground/70">
+        <span className="font-mono text-[10px] md:text-xs tracking-[0.3em] text-muted-foreground/70">
           {period === "total" ? (
             (() => {
               const label = {
@@ -1092,17 +1133,17 @@ const Historico = () => {
           <div className="flex items-center justify-center gap-3">
             {period === "data" ? (
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xs tracking-[0.25em] text-muted-foreground">DATA</span>
+                <span className="font-mono text-[10px] md:text-xs tracking-[0.25em] text-muted-foreground">DATA</span>
                 <DateField value={from} onChange={(v) => { setFrom(v); setTo(v); }} />
               </div>
             ) : (
               <>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs tracking-[0.25em] text-muted-foreground">DE</span>
+                  <span className="font-mono text-[10px] md:text-xs tracking-[0.25em] text-muted-foreground">DE</span>
                   <DateField value={from} onChange={setFrom} />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs tracking-[0.25em] text-muted-foreground">ATÉ</span>
+                  <span className="font-mono text-[10px] md:text-xs tracking-[0.25em] text-muted-foreground">ATÉ</span>
                   <DateField value={to} onChange={setTo} />
                 </div>
               </>
@@ -1123,8 +1164,8 @@ const Historico = () => {
         <div className={cn("flex flex-wrap items-center justify-center gap-4 sm:gap-6", !mobileFiltersOpen && "hidden sm:flex")}>
           {/* Period pills */}
           <div className="flex flex-col items-center gap-1.5">
-            <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground/60 uppercase">PERÍODO DE TEMPO</span>
-            <div className="inline-flex flex-wrap justify-center rounded-full border border-border/50 bg-background/60 p-1 gap-1 shadow-panel">
+            <span className="font-mono text-[10px] md:text-xs tracking-[0.2em] text-muted-foreground/60 uppercase">PERÍODO DE TEMPO</span>
+            <div className="inline-flex flex-wrap justify-center rounded-full border border-border/50 bg-background/60 p-0.5 gap-0.5 shadow-panel">
               {periodOptions.map((opt) => {
                 const active = period === opt.id;
                 return (
@@ -1132,9 +1173,9 @@ const Historico = () => {
                     key={opt.id}
                     onClick={() => setPeriod(opt.id)}
                     className={
-                      "inline-flex items-center rounded-full px-3 py-1 font-mono text-xs tracking-[0.25em] transition-all whitespace-nowrap " +
+                      "inline-flex items-center rounded-full px-3 py-1 font-mono text-[10px] md:text-xs tracking-[0.25em] transition-all whitespace-nowrap " +
                       (active
-                        ? "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.5)]"
+                        ? "animate-color-cycle text-primary-foreground"
                         : "text-muted-foreground hover:text-foreground")
                     }
                   >
@@ -1150,8 +1191,8 @@ const Historico = () => {
 
           {/* Status pills */}
           <div className="flex flex-col items-center gap-1.5">
-            <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground/60 uppercase">STATUS DAS OPERAÇÕES</span>
-            <div className="inline-flex flex-wrap justify-center rounded-full border border-border/50 bg-background/60 p-1 gap-1 shadow-panel">
+            <span className="font-mono text-[10px] md:text-xs tracking-[0.2em] text-muted-foreground/60 uppercase">STATUS DAS OPERAÇÕES</span>
+            <div className="inline-flex flex-wrap justify-center rounded-full border border-border/50 bg-background/60 p-0.5 gap-0.5 shadow-panel">
               {statusOptions.map((opt) => {
                 const active = statusFilter === opt.id;
                 return (
@@ -1159,9 +1200,9 @@ const Historico = () => {
                     key={opt.id}
                     onClick={() => setStatusFilter(opt.id)}
                     className={
-                      "inline-flex items-center rounded-full px-3 py-1 font-mono text-xs tracking-[0.25em] transition-all whitespace-nowrap " +
+                      "inline-flex items-center rounded-full px-3 py-1 font-mono text-[10px] md:text-xs tracking-[0.25em] transition-all whitespace-nowrap " +
                       (active
-                        ? "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.5)]"
+                        ? "animate-color-cycle text-primary-foreground"
                         : "text-muted-foreground hover:text-foreground")
                     }
                   >
@@ -1219,7 +1260,9 @@ const Historico = () => {
     const liquidationRate = totalBorrowed > 0
       ? (totalSettled / totalBorrowed) * 100
       : 0;
-    const rolloverRate = Math.max(0, 100 - liquidationRate);
+    const rolloverRate = totalBorrowed > 0
+      ? Math.max(0, 100 - liquidationRate)
+      : 0;
 
     const monthlyAnticipationVolume = dailySpeed * 22;
     const cashCommitmentPct = monthlyAnticipationVolume > 0
@@ -1420,21 +1463,30 @@ const Historico = () => {
       <main className="mx-auto w-full max-w-[1600px] px-2 md:px-4 lg:px-6 py-4 md:py-6 pb-36 space-y-8">
         <PageNav />
 
-        {/* Summary panels — reflect selected period */}
-        {showHistory && (<>
+        {isInitialLoading ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-3">
+            <span className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            <div className="font-mono text-xs tracking-widest text-muted-foreground uppercase animate-pulse">
+              Carregando dados do sistema...
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Summary panels — reflect selected period */}
+            {showHistory && (<>
         <section className="grid gap-4 md:grid-cols-3 animate-fade-up">
           <div className="relative overflow-hidden rounded-xl bg-gradient-net p-4 text-net-green-foreground panel-glow-net">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
             <div className="relative">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <div className="font-mono text-xs tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
+                  <div className="font-mono text-[11px] tracking-[0.3em] opacity-80">VALOR LÍQUIDO</div>
                   <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums whitespace-nowrap">
                     {formatBRL(totals.presentValue)}
                   </div>
                 </div>
                 <div>
-                  <div className="font-mono text-xs tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
+                  <div className="font-mono text-[11px] tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
                   <div className="mt-1 font-display text-xl font-bold tabular-nums text-right opacity-90 whitespace-nowrap md:text-lg">
                     {formatBRL(dailyAvgNet)}
                   </div>
@@ -1443,13 +1495,13 @@ const Historico = () => {
               <div className="mt-3 h-px bg-white/20" />
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <div>
-                  <div className="font-mono text-xs tracking-[0.3em] opacity-80">VALOR BRUTO</div>
+                  <div className="font-mono text-[11px] tracking-[0.3em] opacity-80">VALOR BRUTO</div>
                   <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums whitespace-nowrap">
                     {formatBRL(totals.value)}
                   </div>
                 </div>
                 <div>
-                  <div className="font-mono text-xs tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
+                  <div className="font-mono text-[11px] tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
                   <div className="mt-1 font-display text-lg font-semibold tabular-nums text-right opacity-90 whitespace-nowrap">
                     {formatBRL(dailyAvgBruto)}
                   </div>
@@ -1463,13 +1515,13 @@ const Historico = () => {
             <div className="relative">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <div className="font-mono text-xs tracking-[0.3em] opacity-80">CUSTO</div>
+                  <div className="font-mono text-[11px] tracking-[0.3em] opacity-80">CUSTO</div>
                   <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums whitespace-nowrap">
                     {formatBRL(totals.cost)}
                   </div>
                 </div>
                 <div>
-                  <div className="font-mono text-xs tracking-[0.3em] opacity-80 text-right">TAXA EFETIVA</div>
+                  <div className="font-mono text-[11px] tracking-[0.3em] opacity-80 text-right">TAXA EFETIVA</div>
                   <div className="mt-1 font-display text-xl font-bold tabular-nums text-right whitespace-nowrap md:text-lg">
                     {formatPct(totalEffective)}
                   </div>
@@ -1478,13 +1530,13 @@ const Historico = () => {
               <div className="mt-3 h-px bg-white/20" />
               <div className="grid grid-cols-2 gap-3 mt-3">
                 <div>
-                  <div className="font-mono text-xs tracking-[0.3em] opacity-80">ECONOMIA FACTORING</div>
+                  <div className="font-mono text-[11px] tracking-[0.3em] opacity-80">ECONOMIA FACTORING</div>
                   <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums whitespace-nowrap">
                     {formatBRL(factoringSavings)}
                   </div>
                 </div>
                 <div>
-                  <div className="font-mono text-xs tracking-[0.3em] opacity-80 text-right">TAXA EFETIVA</div>
+                  <div className="font-mono text-[11px] tracking-[0.3em] opacity-80 text-right">TAXA EFETIVA</div>
                   <div className="mt-1 font-display text-lg font-semibold tabular-nums text-right whitespace-nowrap">
                     {formatPct(factoringEffectiveRate)}
                   </div>
@@ -1498,13 +1550,13 @@ const Historico = () => {
             <div className="relative flex flex-col h-full">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <div className="font-mono text-xs tracking-[0.3em] opacity-90">VALOR EM ABERTO</div>
+                  <div className="font-mono text-[11px] tracking-[0.3em] opacity-90">VALOR EM ABERTO</div>
                   <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums whitespace-nowrap">
                     {formatBRL(openPresent)}
                   </div>
                 </div>
                 <div>
-                  <div className="font-mono text-xs tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
+                  <div className="font-mono text-[11px] tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
                   <div className="mt-1 font-display text-lg font-semibold tabular-nums text-right opacity-90 whitespace-nowrap">
                     {formatBRL(dailyAvgOpen)}
                   </div>
@@ -1514,13 +1566,13 @@ const Historico = () => {
               <div className="mt-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <div className="font-mono text-xs tracking-[0.3em] opacity-90">VALOR LIQUIDADO</div>
+                    <div className="font-mono text-[11px] tracking-[0.3em] opacity-90">VALOR LIQUIDADO</div>
                     <div className="mt-1 font-display text-xl md:text-2xl font-bold tabular-nums whitespace-nowrap">
                       {formatBRL(settledPresent)}
                     </div>
                   </div>
                   <div>
-                    <div className="font-mono text-xs tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
+                    <div className="font-mono text-[11px] tracking-[0.25em] opacity-70 text-right">MÉDIA DIÁRIA</div>
                     <div className="mt-1 font-display text-lg font-semibold tabular-nums text-right opacity-90 whitespace-nowrap">
                       {formatBRL(dailyAvgSettled)}
                     </div>
@@ -2275,19 +2327,31 @@ const Historico = () => {
         {renderFilters()}
 
         {/* Table */}
-        <section className="rounded-2xl border border-border/60 bg-gradient-card p-3 sm:p-4 shadow-card animate-fade-up">
+        <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <span className="h-2 w-2 rounded-full animate-color-cycle" />
-              <h2 className="font-mono text-sm sm:text-base md:text-lg tracking-[0.2em] font-bold uppercase">Histórico de Operações</h2>
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+              <div className="flex items-center gap-3">
+                <span className="h-2 w-2 rounded-full animate-color-cycle" />
+                <h2 className="font-mono text-sm sm:text-base md:text-lg tracking-[0.2em] font-bold uppercase">Histórico de Operações</h2>
+              </div>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Buscar operações..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 h-8 bg-background/50 border-border/40 font-mono text-[11px]"
+                />
+              </div>
             </div>
-            <span className="font-mono text-xs lg:text-sm tracking-[0.3em] text-muted-foreground">
+            <span className="font-mono text-xs lg:text-sm tracking-[0.3em] text-muted-foreground hidden md:inline">
               {invoices.length} {invoices.length === 1 ? "OPERAÇÃO" : "OPERAÇÕES"} · {filteredRows.length}{" "}
               {filteredRows.length === 1 ? "PARCELA" : "PARCELAS"}
             </span>
           </div>
 
-          {loading ? (
+          {isInitialLoading ? (
             <div className="py-12 text-center font-mono text-xs tracking-widest text-muted-foreground">
               CARREGANDO...
             </div>
@@ -2339,7 +2403,7 @@ const Historico = () => {
 
                       <div className="font-mono text-xs md:text-sm flex flex-wrap gap-x-4 gap-y-1 items-center ml-auto">
                         <span className="text-muted-foreground">
-                          Bruto: <span className="font-bold text-foreground">{formatBRL(monthTotals.value)}</span>
+                          Bruto: <span className="font-bold text-primary">{formatBRL(monthTotals.value)}</span>
                         </span>
                         <span className="text-muted-foreground">
                           Líquido: <span className="font-bold text-net-green">{formatBRL(monthTotals.presentValue)}</span>
@@ -2399,7 +2463,7 @@ const Historico = () => {
                                 <div className="grid grid-cols-2 gap-2 pt-2 font-mono text-xs tabular-nums">
                                   <div>
                                     <div className="text-[10px] tracking-widest text-muted-foreground">VALOR BRUTO</div>
-                                    <div>{formatBRL(r.value)}</div>
+                                    <div className="text-primary">{formatBRL(r.value)}</div>
                                   </div>
                                   <div>
                                     <div className="text-[10px] tracking-widest text-muted-foreground">VALOR LÍQUIDO</div>
@@ -2465,10 +2529,9 @@ const Historico = () => {
                                 <SortableTh label="CLIENTE" sKey="clientName" />
                                 <SortableTh label="NF" sKey="invoiceNumber" />
                                 <SortableTh label="ABERTURA" sKey="operationDate" />
-                                <SortableTh label="VENC." sKey="dueDate" />
+                                <SortableTh label="VENCIMENTO" sKey="dueDate" />
                                 <SortableTh label="DIAS" sKey="days" />
-                                <SortableTh label="TX MÊS" sKey="monthlyRate" />
-                                <SortableTh label="TX EFET." sKey="effectivePct" />
+                                <SortableTh label="TAXA EFET." sKey="effectivePct" />
                                 <SortableTh label="BRUTO (R$)" sKey="value" />
                                 <SortableTh label="LÍQUIDO (R$)" sKey="presentValue" />
                                 <SortableTh label="CUSTO (R$)" sKey="cost" />
@@ -2552,9 +2615,8 @@ const Historico = () => {
                                     <td className="px-1.5 py-2">{fmtDateShort(r.operationDate)}</td>
                                     <td className="px-1.5 py-2">{fmtDateShort(r.dueDate)}</td>
                                     <td className="px-1.5 py-2">{r.days}</td>
-                                    <td className="px-1.5 py-2">{formatPct(r.monthlyRate)}</td>
                                     <td className="px-1.5 py-2">{formatPct(r.effectivePct)}</td>
-                                    <td className="px-1.5 py-2">{formatBRLNum(r.value)}</td>
+                                    <td className="px-1.5 py-2 text-primary">{formatBRLNum(r.value)}</td>
                                     <td className="px-1.5 py-2 text-net-green">{formatBRLNum(r.presentValue)}</td>
                                     <td className="px-1.5 py-2 text-cost-red">{formatBRLNum(r.cost)}</td>
                                     <td className="px-2 py-2 max-w-[120px] truncate" title={r.createdBy}>
@@ -2572,9 +2634,8 @@ const Historico = () => {
                                 <td className="px-2 py-2">—</td>
                                 <td className="px-2 py-2">—</td>
                                 <td className="px-2 py-2">—</td>
-                                <td className="px-2 py-2">—</td>
                                 <td className="px-1.5 py-2 text-center font-medium text-factoring-amber text-muted-foreground">{formatPct(monthEffective)}</td>
-                                <td className="px-1.5 py-2">{formatBRLNum(monthTotals.value)}</td>
+                                <td className="px-1.5 py-2 text-primary">{formatBRLNum(monthTotals.value)}</td>
                                 <td className="px-1.5 py-2 text-net-green">{formatBRLNum(monthTotals.presentValue)}</td>
                                 <td className="px-1.5 py-2 text-cost-red">{formatBRLNum(monthTotals.cost)}</td>
                                 <td className="px-2 py-2">—</td>
@@ -2592,7 +2653,7 @@ const Historico = () => {
               <div className="flex flex-wrap justify-between items-center bg-primary-glow/[0.05] border border-border/50 rounded-xl p-4 font-mono text-xs md:text-sm">
                 <span className="font-bold tracking-wider text-primary-glow uppercase">TOTAL GERAL DO PERÍODO</span>
                 <div className="flex flex-wrap gap-x-6 gap-y-2">
-                  <span>Bruto: <strong className="text-foreground">{formatBRL(totals.value)}</strong></span>
+                  <span>Bruto: <strong className="text-primary">{formatBRL(totals.value)}</strong></span>
                   <span>Líquido: <strong className="text-net-green">{formatBRL(totals.presentValue)}</strong></span>
                   <span>Custo: <strong className="text-cost-red">{formatBRL(totals.cost)}</strong></span>
                   <span className="hidden sm:inline">Taxa Média Efetiva: <strong className="text-factoring-amber">{formatPct(totalEffective)}</strong></span>
@@ -2602,6 +2663,8 @@ const Historico = () => {
           )}
         </section>
         </>)}
+          </>
+        )}
 
         <footer className="border-t border-border/40 py-6 text-center mt-8">
           <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">MYKACA$H · VERSÃO 3.0</p>
@@ -2731,6 +2794,39 @@ const Historico = () => {
               className="bg-[hsl(var(--cost-red))] text-white hover:bg-[hsl(var(--cost-red)/0.9)] font-mono text-[10px] tracking-widest"
             >
               VER VENCIDAS
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={negativeBalanceAlertOpen} onOpenChange={setNegativeBalanceAlertOpen}>
+        <DialogContent className="max-w-md bg-background/95 backdrop-blur-xl border-cost-red/40">
+          <DialogHeader>
+            <DialogTitle className="font-display text-cost-red flex items-center gap-2">
+              ⚠️ ALERTA: Saldo de Conta Negativo
+            </DialogTitle>
+            <DialogDescription className="font-mono text-[10px] tracking-wider uppercase text-cost-red/80">
+              Operação gerou inconsistência de caixa
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-3 font-mono text-xs">
+            <p className="text-foreground">
+              O saldo atual projetado da conta está negativo:{" "}
+              <strong className="text-cost-red text-sm">{formatBRL(currentAccountBalance)}</strong>
+            </p>
+            <p className="text-muted-foreground leading-relaxed">
+              Isso indica que há operações em aberto (não liquidadas) registradas no sistema sem saldo suficiente em conta para cobri-las.
+            </p>
+            <div className="p-3 rounded-lg bg-cost-red/10 border border-cost-red/20 text-cost-red text-[11px] leading-relaxed">
+              <strong>Importante:</strong> Verifique as operações pendentes e marque-as como liquidadas assim que o crédito entrar no banco, ou registre os aportes/depósitos correspondentes no Painel Financeiro para regularizar o caixa.
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              className="bg-cost-red hover:bg-cost-red/90 text-white font-mono text-[10px] tracking-widest w-full"
+              onClick={() => setNegativeBalanceAlertOpen(false)}
+            >
+              ENTENDIDO
             </Button>
           </DialogFooter>
         </DialogContent>

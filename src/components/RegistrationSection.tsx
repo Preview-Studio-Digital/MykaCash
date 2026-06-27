@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Plus, Trash2, UserPlus, Save } from "lucide-react";
+import { Plus, Trash2, UserPlus, Save, Pencil } from "lucide-react";
 import { useClients } from "@/hooks/useClients";
 import { Installment, calculate, formatBRL, formatPct } from "@/lib/calc";
 import { ResultPanels } from "@/components/ResultPanels";
@@ -54,7 +54,7 @@ export const RegistrationSection = ({
   onSaveSuccess?: (updated?: any) => void;
   onCancel?: () => void;
 } = {}) => {
-  const { clients, addClient, removeClient } = useClients();
+  const { clients, addClient, updateClient, removeClient } = useClients();
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -70,6 +70,7 @@ export const RegistrationSection = ({
   const [newClientOpen, setNewClientOpen] = useState(false);
   const [newClientName, setNewClientName] = useState("");
   const [newClientDoc, setNewClientDoc] = useState("");
+  const [editingClient, setEditingClient] = useState<any | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -182,12 +183,24 @@ export const RegistrationSection = ({
       toast.error("Informe um CNPJ válido (14 dígitos)");
       return;
     }
-    const c = await addClient(newClientName.trim(), newClientDoc.trim());
-    if (c) {
-      setClientId(c.id);
-      setNewClientOpen(false);
-      setNewClientName("");
-      setNewClientDoc("");
+    if (editingClient) {
+      const updated = await updateClient(editingClient.id, newClientName.trim(), newClientDoc.trim());
+      if (updated) {
+        setEditingClient(null);
+        setNewClientName("");
+        setNewClientDoc("");
+        if (clientId === editingClient.id) {
+          setClientId(updated.id);
+        }
+      }
+    } else {
+      const c = await addClient(newClientName.trim(), newClientDoc.trim());
+      if (c) {
+        setClientId(c.id);
+        setNewClientOpen(false);
+        setNewClientName("");
+        setNewClientDoc("");
+      }
     }
   };
 
@@ -378,7 +391,14 @@ export const RegistrationSection = ({
                 </SelectContent>
               </Select>
 
-              <Dialog open={newClientOpen} onOpenChange={setNewClientOpen}>
+              <Dialog open={newClientOpen} onOpenChange={(open) => {
+                setNewClientOpen(open);
+                if (!open) {
+                  setEditingClient(null);
+                  setNewClientName("");
+                  setNewClientDoc("");
+                }
+              }}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="icon" aria-label="Novo cliente">
                     <UserPlus className="h-4 w-4" />
@@ -386,7 +406,9 @@ export const RegistrationSection = ({
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle className="font-mono text-xs lg:text-sm uppercase tracking-widest">Gerenciar clientes</DialogTitle>
+                    <DialogTitle className="font-mono text-xs lg:text-sm uppercase tracking-widest">
+                      {editingClient ? "Editar cliente" : "Gerenciar clientes"}
+                    </DialogTitle>
                   </DialogHeader>
                   <div className="space-y-3">
                     <div className="space-y-2">
@@ -425,27 +447,56 @@ export const RegistrationSection = ({
                                   <div className="truncate text-xs text-muted-foreground">{c.document}</div>
                                 )}
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-muted-foreground hover:text-cost-red h-8 w-8"
-                                aria-label={`Remover ${c.name}`}
-                                onClick={async () => {
-                                  if (!confirm(`Remover "${c.name}"?`)) return;
-                                  const ok = await removeClient(c.id);
-                                  if (ok && clientId === c.id) setClientId("");
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-muted-foreground hover:text-primary h-8 w-8"
+                                  aria-label={`Editar ${c.name}`}
+                                  onClick={() => {
+                                    setEditingClient(c);
+                                    setNewClientName(c.name);
+                                    setNewClientDoc(c.document || "");
+                                  }}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-muted-foreground hover:text-cost-red h-8 w-8"
+                                  aria-label={`Remover ${c.name}`}
+                                  onClick={async () => {
+                                    if (!confirm(`Remover "${c.name}"?`)) return;
+                                    const ok = await removeClient(c.id);
+                                    if (ok && clientId === c.id) setClientId("");
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
                           ))}
                         </div>
                       </div>
                     )}
                   </div>
-                  <DialogFooter>
-                    <Button onClick={handleCreateClient}>Cadastrar cliente</Button>
+                  <DialogFooter className="flex gap-2">
+                    {editingClient && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setEditingClient(null);
+                          setNewClientName("");
+                          setNewClientDoc("");
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                    )}
+                    <Button onClick={handleCreateClient}>
+                      {editingClient ? "Salvar alterações" : "Cadastrar cliente"}
+                    </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>

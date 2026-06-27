@@ -25,7 +25,7 @@ export const PageNav = () => {
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 font-mono text-[11px] tracking-[0.2em] transition-all sm:gap-2 sm:px-5 sm:py-2 sm:text-xs sm:tracking-[0.3em]",
                   active
-                    ? "bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.4)]"
+                    ? "animate-color-cycle text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
