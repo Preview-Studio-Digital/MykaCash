@@ -1715,6 +1715,9 @@ const Historico = () => {
                           monthBoundaries.push(chartData[i].date);
                         }
                       }
+                      const mobileTicks = isMobile
+                        ? getMobileXAxisTicks(chartData.map((d: any) => d.date))
+                        : undefined;
                       const maxScore = Math.max(1, ...chartData.map((d: any) => d.score ?? 0));
                       const minScore = Math.min(maxScore, ...chartData.map((d: any) => d.score ?? 0));
                       const lineRange = maxScore - minScore;
@@ -1776,6 +1779,7 @@ const Historico = () => {
                             <XAxis
                               dataKey="date"
                               interval={0}
+                              ticks={mobileTicks}
                               tickFormatter={(val) => {
                                 if (val === "agora") return "agora";
                                 const parts = val.split("-");
