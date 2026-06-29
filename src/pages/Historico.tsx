@@ -2463,7 +2463,7 @@ const Historico = () => {
                               >
                                 <div className="flex items-center justify-between gap-2">
                                   <div className="font-mono text-[10px] tracking-widest text-primary-glow shrink-0">
-                                    {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"} · NF {r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}
+                                    {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"} · NOTA FISCAL {r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}
                                   </div>
                                   <button
                                     type="button"
@@ -2526,7 +2526,7 @@ const Historico = () => {
                                 <th className="px-1.5 py-2 text-center font-medium">REGISTRO</th>
                                 <th className="px-1.5 py-2 text-center font-medium">STATUS</th>
                                 <SortableTh label="CLIENTE" sKey="clientName" />
-                                <SortableTh label="NF" sKey="invoiceNumber" />
+                                <SortableTh label="NOTA FISCAL" sKey="invoiceNumber" />
                                 <SortableTh label="ABERTURA" sKey="operationDate" />
                                 <SortableTh label="VENCIMENTO" sKey="dueDate" />
                                 <SortableTh label="DIAS" sKey="days" />
@@ -2760,7 +2760,7 @@ const Historico = () => {
                           {r.clientName}
                         </div>
                         <div className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-                          OP #{String(r.opNumber).padStart(3, "0")} · NF {r.invoiceNumber} · PARC {r.parcelLabel}
+                          OP #{String(r.opNumber).padStart(3, "0")} · NOTA FISCAL {r.invoiceNumber} · PARC {r.parcelLabel}
                         </div>
                       </div>
                       <div className="text-right shrink-0">
