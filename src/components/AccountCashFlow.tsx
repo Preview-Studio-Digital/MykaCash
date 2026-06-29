@@ -1010,15 +1010,12 @@ export const AccountCashFlow = () => {
                 dataKey="rawDate" 
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
                 dy={10}
                 interval={0}
-                tickFormatter={(val, index) => {
-                  const total = chartData.length;
-                  const nth = total > 40 ? 10 : total > 20 ? 5 : total > 10 ? 2 : 1;
-                  if (index !== 0 && index !== total - 1 && index % nth !== 0) return "";
+                tickFormatter={(val) => {
                   const parts = val.split("-");
-                  if (parts.length === 3) return parts[2];
+                  if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
                   return val;
                 }}
               />
