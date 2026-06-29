@@ -12,8 +12,9 @@ import { toast } from "sonner";
 import { playSound } from "@/lib/sounds";
 import { CheckCircle2, Circle, Pencil, Trash2, Plus, X, ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal, ChevronDown, ChevronRight, Search } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { logOperationAction } from "@/lib/auditLogger";
-import { cn } from "@/lib/utils";
+import { cn, getMobileXAxisTicks } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -156,6 +157,7 @@ const Historico = () => {
   const [loading, setLoading] = useState(true);
   const isInitialLoading = loading && invoices.length === 0;
   const [now, setNow] = useState<number>(Date.now());
+  const isMobile = useIsMobile();
   const [settlingRow, setSettlingRow] = useState<any | null>(null);
   const [settlementDate, setSettlementDate] = useState<string>("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState<boolean>(false);
