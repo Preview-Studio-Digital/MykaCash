@@ -33,7 +33,7 @@ export default function SoundSettings() {
 
   const preview = (kind: SoundKind) => {
     const opt = SOUND_CATALOG[kind].find((o) => o.id === prefs[kind]);
-    const soundVolume = kind === "overdue" ? (prefs.overdueVolume ?? 0.8) : prefs.volume;
+    const soundVolume = prefs.volume;
     if (opt) previewSound(opt.file, soundVolume);
   };
 
@@ -87,9 +87,9 @@ export default function SoundSettings() {
           <div>
             <Label className="text-base">
               {kind === "confirm"
-                ? "Som de confirmação (ao abrir tela)"
+                ? "Confirmacao de operacao"
                 : kind === "success"
-                ? "Som de sucesso (ao salvar)"
+                ? "salvamento de operacao:"
                 : "Som do alerta de vencidos"}
             </Label>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -127,26 +127,6 @@ export default function SoundSettings() {
               <Play className="h-4 w-4" />
             </Button>
           </div>
-
-          {kind === "overdue" && (
-            <div className="space-y-2 mt-4 pt-4 border-t border-border/40">
-              <div className="flex items-center justify-between">
-                <Label className="flex items-center gap-2 text-xs">
-                  <Volume2 className="h-3.5 w-3.5" /> Volume do Alerta
-                </Label>
-                <span className="text-xs tabular-nums text-muted-foreground">
-                  {Math.round((prefs.overdueVolume ?? 0.8) * 100)}%
-                </span>
-              </div>
-              <Slider
-                value={[Math.round((prefs.overdueVolume ?? 0.8) * 100)]}
-                onValueChange={([v]) => update({ overdueVolume: v / 100 })}
-                max={100}
-                step={5}
-                disabled={!prefs.enabled}
-              />
-            </div>
-          )}
         </section>
       ))}
 

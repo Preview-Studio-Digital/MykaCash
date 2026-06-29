@@ -74,7 +74,7 @@ export function playSound(kind: SoundKind, overridePrefs?: SoundPrefs) {
   if (!opt) return;
   try {
     const audio = new Audio(opt.file);
-    const soundVolume = kind === "overdue" ? (prefs.overdueVolume ?? 0.8) : prefs.volume;
+    const soundVolume = prefs.volume;
     audio.volume = Math.max(0, Math.min(1, soundVolume));
     void audio.play().catch(() => {});
   } catch {
