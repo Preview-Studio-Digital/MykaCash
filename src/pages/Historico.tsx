@@ -893,6 +893,70 @@ const Historico = () => {
     if (!settlingRow) return;
     const inv = invoices.find((i) => i.id === settlingRow.invoiceId);
     if (!inv) return;
+
+    const diffDaysHelper = (from: string, to: string): number => {
+      const a = new Date(from + "T00:00:00");
+      const b = new Date(to + "T00:00:00");
+      return Math.max(0, Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24)));
+    };
+
+    const delayDays = diffDaysHelper(settlingRow.dueDate, settlementDate);
+    let nextInstallments = inv.installments;
+
+    if (delayDays > 5) {
+      const r = (inv.monthly_rate || 0) / 100;
+      const valueNew = settlingRow.value * Math.pow(1 + r, delayDays / 30);
+      const adjustment = valueNew - settlingRow.value;
+
+      const confirmMsg = `Atenção: Esta parcela está sendo liquidada com ${delayDays} dias de atraso (tolerância de 5 dias excedida).\n\n` +
+        `Será aplicada uma correção de juros de ${formatBRL(adjustment)} sobre o valor bruto.\n` +
+        `Valor Bruto Original: ${formatBRL(settlingRow.value)}\n` +
+        `Novo Valor Bruto corrigido: ${formatBRL(valueNew)}\n\n` +
+        `Deseja prosseguir com a liquidação e aplicar a correção de valor?`;
+
+      if (confirm(confirmMsg)) {
+        const installments = Array.isArray(inv.installments) ? inv.installments : [];
+        nextInstallments = installments.map((inst: any) => {
+          if (inst.id === settlingRow.installmentId) {
+            return {
+              ...inst,
+              value: Math.round(valueNew * 100) / 100,
+              dueDate: settlementDate
+            };
+          }
+          return inst;
+        });
+
+        // Atualiza a parcela com novos valores e nova data de vencimento no banco
+        const { error: updateError } = await supabase
+          .from("invoices")
+          .update({ installments: nextInstallments })
+          .eq("id", inv.id);
+
+        if (updateError) {
+          console.error("Erro ao atualizar parcela com correção:", updateError);
+          toast.error("Erro ao aplicar correção de atraso");
+          setSettlingRow(null);
+          return;
+        }
+
+        // Registrar log de auditoria do ajuste
+        const opNumStr = inv.ordem ? String(inv.ordem).padStart(4, "0") : "—";
+        const clientName = inv.clients?.name ?? "—";
+        const invoiceNumber = inv.invoice_number;
+        logOperationAction(
+          "UPDATE",
+          opNumStr,
+          clientName,
+          invoiceNumber,
+          `Aplicou correção de atraso de ${delayDays} dias no valor de ${formatBRL(adjustment)} (Registro: ${opNumStr})`
+        );
+      } else {
+        setSettlingRow(null);
+        return;
+      }
+    }
+
     const current: SettledEntry[] = Array.isArray(inv.settled_installments)
       ? (inv.settled_installments as any)
       : [];
