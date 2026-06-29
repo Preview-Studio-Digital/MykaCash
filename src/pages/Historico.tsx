@@ -2035,6 +2035,10 @@ const Historico = () => {
                   }
                 }
 
+                const mobileTicks = isMobile
+                  ? getMobileXAxisTicks(chartData.map((d: any) => d.date))
+                  : undefined;
+
                 const gradId = chartGradId;
                 return (
                   <ResponsiveContainer width="100%" height="100%">
@@ -2062,6 +2066,7 @@ const Historico = () => {
                       <XAxis
                         dataKey="date"
                         interval={0}
+                        ticks={mobileTicks}
                         tickFormatter={(val) => {
                           if (val === "agora") return "agora";
                           const parts = val.split("-");
