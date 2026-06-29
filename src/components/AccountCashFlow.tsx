@@ -1010,7 +1010,7 @@ export const AccountCashFlow = () => {
                 dataKey="rawDate" 
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                 dy={10}
                 interval={0}
                 tickFormatter={(val) => {
@@ -1024,7 +1024,7 @@ export const AccountCashFlow = () => {
                 width={60}
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                 tickFormatter={(v) => `R$${Math.abs(v) >= 1000 ? (v/1000).toFixed(0) + 'K' : v}`}
               />
               <YAxis 
@@ -1033,7 +1033,7 @@ export const AccountCashFlow = () => {
                 width={60}
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                 tickFormatter={(v) => `R$${Math.abs(v) >= 1000 ? (v/1000).toFixed(0) + 'K' : v}`}
               />
               <Tooltip 
