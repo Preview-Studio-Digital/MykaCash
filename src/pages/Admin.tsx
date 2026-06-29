@@ -336,25 +336,13 @@ const Admin = () => {
         )}
 
         {activeTab === "configuracoes" && (
-          <main className="mx-auto w-full max-w-3xl py-4 space-y-6">
-            <div className="flex items-center gap-3">
-              <span className="h-2 w-2 rounded-full animate-color-cycle" />
-              <h2 className="font-mono text-sm sm:text-base md:text-lg tracking-[0.2em] font-bold uppercase">
-                CONFIGURAÇÕES
-              </h2>
-            </div>
+          <main className="mx-auto w-full max-w-3xl py-4">
             <SoundSettings />
           </main>
         )}
 
         {activeTab === "historico" && (
-          <main className="mx-auto w-full max-w-5xl py-4 space-y-6">
-            <div className="flex items-center gap-3">
-              <span className="h-2 w-2 rounded-full animate-color-cycle" />
-              <h2 className="font-mono text-sm sm:text-base md:text-lg tracking-[0.2em] font-bold uppercase">
-                AUDITORIA
-              </h2>
-            </div>
+          <main className="mx-auto w-full max-w-5xl py-4">
             <AdminAuditLogs />
           </main>
         )}
