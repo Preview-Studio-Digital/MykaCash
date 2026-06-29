@@ -87,10 +87,10 @@ export default function SoundSettings() {
           <div>
             <Label className="text-base">
               {kind === "confirm"
-                ? "Confirmacao de operacao"
+                ? "Confirmação da Operação"
                 : kind === "success"
-                ? "salvamento de operacao:"
-                : "Som do alerta de vencidos"}
+                ? "Salvamento da Operação"
+                : "Alerta de Vencidos"}
             </Label>
             <p className="text-xs text-muted-foreground mt-0.5">
               {kind === "confirm"
