@@ -134,6 +134,39 @@ export type Database = {
           },
         ]
       }
+      operation_logs: {
+        Row: {
+          action: string
+          author: string
+          client_name: string | null
+          created_at: string
+          details: string | null
+          id: string
+          invoice_number: string | null
+          op_number: string | null
+        }
+        Insert: {
+          action: string
+          author: string
+          client_name?: string | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          invoice_number?: string | null
+          op_number?: string | null
+        }
+        Update: {
+          action?: string
+          author?: string
+          client_name?: string | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          invoice_number?: string | null
+          op_number?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
