@@ -4,6 +4,8 @@ import { calculate, formatBRL, type Installment } from "@/lib/calc";
 import { playSound } from "@/lib/sounds";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { getMobileXAxisTicks } from "@/lib/utils";
 import { DateField } from "@/components/DateField";
 import { 
   Plus, 
@@ -134,6 +136,7 @@ export const AccountCashFlow = () => {
     return saved ? parseFloat(saved) : 0;
   });
   const [negativeBalanceAlertOpen, setNegativeBalanceAlertOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const saveInitialBalance = (val: number) => {
     setInitialBalance(val);
