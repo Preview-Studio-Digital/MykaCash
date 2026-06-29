@@ -1015,7 +1015,7 @@ export const AccountCashFlow = () => {
                 interval={0}
                 tickFormatter={(val) => {
                   const parts = val.split("-");
-                  if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
+                  if (parts.length === 3) return parts[2];
                   return val;
                 }}
               />
