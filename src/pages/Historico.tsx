@@ -2403,7 +2403,7 @@ const Historico = () => {
 
                       <div className="font-mono text-xs md:text-sm flex flex-wrap gap-x-4 gap-y-1 items-center ml-auto">
                         <span className="text-muted-foreground">
-                          Bruto: <span className="font-bold text-primary">{formatBRL(monthTotals.value)}</span>
+                          Bruto: <span className="font-bold text-factoring-amber">{formatBRL(monthTotals.value)}</span>
                         </span>
                         <span className="text-muted-foreground">
                           Líquido: <span className="font-bold text-net-green">{formatBRL(monthTotals.presentValue)}</span>
@@ -2460,7 +2460,7 @@ const Historico = () => {
                                   </div>
                                 </div>
                                 <div className="flex items-center justify-between gap-2">
-                                  <div className="font-mono text-xs tabular-nums text-primary">{formatBRL(r.value)}</div>
+                                  <div className="font-mono text-xs tabular-nums text-factoring-amber">{formatBRL(r.value)}</div>
                                   {canManage && (
                                     <div className="flex items-center gap-0.5">
                                       <Button
@@ -2587,7 +2587,7 @@ const Historico = () => {
                                     <td className="px-1.5 py-2">{fmtDateShort(r.dueDate)}</td>
                                     <td className="px-1.5 py-2">{r.days}</td>
                                     <td className="px-1.5 py-2">{formatPct(r.effectivePct)}</td>
-                                    <td className="px-1.5 py-2 text-primary">{formatBRLNum(r.value)}</td>
+                                    <td className="px-1.5 py-2 text-factoring-amber">{formatBRLNum(r.value)}</td>
                                     <td className="px-1.5 py-2 text-net-green">{formatBRLNum(r.presentValue)}</td>
                                     <td className="px-1.5 py-2 text-cost-red">{formatBRLNum(r.cost)}</td>
                                     <td className="px-2 py-2 max-w-[120px] truncate" title={r.createdBy}>
@@ -2606,7 +2606,7 @@ const Historico = () => {
                                 <td className="px-2 py-2">—</td>
                                 <td className="px-2 py-2">—</td>
                                 <td className="px-1.5 py-2 text-center font-medium text-factoring-amber text-muted-foreground">{formatPct(monthEffective)}</td>
-                                <td className="px-1.5 py-2 text-primary">{formatBRLNum(monthTotals.value)}</td>
+                                <td className="px-1.5 py-2 text-factoring-amber">{formatBRLNum(monthTotals.value)}</td>
                                 <td className="px-1.5 py-2 text-net-green">{formatBRLNum(monthTotals.presentValue)}</td>
                                 <td className="px-1.5 py-2 text-cost-red">{formatBRLNum(monthTotals.cost)}</td>
                                 <td className="px-2 py-2">—</td>
@@ -2624,7 +2624,7 @@ const Historico = () => {
               <div className="flex flex-wrap justify-between items-center bg-primary-glow/[0.05] border border-border/50 rounded-xl p-4 font-mono text-xs md:text-sm">
                 <span className="font-bold tracking-wider text-primary-glow uppercase">TOTAL GERAL DO PERÍODO</span>
                 <div className="flex flex-wrap gap-x-6 gap-y-2">
-                  <span>Bruto: <strong className="text-primary">{formatBRL(totals.value)}</strong></span>
+                  <span>Bruto: <strong className="text-factoring-amber">{formatBRL(totals.value)}</strong></span>
                   <span>Líquido: <strong className="text-net-green">{formatBRL(totals.presentValue)}</strong></span>
                   <span>Custo: <strong className="text-cost-red">{formatBRL(totals.cost)}</strong></span>
                   <span className="hidden sm:inline">Taxa Média Efetiva: <strong className="text-factoring-amber">{formatPct(totalEffective)}</strong></span>
