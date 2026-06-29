@@ -179,6 +179,39 @@ export type Database = {
         }
         Relationships: []
       }
+      operation_logs: {
+        Row: {
+          id: string
+          created_at: string
+          action: string
+          op_number: string | null
+          client_name: string | null
+          invoice_number: string | null
+          author: string
+          details: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          action: string
+          op_number?: string | null
+          client_name?: string | null
+          invoice_number?: string | null
+          author: string
+          details?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          action?: string
+          op_number?: string | null
+          client_name?: string | null
+          invoice_number?: string | null
+          author?: string
+          details?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

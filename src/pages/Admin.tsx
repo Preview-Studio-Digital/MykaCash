@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, Pencil, Trash2, Shield, Users, Settings, UserPlus, Wallet, Menu } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, Shield, Users, Settings, UserPlus, Wallet, Menu, History } from "lucide-react";
 import SoundSettings from "@/components/SoundSettings";
 import { AccountCashFlow } from "@/components/AccountCashFlow";
+import { AdminAuditLogs } from "@/components/AdminAuditLogs";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import {
@@ -320,6 +321,13 @@ const Admin = () => {
               <SoundSettings />
             </main>
           )}
+
+          {activeTab === "historico" && (
+            <main className="mx-auto w-full max-w-5xl px-2 md:px-4 lg:px-6 py-10">
+              <h2 className="font-display text-2xl tracking-wide mb-6">HISTÓRICO DE ALTERAÇÕES</h2>
+              <AdminAuditLogs />
+            </main>
+          )}
         </div>
       </div>
 
@@ -468,7 +476,7 @@ const Admin = () => {
   );
 };
 
-type TabKey = "usuarios" | "financeiro" | "configuracoes";
+type TabKey = "usuarios" | "financeiro" | "configuracoes" | "historico";
 
 const SidebarMenu = ({
   activeTab,
@@ -477,8 +485,9 @@ const SidebarMenu = ({
   activeTab: TabKey;
   onSelect: (t: TabKey) => void;
 }) => {
-  const items: { key: TabKey; label: string; icon: typeof Users }[] = [
+  const items: { key: TabKey; label: string; icon: any }[] = [
     { key: "financeiro", label: "FINANCEIRO", icon: Wallet },
+    { key: "historico", label: "HISTÓRICO", icon: History },
     { key: "usuarios", label: "USUÁRIOS", icon: Users },
     { key: "configuracoes", label: "CONFIGURAÇÕES", icon: Settings },
   ];

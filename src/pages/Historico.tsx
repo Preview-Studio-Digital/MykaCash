@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { playSound } from "@/lib/sounds";
 import { CheckCircle2, Circle, Pencil, Trash2, Plus, X, ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal, ChevronDown, ChevronRight, Search } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { logOperationAction } from "@/lib/auditLogger";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -869,6 +870,20 @@ const Historico = () => {
       toast.error(friendlyDbError(error, "Erro ao atualizar liquidação"));
       load();
     } else {
+      // Registrar log da liquidação/desliquidação
+      const inv = invoices.find((i) => i.id === invoiceId);
+      if (inv) {
+        const opNumStr = inv.ordem ? String(inv.ordem).padStart(4, "0") : "—";
+        const clientName = inv.clients?.name ?? "—";
+        const invoiceNumber = inv.invoice_number;
+        const wasSettled = next.length > (Array.isArray(inv.settled_installments) ? inv.settled_installments.length : 0);
+        const logAction = wasSettled ? "SETTLE" : "UNSETTLE";
+        const logDetails = wasSettled
+          ? `Liquidou a operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber})`
+          : `Removeu a liquidação da operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber})`;
+        logOperationAction(logAction, opNumStr, clientName, invoiceNumber, logDetails);
+      }
+
       toast.success(successMsg);
       load();
     }
@@ -899,6 +914,19 @@ const Historico = () => {
     try {
       const { error: deleteError } = await supabase.from("invoices").delete().eq("id", invoiceId);
       if (deleteError) throw deleteError;
+
+      // Registrar log da remoção
+      const opNumStr = inv.ordem ? String(inv.ordem).padStart(4, "0") : "—";
+      const clientName = inv.clients?.name ?? "—";
+      const invoiceNumber = inv.invoice_number;
+      logOperationAction(
+        "DELETE",
+        opNumStr,
+        clientName,
+        invoiceNumber,
+        `Deletou a operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber})`
+      );
+
       toast.success("Abertura removida");
       load();
     } catch (error) {

@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { FACTORING_MONTHLY_RATE_PCT } from "@/lib/calc";
 import { playSound } from "@/lib/sounds";
+import { logOperationAction } from "@/lib/auditLogger";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const formatCNPJ = (value: string) => {
@@ -334,6 +335,14 @@ export const RegistrationSection = ({
     }
     const clientName = clients.find((c) => c.id === clientId)?.name ?? "cliente";
     if (savedOpNumber) setOperationNumber(savedOpNumber);
+
+    // Registrar log da operação
+    const opNumStr = savedOpNumber ? String(savedOpNumber).padStart(4, "0") : "—";
+    const logAction = invoiceToEdit ? "UPDATE" : "CREATE";
+    const logDetails = invoiceToEdit
+      ? `Editou a operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber.trim()})`
+      : `Abriu a operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber.trim()})`;
+    logOperationAction(logAction, opNumStr, clientName, invoiceNumber.trim(), logDetails);
     try {
       // Wait a tick so the offscreen archive re-renders with the final operation number
       await new Promise((r) => setTimeout(r, 50));
