@@ -63,7 +63,7 @@ const App = () => (
         <AuthProvider>
           <div className="relative min-h-screen w-full overflow-x-hidden">
             {/* Background Canvas */}
-            <div className="fixed inset-0 z-0 pointer-events-none opacity-50">
+            <div className="fixed inset-0 z-0 pointer-events-none opacity-60">
               <HeroWave />
             </div>
             
