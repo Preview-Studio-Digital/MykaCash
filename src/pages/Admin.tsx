@@ -316,8 +316,13 @@ const Admin = () => {
           )}
 
           {activeTab === "configuracoes" && (
-            <main className="mx-auto w-full max-w-3xl px-2 md:px-4 py-10">
-              <h2 className="font-display text-2xl tracking-wide mb-6">CONFIGURAÇÕES</h2>
+            <main className="mx-auto w-full max-w-3xl px-2 md:px-4 py-10 space-y-6">
+              <div className="flex items-center gap-3">
+                <span className="h-2 w-2 rounded-full animate-color-cycle" />
+                <h2 className="font-mono text-sm sm:text-base md:text-lg tracking-[0.2em] font-bold uppercase">
+                  CONFIGURAÇÕES
+                </h2>
+              </div>
               <SoundSettings />
             </main>
           )}
