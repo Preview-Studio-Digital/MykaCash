@@ -324,7 +324,7 @@ const Admin = () => {
 
           {activeTab === "historico" && (
             <main className="mx-auto w-full max-w-5xl px-2 md:px-4 lg:px-6 py-10">
-              <h2 className="font-display text-2xl tracking-wide mb-6">HISTÓRICO DE ALTERAÇÕES</h2>
+              <h2 className="font-display text-2xl tracking-wide mb-6">AUDITORIA</h2>
               <AdminAuditLogs />
             </main>
           )}
@@ -487,7 +487,7 @@ const SidebarMenu = ({
 }) => {
   const items: { key: TabKey; label: string; icon: any }[] = [
     { key: "financeiro", label: "FINANCEIRO", icon: Wallet },
-    { key: "historico", label: "HISTÓRICO", icon: History },
+    { key: "historico", label: "AUDITORIA", icon: History },
     { key: "usuarios", label: "USUÁRIOS", icon: Users },
     { key: "configuracoes", label: "CONFIGURAÇÕES", icon: Settings },
   ];
