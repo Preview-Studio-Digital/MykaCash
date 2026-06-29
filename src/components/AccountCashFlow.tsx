@@ -4,6 +4,8 @@ import { calculate, formatBRL, type Installment } from "@/lib/calc";
 import { playSound } from "@/lib/sounds";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { getMobileXAxisTicks } from "@/lib/utils";
 import { DateField } from "@/components/DateField";
 import { 
   Plus, 
@@ -134,6 +136,7 @@ export const AccountCashFlow = () => {
     return saved ? parseFloat(saved) : 0;
   });
   const [negativeBalanceAlertOpen, setNegativeBalanceAlertOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const saveInitialBalance = (val: number) => {
     setInitialBalance(val);
@@ -876,6 +879,11 @@ export const AccountCashFlow = () => {
     return boundaries;
   }, [chartData]);
 
+  const mobileTicks = useMemo(() => {
+    if (!isMobile || chartData.length === 0) return undefined;
+    return getMobileXAxisTicks(chartData.map((d) => d.rawDate));
+  }, [isMobile, chartData]);
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Stats Cards */}
@@ -1013,6 +1021,7 @@ export const AccountCashFlow = () => {
                 tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                 dy={10}
                 interval={0}
+                ticks={mobileTicks}
                 tickFormatter={(val) => {
                   const parts = val.split("-");
                   if (parts.length === 3) return parts[2];

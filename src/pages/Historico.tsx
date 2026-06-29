@@ -12,8 +12,9 @@ import { toast } from "sonner";
 import { playSound } from "@/lib/sounds";
 import { CheckCircle2, Circle, Pencil, Trash2, Plus, X, ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal, ChevronDown, ChevronRight, Search } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { logOperationAction } from "@/lib/auditLogger";
-import { cn } from "@/lib/utils";
+import { cn, getMobileXAxisTicks } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -156,6 +157,7 @@ const Historico = () => {
   const [loading, setLoading] = useState(true);
   const isInitialLoading = loading && invoices.length === 0;
   const [now, setNow] = useState<number>(Date.now());
+  const isMobile = useIsMobile();
   const [settlingRow, setSettlingRow] = useState<any | null>(null);
   const [settlementDate, setSettlementDate] = useState<string>("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState<boolean>(false);
@@ -1713,6 +1715,9 @@ const Historico = () => {
                           monthBoundaries.push(chartData[i].date);
                         }
                       }
+                      const mobileTicks = isMobile
+                        ? getMobileXAxisTicks(chartData.map((d: any) => d.date))
+                        : undefined;
                       const maxScore = Math.max(1, ...chartData.map((d: any) => d.score ?? 0));
                       const minScore = Math.min(maxScore, ...chartData.map((d: any) => d.score ?? 0));
                       const lineRange = maxScore - minScore;
@@ -1774,6 +1779,7 @@ const Historico = () => {
                             <XAxis
                               dataKey="date"
                               interval={0}
+                              ticks={mobileTicks}
                               tickFormatter={(val) => {
                                 if (val === "agora") return "agora";
                                 const parts = val.split("-");
@@ -2029,6 +2035,10 @@ const Historico = () => {
                   }
                 }
 
+                const mobileTicks = isMobile
+                  ? getMobileXAxisTicks(chartData.map((d: any) => d.date))
+                  : undefined;
+
                 const gradId = chartGradId;
                 return (
                   <ResponsiveContainer width="100%" height="100%">
@@ -2056,6 +2066,7 @@ const Historico = () => {
                       <XAxis
                         dataKey="date"
                         interval={0}
+                        ticks={mobileTicks}
                         tickFormatter={(val) => {
                           if (val === "agora") return "agora";
                           const parts = val.split("-");
