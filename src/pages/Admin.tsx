@@ -212,34 +212,34 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-border/60 px-6 py-3 flex items-center justify-between bg-background/50 backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-3 md:gap-6">
+      <header className="border-b border-border/60 px-3 sm:px-6 py-3 flex items-center justify-between gap-2 bg-background/50 backdrop-blur-md sticky top-0 z-50">
+        <div className="flex items-center gap-2 md:gap-6 min-w-0">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 font-mono text-[10px] tracking-widest text-muted-foreground hover:text-primary transition-colors"
+            className="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-widest text-muted-foreground hover:text-primary transition-colors"
           >
-            <ArrowLeft className="h-3.5 w-3.5" /> VOLTAR
+            <ArrowLeft className="h-3.5 w-3.5" /> <span className="hidden xs:inline sm:inline">VOLTAR</span>
           </Link>
-          <h1 className="font-title title-gradient text-lg font-bold tracking-tight">ADMINISTRAÇÃO</h1>
+          <h1 className="font-title title-gradient text-base sm:text-lg font-bold tracking-tight truncate">ADMIN<span className="hidden sm:inline">ISTRAÇÃO</span></h1>
         </div>
 
         <button
           onClick={() => setActiveTab("configuracoes")}
           className={cn(
-            "inline-flex items-center gap-1.5 font-mono text-[10px] tracking-widest transition-all rounded-full px-4 py-2 border",
+            "inline-flex items-center gap-1.5 font-mono text-[10px] tracking-widest transition-all rounded-full px-2.5 sm:px-4 py-1.5 sm:py-2 border shrink-0",
             activeTab === "configuracoes"
               ? "text-foreground border-foreground bg-muted/20"
               : "text-muted-foreground border-border/40 hover:text-foreground bg-background/50 hover:bg-muted/40"
           )}
         >
-          <Settings className="h-3.5 w-3.5" /> CONFIGURAÇÕES
+          <Settings className="h-3.5 w-3.5" /> <span className="hidden sm:inline">CONFIGURAÇÕES</span>
         </button>
       </header>
 
-      <div className="container max-w-[1600px] mx-auto px-4 py-6">
+      <div className="container max-w-[1600px] mx-auto px-3 sm:px-4 py-6">
         {/* Navigation Buttons */}
-        <div className="flex items-center justify-center gap-2 mb-8 animate-fade-up">
-          <div className="inline-flex rounded-full border border-border/60 bg-background/80 p-1.5 backdrop-blur-md shadow-lg shadow-black/40">
+        <div className="flex items-center justify-center gap-2 mb-8 animate-fade-up px-2">
+          <div className="inline-flex max-w-full rounded-full border border-border/60 bg-background/80 p-1 sm:p-1.5 backdrop-blur-md shadow-lg shadow-black/40">
             {[
               { key: "financeiro", label: "FINANCEIRO", icon: Wallet },
               { key: "historico", label: "AUDITORIA", icon: History },
@@ -252,13 +252,13 @@ const Admin = () => {
                   key={it.key}
                   onClick={() => setActiveTab(it.key as TabKey)}
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 font-mono text-[11px] tracking-[0.2em] transition-all sm:gap-2 sm:px-5 sm:py-2 sm:text-xs sm:tracking-[0.3em]",
+                    "inline-flex items-center gap-1 rounded-full px-2 py-1.5 font-mono text-[10px] tracking-[0.12em] transition-all sm:gap-2 sm:px-5 sm:py-2 sm:text-xs sm:tracking-[0.3em]",
                     active
                       ? "animate-color-cycle text-primary-foreground"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  <Icon className="h-3.5 w-3.5" />
+                  <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                   {it.label}
                 </button>
               );
