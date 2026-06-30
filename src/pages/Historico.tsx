@@ -881,9 +881,9 @@ const Historico = () => {
         const wasSettled = next.length > (Array.isArray(inv.settled_installments) ? inv.settled_installments.length : 0);
         const logAction = wasSettled ? "SETTLE" : "UNSETTLE";
         const logDetails = wasSettled
-          ? `Liquidou a operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber})`
-          : `Removeu a liquidação da operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber})`;
-        logOperationAction(logAction, opNumStr, clientName, invoiceNumber, logDetails);
+          ? `Liquidou a operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber}, Valor: ${formatBRL(inv.invoice_value)})`
+          : `Removeu a liquidação da operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber}, Valor: ${formatBRL(inv.invoice_value)})`;
+        logOperationAction(logAction, opNumStr, clientName, invoiceNumber, logDetails, inv.invoice_value);
       }
 
       toast.success(successMsg);
@@ -951,7 +951,8 @@ const Historico = () => {
           opNumStr,
           clientName,
           invoiceNumber,
-          `Aplicou correção de atraso de ${delayDays} dias no valor de ${formatBRL(adjustment)} (Registro: ${opNumStr})`
+          `Aplicou correção de atraso de ${delayDays} dias no valor de ${formatBRL(adjustment)} (Registro: ${opNumStr}, Valor da Operação: ${formatBRL(inv.invoice_value)})`,
+          inv.invoice_value
         );
       } else {
         setSettlingRow(null);
@@ -990,7 +991,8 @@ const Historico = () => {
         opNumStr,
         clientName,
         invoiceNumber,
-        `Deletou a operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber})`
+        `Deletou a operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber}, Valor: ${formatBRL(inv.invoice_value)})`,
+        inv.invoice_value
       );
 
       toast.success("Abertura removida");

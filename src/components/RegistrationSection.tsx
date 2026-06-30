@@ -340,9 +340,9 @@ export const RegistrationSection = ({
     const opNumStr = savedOpNumber ? String(savedOpNumber).padStart(4, "0") : "—";
     const logAction = invoiceToEdit ? "UPDATE" : "CREATE";
     const logDetails = invoiceToEdit
-      ? `Editou a operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber.trim()})`
-      : `Abriu a operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber.trim()})`;
-    logOperationAction(logAction, opNumStr, clientName, invoiceNumber.trim(), logDetails);
+      ? `Editou a operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber.trim()}, Valor: ${formatBRL(invoiceValue)})`
+      : `Abriu a operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber.trim()}, Valor: ${formatBRL(invoiceValue)})`;
+    logOperationAction(logAction, opNumStr, clientName, invoiceNumber.trim(), logDetails, invoiceValue);
     try {
       // Wait a tick so the offscreen archive re-renders with the final operation number
       await new Promise((r) => setTimeout(r, 50));

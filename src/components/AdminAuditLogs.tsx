@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Search, History, Calendar, FileText, CheckCircle2, AlertCircle, Edit, Trash2, ArrowLeftRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { formatBRL } from "@/lib/calc";
 
 type AuditLog = {
   id: string;
@@ -13,6 +14,7 @@ type AuditLog = {
   invoice_number: string | null;
   author: string;
   details: string | null;
+  value?: number | null;
 };
 
 export const AdminAuditLogs = () => {
@@ -46,13 +48,23 @@ export const AdminAuditLogs = () => {
     if (!search.trim()) return logs;
     const q = search.toLowerCase();
     return logs.filter((log) => {
+      let valText = "";
+      if (log.value !== null && log.value !== undefined) {
+        valText = formatBRL(log.value).toLowerCase();
+      } else if (log.details) {
+        const match = log.details.match(/, Valor:\s*(R\$\s*[\d.,]+)/i);
+        if (match && match[1]) {
+          valText = match[1].toLowerCase();
+        }
+      }
       return (
         log.author.toLowerCase().includes(q) ||
         (log.client_name && log.client_name.toLowerCase().includes(q)) ||
         (log.op_number && log.op_number.toLowerCase().includes(q)) ||
         (log.invoice_number && log.invoice_number.toLowerCase().includes(q)) ||
         log.action.toLowerCase().includes(q) ||
-        (log.details && log.details.toLowerCase().includes(q))
+        (log.details && log.details.toLowerCase().includes(q)) ||
+        valText.includes(q)
       );
     });
   }, [logs, search]);
@@ -128,13 +140,23 @@ export const AdminAuditLogs = () => {
     const client = log.client_name || "—";
     const nf = log.invoice_number || "—";
 
+    let valText = "";
+    if (log.value !== null && log.value !== undefined) {
+      valText = `, Valor: ${formatBRL(log.value)}`;
+    } else if (log.details) {
+      const match = log.details.match(/, Valor:\s*(R\$\s*[\d.,]+)/i);
+      if (match && match[1]) {
+        valText = `, Valor: ${match[1]}`;
+      }
+    }
+
     switch (log.action) {
       case "CREATE":
         return (
           <span>
             <strong className="text-foreground">{log.author}</strong> abriu a operação{" "}
             <span className="font-mono text-xs text-muted-foreground">
-              (Registro: {op}, Cliente: {client}, NF: {nf}, Horário: {time})
+              (Registro: {op}, Cliente: {client}, NF: {nf}{valText}, Horário: {time})
             </span>
           </span>
         );
@@ -143,7 +165,7 @@ export const AdminAuditLogs = () => {
           <span>
             <strong className="text-foreground">{log.author}</strong> editou a operação{" "}
             <span className="font-mono text-xs text-muted-foreground">
-              (Registro: {op}, Cliente: {client}, NF: {nf}, Horário: {time})
+              (Registro: {op}, Cliente: {client}, NF: {nf}{valText}, Horário: {time})
             </span>
           </span>
         );
@@ -152,7 +174,7 @@ export const AdminAuditLogs = () => {
           <span>
             <strong className="text-foreground">{log.author}</strong> liquidou a operação{" "}
             <span className="font-mono text-xs text-muted-foreground">
-              (Registro: {op}, Cliente: {client}, NF: {nf}, Horário: {time})
+              (Registro: {op}, Cliente: {client}, NF: {nf}{valText}, Horário: {time})
             </span>
           </span>
         );
@@ -161,7 +183,7 @@ export const AdminAuditLogs = () => {
           <span>
             <strong className="text-foreground">{log.author}</strong> removeu a liquidação da operação{" "}
             <span className="font-mono text-xs text-muted-foreground">
-              (Registro: {op}, Cliente: {client}, NF: {nf}, Horário: {time})
+              (Registro: {op}, Cliente: {client}, NF: {nf}{valText}, Horário: {time})
             </span>
           </span>
         );
@@ -170,7 +192,7 @@ export const AdminAuditLogs = () => {
           <span>
             <strong className="text-foreground">{log.author}</strong> deletou a operação{" "}
             <span className="font-mono text-xs text-muted-foreground">
-              (Registro: {op}, Cliente: {client}, NF: {nf}, Horário: {time})
+              (Registro: {op}, Cliente: {client}, NF: {nf}{valText}, Horário: {time})
             </span>
           </span>
         );
@@ -178,7 +200,9 @@ export const AdminAuditLogs = () => {
         return (
           <span>
             <strong className="text-foreground">{log.author}</strong> realizou {log.action}{" "}
-            <span className="font-mono text-xs text-muted-foreground">({time})</span>
+            <span className="font-mono text-xs text-muted-foreground">
+              ({time}{valText ? `, ${valText.substring(2)}` : ""})
+            </span>
           </span>
         );
     }
