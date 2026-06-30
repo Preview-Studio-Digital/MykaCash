@@ -38,6 +38,9 @@
 
     --radius: 0.75rem;
 
+    /* Color Cycle elements (buttons & dots) - static blue color */
+    --system-blue-static: 210 96% 60%;
+
     /* Result panels */
     --net-green: 152 72% 38%;
     --net-green-glow: 152 75% 48%;
@@ -232,25 +235,21 @@
 
 
 @keyframes color-cycle {
-  0%, 100% { background-color: hsl(var(--primary)); box-shadow: 0 0 12px hsl(var(--primary)/0.8); }
-  25% { background-color: hsl(var(--net-green)); box-shadow: 0 0 12px hsl(var(--net-green)/0.8); }
-  50% { background-color: hsl(var(--cost-red)); box-shadow: 0 0 12px hsl(var(--cost-red)/0.8); }
-  75% { background-color: hsl(var(--factoring-amber)); box-shadow: 0 0 12px hsl(var(--factoring-amber)/0.8); }
+  0%, 100% { background-color: hsl(var(--system-blue-static)); box-shadow: 0 0 12px hsl(var(--system-blue-static)/0.65); }
+  50% { background-color: hsl(var(--system-blue-static)); box-shadow: 0 0 20px hsl(var(--system-blue-static)/0.85); }
 }
 
 .animate-color-cycle {
-  animation: color-cycle 40s ease-in-out infinite;
+  animation: color-cycle 4s ease-in-out infinite;
 }
 
 @keyframes border-color-cycle {
-  0%, 100% { border-color: hsl(var(--primary)/0.3); box-shadow: 0 0 20px -5px hsl(var(--primary)/0.3); color: hsl(var(--primary)); }
-  25% { border-color: hsl(var(--net-green)/0.3); box-shadow: 0 0 20px -5px hsl(var(--net-green)/0.3); color: hsl(var(--net-green)); }
-  50% { border-color: hsl(var(--cost-red)/0.3); box-shadow: 0 0 20px -5px hsl(var(--cost-red)/0.3); color: hsl(var(--cost-red)); }
-  75% { border-color: hsl(var(--factoring-amber)/0.3); box-shadow: 0 0 20px -5px hsl(var(--factoring-amber)/0.3); color: hsl(var(--factoring-amber)); }
+  0%, 100% { border-color: hsl(var(--system-blue-static)/0.25); box-shadow: 0 0 20px -5px hsl(var(--system-blue-static)/0.25); color: hsl(var(--system-blue-static)); }
+  50% { border-color: hsl(var(--system-blue-static)/0.4); box-shadow: 0 0 25px -3px hsl(var(--system-blue-static)/0.4); color: hsl(var(--system-blue-static)); }
 }
 
 .animate-card-color-cycle {
-  animation: border-color-cycle 40s ease-in-out infinite;
+  animation: border-color-cycle 4s ease-in-out infinite;
 }
 
 /* Custom Scrollbar Styles */

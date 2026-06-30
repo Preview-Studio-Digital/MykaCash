@@ -2514,6 +2514,9 @@ const Historico = () => {
                         <span className="text-muted-foreground">
                           Custo: <span className="font-bold text-cost-red">{formatBRL(monthTotals.cost)}</span>
                         </span>
+                        <span className="text-muted-foreground">
+                          Taxa Efetiva: <span className="font-bold text-white">{formatPct(monthEffective)}</span>
+                        </span>
                       </div>
                     </button>
 
@@ -2724,13 +2727,13 @@ const Historico = () => {
               })}
 
               {/* Overall Total Summary Bar */}
-              <div className="flex flex-wrap justify-between items-center bg-primary-glow/[0.05] border border-border/50 rounded-xl p-4 font-mono text-xs md:text-sm">
+              <div className="flex flex-wrap justify-between items-center bg-muted/40 border border-border/60 rounded-xl p-4 font-mono text-xs md:text-sm shadow-sm">
                 <span className="font-bold tracking-wider text-primary-glow uppercase">TOTAL GERAL DO PERÍODO</span>
                 <div className="flex flex-wrap gap-x-6 gap-y-2">
                   <span>Bruto: <strong className="text-factoring-amber">{formatBRL(totals.value)}</strong></span>
                   <span>Líquido: <strong className="text-net-green">{formatBRL(totals.presentValue)}</strong></span>
                   <span>Custo: <strong className="text-cost-red">{formatBRL(totals.cost)}</strong></span>
-                  <span className="hidden sm:inline">Taxa Média Efetiva: <strong className="text-factoring-amber">{formatPct(totalEffective)}</strong></span>
+                  <span className="hidden sm:inline">Taxa Efetiva: <strong className="text-white">{formatPct(totalEffective)}</strong></span>
                 </div>
               </div>
             </div>
