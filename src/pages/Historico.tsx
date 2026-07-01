@@ -235,6 +235,7 @@ const Historico = () => {
       parcelLabel: string;
       settled: boolean;
       settledDate: string | null;
+      settlementDate: string | null;
       overdue: boolean;
       createdBy: string;
       createdAt: string;
@@ -268,6 +269,7 @@ const Historico = () => {
         const effectivePct = i.value > 0 ? (cost / i.value) * 100 : 0;
         const settled = settledMap.has(i.id);
         const settledDate = settled ? settledMap.get(i.id) ?? null : null;
+        const settlementDate = settled ? (settledDate ?? i.dueDate) : null;
         const overdue = !settled && i.dueDate < todayStr;
         const factoringCost = i.value * (factoringRate / 100) * (i.days / 30);
         const savings = factoringCost - cost;
@@ -291,6 +293,7 @@ const Historico = () => {
           parcelLabel: showIdx ? String(idx + 1).padStart(2, "0") : "ÚNICA",
           settled,
           settledDate,
+          settlementDate,
           overdue,
           createdBy,
           createdAt: inv.created_at,
@@ -881,9 +884,9 @@ const Historico = () => {
         const wasSettled = next.length > (Array.isArray(inv.settled_installments) ? inv.settled_installments.length : 0);
         const logAction = wasSettled ? "SETTLE" : "UNSETTLE";
         const logDetails = wasSettled
-          ? `Liquidou a operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber}, Valor: ${formatBRL(inv.invoice_value)})`
-          : `Removeu a liquidação da operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber}, Valor: ${formatBRL(inv.invoice_value)})`;
-        logOperationAction(logAction, opNumStr, clientName, invoiceNumber, logDetails, inv.invoice_value);
+          ? `Liquidou a operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber}, Valor Liquidado: ${formatBRL(inv.invoice_value)})`
+          : `Removeu a liquidação da operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber}, Valor Liquidado: ${formatBRL(inv.invoice_value)})`;
+        await logOperationAction(logAction, opNumStr, clientName, invoiceNumber, logDetails, inv.invoice_value);
       }
 
       toast.success(successMsg);
@@ -946,7 +949,7 @@ const Historico = () => {
         const opNumStr = inv.ordem ? String(inv.ordem).padStart(4, "0") : "—";
         const clientName = inv.clients?.name ?? "—";
         const invoiceNumber = inv.invoice_number;
-        logOperationAction(
+        await logOperationAction(
           "UPDATE",
           opNumStr,
           clientName,
@@ -986,7 +989,7 @@ const Historico = () => {
       const opNumStr = inv.ordem ? String(inv.ordem).padStart(4, "0") : "—";
       const clientName = inv.clients?.name ?? "—";
       const invoiceNumber = inv.invoice_number;
-      logOperationAction(
+      await logOperationAction(
         "DELETE",
         opNumStr,
         clientName,
@@ -1065,6 +1068,7 @@ const Historico = () => {
     | "parcelLabel"
     | "operationDate"
     | "dueDate"
+    | "settlementDate"
     | "days"
     | "monthlyRate"
     | "effectivePct"
@@ -2609,6 +2613,7 @@ const Historico = () => {
                                 <SortableTh label="NOTA FISCAL" sKey="invoiceNumber" />
                                 <SortableTh label="ABERTURA" sKey="operationDate" />
                                 <SortableTh label="VENCIMENTO" sKey="dueDate" />
+                                <SortableTh label="LIQUIDAÇÃO" sKey="settlementDate" />
                                 <SortableTh label="DIAS" sKey="days" />
                                 <SortableTh label="TAXA EFET." sKey="effectivePct" />
                                 <SortableTh label="BRUTO (R$)" sKey="value" />
@@ -2693,6 +2698,7 @@ const Historico = () => {
                                     <td className="px-1.5 py-2">{r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}</td>
                                     <td className="px-1.5 py-2">{fmtDateShort(r.operationDate)}</td>
                                     <td className="px-1.5 py-2">{fmtDateShort(r.dueDate)}</td>
+                                    <td className="px-1.5 py-2">{r.settlementDate ? fmtDateShort(r.settlementDate) : "—"}</td>
                                     <td className="px-1.5 py-2">{r.days}</td>
                                     <td className="px-1.5 py-2">{formatPct(r.effectivePct)}</td>
                                     <td className="px-1.5 py-2 text-factoring-amber">{formatBRLNum(r.value)}</td>
@@ -2709,6 +2715,7 @@ const Historico = () => {
                                 <td className="px-2 py-2">—</td>
                                 <td className="px-2 py-2">—</td>
                                 <td className="px-2 py-2 tracking-widest text-primary-glow">SUBTOTAL</td>
+                                <td className="px-2 py-2">—</td>
                                 <td className="px-2 py-2">—</td>
                                 <td className="px-2 py-2">—</td>
                                 <td className="px-2 py-2">—</td>

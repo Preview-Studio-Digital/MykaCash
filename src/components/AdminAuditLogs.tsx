@@ -94,13 +94,13 @@ export const AdminAuditLogs = () => {
       case "CREATE":
         return {
           icon: FileText,
-          bg: "bg-net-green/10 border-net-green/30 text-net-green",
+          bg: "bg-cost-red/10 border-cost-red/30 text-cost-red",
           label: "Abertura",
         };
       case "UPDATE":
         return {
           icon: Edit,
-          bg: "bg-factoring-amber/10 border-factoring-amber/30 text-factoring-amber",
+          bg: "bg-muted/40 border-muted/50 text-muted-foreground",
           label: "Edição",
         };
       case "SETTLE":
@@ -140,13 +140,21 @@ export const AdminAuditLogs = () => {
     const client = log.client_name || "—";
     const nf = log.invoice_number || "—";
 
+    let labelText = "Valor";
+    if (log.action === "CREATE" || log.action === "UPDATE") {
+      labelText = "Valor Líquido";
+    } else if (log.action === "SETTLE") {
+      labelText = "Valor Liquidado";
+    }
+
     let valText = "";
     if (log.value !== null && log.value !== undefined) {
-      valText = `, Valor: ${formatBRL(log.value)}`;
+      valText = `, ${labelText}: ${formatBRL(log.value)}`;
     } else if (log.details) {
-      const match = log.details.match(/, Valor:\s*(R\$\s*[\d.,]+)/i);
-      if (match && match[1]) {
-        valText = `, Valor: ${match[1]}`;
+      const match = log.details.match(/,\s*(Valor|Valor Bruto|Valor Líquido|Valor Liquidado):\s*(R\$\s*[\d.,]+)/i) || log.details.match(/, Valor:\s*(R\$\s*[\d.,]+)/i);
+      if (match) {
+        const valStr = match[2] || match[1];
+        valText = `, ${labelText}: ${valStr}`;
       }
     }
 
@@ -266,7 +274,15 @@ export const AdminAuditLogs = () => {
                   return (
                     <div
                       key={log.id}
-                      className="group flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 rounded-xl border border-border/20 bg-card/20 hover:bg-card/40 transition-all font-mono text-xs md:text-sm"
+                      className={`group flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 rounded-xl border transition-all font-mono text-xs md:text-sm ${
+                        log.action === "SETTLE"
+                          ? "border-net-green/30 bg-net-green/5 hover:bg-net-green/10"
+                          : log.action === "CREATE"
+                          ? "border-cost-red/30 bg-cost-red/5 hover:bg-cost-red/10"
+                          : log.action === "UPDATE"
+                          ? "border-muted/30 bg-muted/5 hover:bg-muted/10"
+                          : "border-border/20 bg-card/20 hover:bg-card/40"
+                      }`}
                     >
                       <div className="flex items-start gap-3">
                         {/* Action Badge */}
