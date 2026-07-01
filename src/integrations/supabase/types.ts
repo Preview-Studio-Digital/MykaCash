@@ -144,7 +144,6 @@ export type Database = {
           id: string
           invoice_number: string | null
           op_number: string | null
-          value: number | null
         }
         Insert: {
           action: string
@@ -155,7 +154,6 @@ export type Database = {
           id?: string
           invoice_number?: string | null
           op_number?: string | null
-          value?: number | null
         }
         Update: {
           action?: string
@@ -166,7 +164,6 @@ export type Database = {
           id?: string
           invoice_number?: string | null
           op_number?: string | null
-          value?: number | null
         }
         Relationships: []
       }
