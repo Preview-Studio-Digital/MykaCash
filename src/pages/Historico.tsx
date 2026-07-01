@@ -1452,7 +1452,7 @@ const Historico = () => {
     const {
       cashCommitmentPct, rolloverRate, effectiveRate, daysToClear,
       totalDebt, totalBorrowed, totalSettled, dailySpeed,
-      projectedInterest30d, annualSavingsProjected, scoreNumeric, healthScore,
+      projectedInterest30d, annualSavingsProjected, scoreNumeric, healthScore, riskLevel,
     } = alertMetrics;
 
     if (opsCount === 0) {
@@ -1463,12 +1463,19 @@ const Historico = () => {
       };
     }
 
+    // Tom derivado do MESMO scoreNumeric usado no quadro de risco,
+    // garantindo consistência entre a placa (BAIXO/MODERADO/ALTO/CRÍTICO)
+    // e o texto do Consultor AI.
+    const tone: "up" | "warn" | "alert" | "down" =
+      scoreNumeric >= 75 ? "up"
+      : scoreNumeric >= 50 ? "warn"
+      : scoreNumeric >= 25 ? "alert"
+      : "down";
+
     const commitTier = cashCommitmentPct >= 60 ? 3 : cashCommitmentPct >= 25 ? 2 : 1;
     const rollTier   = rolloverRate >= 70 ? 3 : rolloverRate >= 40 ? 2 : 1;
     const rateTier   = effectiveRate >= 4 ? 3 : effectiveRate >= 2 ? 2 : 1;
     const speedTier  = dailySpeed > 0 && daysToClear > 45 ? 3 : daysToClear > 20 ? 2 : 1;
-    const sumTier    = commitTier + rollTier + rateTier + speedTier;
-    const tone: "up" | "warn" | "down" = sumTier >= 10 ? "down" : sumTier >= 7 ? "warn" : "up";
 
     const tiers = [
       { key: "commit", tier: commitTier, value: cashCommitmentPct },
@@ -1482,19 +1489,24 @@ const Historico = () => {
 
     const openings: Record<typeof tone, string[]> = {
       up: [
-        `Operação ${opLabel} registrada — a saúde financeira segue em zona positiva (score ${scoreNumeric}/100, nota ${healthScore}).`,
-        `Bom trabalho. Após o registro ${opLabel}, os indicadores continuam equilibrados (${healthScore}).`,
-        `Cenário ainda confortável após o lançamento ${opLabel}: ${formatPct(rolloverRate)} de rolagem e ${formatPct(cashCommitmentPct)} de receita comprometida.`,
+        `Operação ${opLabel} registrada — risco ${riskLevel} (score ${scoreNumeric}/100, nota ${healthScore}).`,
+        `Bom trabalho. Após o registro ${opLabel}, o risco segue ${riskLevel} e os indicadores continuam equilibrados (${healthScore}).`,
+        `Cenário confortável após o lançamento ${opLabel}: ${formatPct(rolloverRate)} de rolagem e ${formatPct(cashCommitmentPct)} de receita comprometida — risco ${riskLevel}.`,
       ],
       warn: [
-        `Diagnóstico atualizado após a operação ${opLabel}: estamos na faixa moderada (score ${scoreNumeric}, ${healthScore}).`,
-        `O lançamento ${opLabel} move o termômetro para zona de atenção — exposição já em ${formatBRL(totalDebt)} contra ${formatBRL(totalBorrowed)} captados.`,
-        `Sinais mistos após o registro ${opLabel}: ${formatPct(cashCommitmentPct)} da receita futura já está comprometida e a taxa efetiva média está em ${formatPct(effectiveRate)}.`,
+        `Diagnóstico atualizado após a operação ${opLabel}: risco ${riskLevel} (score ${scoreNumeric}, ${healthScore}).`,
+        `O lançamento ${opLabel} mantém o risco em ${riskLevel} — exposição em ${formatBRL(totalDebt)} contra ${formatBRL(totalBorrowed)} captados.`,
+        `Após o registro ${opLabel}, risco ${riskLevel}: ${formatPct(cashCommitmentPct)} da receita futura comprometida e taxa efetiva média em ${formatPct(effectiveRate)}.`,
+      ],
+      alert: [
+        `Atenção: após a operação ${opLabel} o risco subiu para ${riskLevel} (score ${scoreNumeric}, ${healthScore}).`,
+        `O lançamento ${opLabel} eleva o risco a ${riskLevel} — ${formatPct(rolloverRate)} de rolagem e ${formatPct(cashCommitmentPct)} de comprometimento da receita.`,
+        `Sinal amarelo forte após o registro ${opLabel}: risco ${riskLevel}, ${formatBRL(totalDebt)} em aberto e ~${Math.round(daysToClear)} dias úteis para zerar a posição.`,
       ],
       down: [
-        `Alerta após a operação ${opLabel}: score em ${scoreNumeric} (${healthScore}) e ${formatPct(rolloverRate)} de rolagem indicam dependência crescente de novas captações.`,
-        `Cenário crítico após o registro ${opLabel} — receita comprometida em ${formatPct(cashCommitmentPct)} e ${Math.round(daysToClear)} dias úteis necessários para zerar a posição no ritmo atual.`,
-        `O lançamento ${opLabel} intensifica a pressão: ${formatBRL(totalDebt)} em aberto contra apenas ${formatBRL(totalSettled)} liquidados.`,
+        `Alerta crítico após a operação ${opLabel}: risco ${riskLevel} (score ${scoreNumeric}, ${healthScore}) e ${formatPct(rolloverRate)} de rolagem indicam dependência crescente de novas captações.`,
+        `Cenário ${riskLevel} após o registro ${opLabel} — receita comprometida em ${formatPct(cashCommitmentPct)} e ${Math.round(daysToClear)} dias úteis necessários para zerar a posição no ritmo atual.`,
+        `O lançamento ${opLabel} intensifica a pressão (risco ${riskLevel}): ${formatBRL(totalDebt)} em aberto contra apenas ${formatBRL(totalSettled)} liquidados.`,
       ],
     };
 
@@ -1541,6 +1553,11 @@ const Historico = () => {
         `Concentre liquidações: zerar pelo menos ${formatBRL(totalDebt * 0.3)} do saldo aberto antes da próxima antecipação devolveria o score à faixa segura.`,
         "Reavalie qual contraparte está cobrando mais caro — concentrar volume no banco de menor spread costuma render ganhos imediatos no próximo ciclo.",
       ],
+      alert: [
+        `Suspenda novas antecipações até liquidar pelo menos ${formatBRL(totalDebt * 0.4)} do saldo aberto — isso devolve o risco à faixa moderada.`,
+        `Reduza o ritmo para no máximo ${formatBRL(dailySpeed * 0.5)}/dia útil e priorize títulos curtos (≤10 dias) para derrubar a taxa efetiva de ${formatPct(effectiveRate)}.`,
+        "Renegocie spread com o banco antes da próxima captação e evite rolagem — o objetivo é liquidar mais rápido do que captar nas próximas 2 semanas.",
+      ],
       down: [
         `Freie novas antecipações por pelo menos ${Math.max(5, Math.round(daysToClear / 3))} dias úteis e direcione todo o fluxo recebido à liquidação dos títulos abertos.`,
         "Renegociação é prioridade: leve à mesa o histórico e peça redução de spread ou troca por uma linha de capital de giro mais barata para os títulos mais longos.",
@@ -1548,12 +1565,19 @@ const Historico = () => {
       ],
     };
 
+    const headline =
+      tone === "down" ? "Risco crítico"
+      : tone === "alert" ? "Risco alto"
+      : tone === "warn" ? "Risco moderado"
+      : "Saúde financeira positiva";
+
     return {
       tone,
-      headline: tone === "down" ? "Atenção crítica" : tone === "warn" ? "Recalibrar exposição" : "Saúde financeira positiva",
+      headline,
       body: `${pick(openings[tone])} ${diagnosis} ${pick(actions[tone])}`,
     };
   }, [opsCount, settledCount, eventCount, opLabel, alertMetrics]);
+
 
 
 
