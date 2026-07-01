@@ -38,8 +38,8 @@
 
     --radius: 0.75rem;
 
-    /* Color Cycle elements (buttons & dots) - static blue color */
-    --system-blue-static: 210 96% 60%;
+    /* Color Cycle elements (buttons & dots) - unified primary color */
+    --system-blue-static: 243 75% 59%;
 
     /* Result panels */
     --net-green: 152 72% 38%;

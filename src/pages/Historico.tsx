@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { calculate, formatBRL, formatPct, FACTORING_MONTHLY_RATE_PCT, type Installment } from "@/lib/calc";
 import { toast } from "sonner";
 import { playSound } from "@/lib/sounds";
-import { CheckCircle2, Circle, Pencil, Trash2, Plus, X, ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal, ChevronDown, ChevronRight, Search } from "lucide-react";
+import { CheckCircle2, Circle, Pencil, Trash2, Plus, X, ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal, ChevronDown, ChevronRight, Search, AlertTriangle, AlertOctagon, Calendar, Coins, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { logOperationAction } from "@/lib/auditLogger";
@@ -166,6 +166,21 @@ const Historico = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [negativeBalanceAlertOpen, setNegativeBalanceAlertOpen] = useState(false);
   const { pathname } = useLocation();
+
+  const [overdueConfirmOpen, setOverdueConfirmOpen] = useState(false);
+  const [pendingSettlementData, setPendingSettlementData] = useState<{
+    row: any;
+    delayDays: number;
+    valueNew: number;
+    adjustment: number;
+    settlementDate: string;
+  } | null>(null);
+
+  const yesterdayStr = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return localISO(d);
+  }, []);
   const showAnalytics = pathname === "/analises";
   const showHistory = pathname === "/";
   const [initialBalance, setInitialBalance] = useState(() => {
@@ -854,8 +869,8 @@ const Historico = () => {
       const next: SettledEntry[] = current.filter((e) => settledIdOf(e) !== row.installmentId);
       await saveSettlement(inv.id, next, "Liquidação removida");
     } else {
-      // Se vai liquidar, pergunta a data
-      setSettlementDate(row.dueDate);
+      // Se vai liquidar, pergunta a data (padrão é o dia atual)
+      setSettlementDate(todayStr);
       setSettlingRow(row);
     }
   };
@@ -899,6 +914,12 @@ const Historico = () => {
     const inv = invoices.find((i) => i.id === settlingRow.invoiceId);
     if (!inv) return;
 
+    // Validação da data de liquidação (máximo 1 dia anterior à data atual)
+    if (settlementDate < yesterdayStr) {
+      toast.error("A data de liquidação não pode ser anterior a ontem (máximo 1 dia de atraso permitido para configuração retroativa).");
+      return;
+    }
+
     const diffDaysHelper = (from: string, to: string): number => {
       const a = new Date(from + "T00:00:00");
       const b = new Date(to + "T00:00:00");
@@ -906,61 +927,22 @@ const Historico = () => {
     };
 
     const delayDays = diffDaysHelper(settlingRow.dueDate, settlementDate);
-    let nextInstallments = inv.installments;
 
     if (delayDays > 5) {
       const r = (inv.monthly_rate || 0) / 100;
       const valueNew = settlingRow.value * Math.pow(1 + r, delayDays / 30);
       const adjustment = valueNew - settlingRow.value;
 
-      const confirmMsg = `Atenção: Esta parcela está sendo liquidada com ${delayDays} dias de atraso (tolerância de 5 dias excedida).\n\n` +
-        `Será aplicada uma correção de juros de ${formatBRL(adjustment)} sobre o valor bruto.\n` +
-        `Valor Bruto Original: ${formatBRL(settlingRow.value)}\n` +
-        `Novo Valor Bruto corrigido: ${formatBRL(valueNew)}\n\n` +
-        `Deseja prosseguir com a liquidação e aplicar a correção de valor?`;
-
-      if (confirm(confirmMsg)) {
-        const installments = Array.isArray(inv.installments) ? inv.installments : [];
-        nextInstallments = installments.map((inst: any) => {
-          if (inst.id === settlingRow.installmentId) {
-            return {
-              ...inst,
-              value: Math.round(valueNew * 100) / 100,
-              dueDate: settlementDate
-            };
-          }
-          return inst;
-        });
-
-        // Atualiza a parcela com novos valores e nova data de vencimento no banco
-        const { error: updateError } = await supabase
-          .from("invoices")
-          .update({ installments: nextInstallments })
-          .eq("id", inv.id);
-
-        if (updateError) {
-          console.error("Erro ao atualizar parcela com correção:", updateError);
-          toast.error("Erro ao aplicar correção de atraso");
-          setSettlingRow(null);
-          return;
-        }
-
-        // Registrar log de auditoria do ajuste
-        const opNumStr = inv.ordem ? String(inv.ordem).padStart(4, "0") : "—";
-        const clientName = inv.clients?.name ?? "—";
-        const invoiceNumber = inv.invoice_number;
-        await logOperationAction(
-          "UPDATE",
-          opNumStr,
-          clientName,
-          invoiceNumber,
-          `Aplicou correção de atraso de ${delayDays} dias no valor de ${formatBRL(adjustment)} (Registro: ${opNumStr}, Valor da Operação: ${formatBRL(inv.invoice_value)})`,
-          inv.invoice_value
-        );
-      } else {
-        setSettlingRow(null);
-        return;
-      }
+      setPendingSettlementData({
+        row: settlingRow,
+        delayDays,
+        valueNew,
+        adjustment,
+        settlementDate
+      });
+      setSettlingRow(null);
+      setOverdueConfirmOpen(true);
+      return;
     }
 
     const current: SettledEntry[] = Array.isArray(inv.settled_installments)
@@ -970,6 +952,64 @@ const Historico = () => {
     const next: SettledEntry[] = [...current, { id: settlingRow.installmentId, date: settlementDate }];
     await saveSettlement(inv.id, next, "Parcela marcada como liquidada");
     setSettlingRow(null);
+  };
+
+  const executeSettlementWithAdjustment = async () => {
+    if (!pendingSettlementData) return;
+    const { row, delayDays, valueNew, adjustment, settlementDate } = pendingSettlementData;
+    const inv = invoices.find((i) => i.id === row.invoiceId);
+    if (!inv) return;
+
+    const installments = Array.isArray(inv.installments) ? inv.installments : [];
+    const nextInstallments = installments.map((inst: any) => {
+      if (inst.id === row.installmentId) {
+        return {
+          ...inst,
+          value: Math.round(valueNew * 100) / 100,
+          dueDate: settlementDate
+        };
+      }
+      return inst;
+    });
+
+    // Atualiza a parcela com novos valores e nova data de vencimento no banco
+    const { error: updateError } = await supabase
+      .from("invoices")
+      .update({ installments: nextInstallments })
+      .eq("id", inv.id);
+
+    if (updateError) {
+      console.error("Erro ao atualizar parcela com correção:", updateError);
+      toast.error("Erro ao aplicar correção de atraso");
+      setOverdueConfirmOpen(false);
+      setPendingSettlementData(null);
+      return;
+    }
+
+    // Registrar log de auditoria do ajuste
+    const opNumStr = inv.ordem ? String(inv.ordem).padStart(4, "0") : "—";
+    const clientName = inv.clients?.name ?? "—";
+    const invoiceNumber = inv.invoice_number;
+    await logOperationAction(
+      "UPDATE",
+      opNumStr,
+      clientName,
+      invoiceNumber,
+      `Aplicou correção de atraso de ${delayDays} dias no valor de ${formatBRL(adjustment)} (Registro: ${opNumStr}, Valor da Operação: ${formatBRL(inv.invoice_value)})`,
+      inv.invoice_value
+    );
+
+    // Salva a liquidação
+    const current: SettledEntry[] = Array.isArray(inv.settled_installments)
+      ? (inv.settled_installments as any)
+      : [];
+    
+    const next: SettledEntry[] = [...current, { id: row.installmentId, date: settlementDate }];
+    await saveSettlement(inv.id, next, "Parcela marcada como liquidada com juros de atraso");
+    
+    // Fechar modais
+    setOverdueConfirmOpen(false);
+    setPendingSettlementData(null);
   };
 
   const handleDeleteOperation = async (invoiceId: string) => {
@@ -1109,6 +1149,15 @@ const Historico = () => {
   }, [filteredRows, sortKey, sortDir]);
 
   const [collapsedMonths, setCollapsedMonths] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const keys: Record<string, boolean> = {};
+    for (const r of sortedRows) {
+      const key = r.operationDate.substring(0, 7);
+      keys[key] = false;
+    }
+    setCollapsedMonths(keys);
+  }, [period, statusFilter, showFuture, from, to]);
 
   const isMonthOpenByDefault = (monthRows: typeof sortedRows) => {
     return monthRows.some(r => !r.settled);
@@ -1254,7 +1303,7 @@ const Historico = () => {
         {/* Mobile toggle */}
         <button
           onClick={() => setMobileFiltersOpen((v) => !v)}
-          className="sm:hidden inline-flex items-center gap-2 rounded-full border border-border/50 bg-background/60 px-3 py-1.5 font-mono text-xs tracking-[0.25em] text-muted-foreground hover:text-foreground transition-all"
+          className="sm:hidden inline-flex items-center gap-2 rounded-full border border-border/50 bg-background/60 px-3 py-1 font-mono text-[10px] tracking-[0.2em] text-muted-foreground hover:text-foreground transition-all"
         >
           <SlidersHorizontal className="h-3 w-3" />
           {mobileFiltersOpen ? "OCULTAR FILTROS" : "MOSTRAR FILTROS"}
@@ -2560,68 +2609,92 @@ const Historico = () => {
                             return (
                               <div
                                 key={r.key}
-                                className={
-                                  "group/card rounded-md border border-border/40 px-2.5 py-1.5 relative " +
-                                  (r.settled
-                                    ? "bg-[hsl(var(--factoring-amber)/0.18)]"
+                                className={cn(
+                                  "group/card rounded-lg border px-3 py-1.5 relative shadow-sm backdrop-blur-sm transition-all",
+                                  r.settled
+                                    ? "bg-factoring-amber/10 border-factoring-amber/25 text-factoring-amber-foreground"
                                     : r.overdue
-                                    ? "bg-[hsl(var(--cost-red)/0.15)]"
-                                    : "bg-[hsl(var(--net-green)/0.12)]")
-                                }
+                                    ? "bg-cost-red/10 border-cost-red/25 text-cost-red-foreground"
+                                    : "bg-net-green/15 border-net-green/25 text-net-green-foreground"
+                                )}
                               >
+                                {/* Row 1: Client Name + OP/NF & Status Button */}
                                 <div className="flex items-center justify-between gap-2">
-                                  <div className="font-mono text-[10px] tracking-widest text-primary-glow shrink-0">
-                                    {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"} · NF {r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}
+                                  <div className="min-w-0 flex items-baseline gap-1.5 flex-1">
+                                    <span className="text-base font-bold truncate text-foreground">{r.clientName}</span>
+                                    <span className="font-mono text-xs text-muted-foreground/80 shrink-0">
+                                      ({r.opNumber ? `REG: ${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "REG: —"} · NF: {r.invoiceNumber})
+                                    </span>
                                   </div>
                                   <button
                                     type="button"
                                     onClick={() => toggleSettlement(r)}
                                     title={r.settled ? "Tocar para desfazer a liquidação" : "Tocar para marcar como LIQUIDADA"}
-                                    className={
-                                      "rounded-full px-1.5 py-0.5 font-mono text-[9px] tracking-widest transition-colors shrink-0 " +
-                                      (r.settled
-                                        ? "bg-factoring-amber/20 text-factoring-amber active:bg-factoring-amber/40"
+                                    className={cn(
+                                      "rounded-full px-2.5 py-0.5 font-mono text-[10px] tracking-wider font-bold transition-all shrink-0 active:scale-95",
+                                      r.settled
+                                        ? "bg-factoring-amber/20 text-factoring-amber border border-factoring-amber/35 hover:bg-factoring-amber/30"
                                         : r.overdue
-                                        ? "bg-cost-red/20 text-cost-red active:bg-factoring-amber/30 active:text-factoring-amber"
-                                        : "bg-net-green/15 text-net-green active:bg-factoring-amber/30 active:text-factoring-amber")
-                                    }
+                                        ? "bg-cost-red/20 text-cost-red border border-cost-red/35 hover:bg-cost-red/30"
+                                        : "bg-net-green/15 text-net-green border border-net-green/30 hover:bg-net-green/25"
+                                    )}
                                   >
                                     {r.settled ? "LIQUIDADA" : r.overdue ? "VENCIDA" : "ANDAMENTO"}
                                   </button>
                                 </div>
-                                <div className="mt-0.5 flex items-center justify-between gap-2">
-                                  <div className="text-xs font-semibold truncate">{r.clientName}</div>
-                                  <div className="font-mono text-[10px] text-muted-foreground shrink-0">
-                                    {fmtDate(r.dueDate)}
+
+                                {/* Row 2: Dates Grid */}
+                                <div className="mt-1.5 grid grid-cols-3 gap-2 border-t border-border/10 pt-1 font-mono text-xs text-muted-foreground">
+                                  <div className="flex flex-col">
+                                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Abertura</span>
+                                    <span className="text-foreground/90 font-semibold">{fmtDateShort(r.operationDate)}</span>
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Vencimento</span>
+                                    <span className="text-foreground/90 font-semibold">{fmtDateShort(r.dueDate)}</span>
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Liquidação</span>
+                                    <span className="text-foreground/90 font-semibold">{r.settlementDate ? fmtDateShort(r.settlementDate) : "—"}</span>
                                   </div>
                                 </div>
-                                <div className="flex items-center justify-between gap-2">
-                                  <div className="font-mono text-xs tabular-nums text-factoring-amber">{formatBRL(r.value)}</div>
+
+                                {/* Row 3: Values & Actions */}
+                                <div className="mt-1.5 flex items-center justify-between border-t border-border/10 pt-1">
+                                  <div className="flex items-center gap-4">
+                                    <div className="flex flex-col font-mono text-xs tabular-nums text-muted-foreground">
+                                      <span className="text-[10px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Bruto</span>
+                                      <span className="text-factoring-amber font-bold text-sm sm:text-base">{formatBRL(r.value)}</span>
+                                    </div>
+                                    <div className="flex flex-col font-mono text-xs tabular-nums text-muted-foreground">
+                                      <span className="text-[10px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Líquido</span>
+                                      <span className="text-net-green font-bold text-sm sm:text-base">{formatBRL(r.presentValue)}</span>
+                                    </div>
+                                  </div>
                                   {canManage && (
-                                    <div className="flex items-center gap-0.5">
+                                    <div className="flex items-center gap-1 self-end pb-0.5">
                                       <Button
                                         size="sm"
                                         variant="ghost"
                                         onClick={() => openEdit(r.invoiceId)}
-                                        className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
+                                        className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-primary hover:bg-muted/10 transition-colors"
                                         aria-label="Editar"
                                       >
-                                        <Pencil className="h-3.5 w-3.5" />
+                                        <Pencil className="h-4 w-4" />
                                       </Button>
                                       <Button
                                         size="sm"
                                         variant="ghost"
                                         onClick={() => handleDeleteOperation(r.invoiceId)}
-                                        className="h-6 w-6 p-0 text-muted-foreground hover:text-cost-red"
+                                        className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-cost-red hover:bg-muted/10 transition-colors"
                                         aria-label="Remover"
                                       >
-                                        <Trash2 className="h-3.5 w-3.5" />
+                                        <Trash2 className="h-4 w-4" />
                                       </Button>
                                     </div>
                                   )}
                                 </div>
                               </div>
-
                             );
                           })}
                         </div>
@@ -2821,10 +2894,11 @@ const Historico = () => {
                 type="date"
                 className="bg-background/50 border-border/40 font-mono"
                 value={settlementDate}
+                min={yesterdayStr}
                 onChange={(e) => setSettlementDate(e.target.value)}
               />
               <p className="text-[10px] font-mono text-muted-foreground/70 italic">
-                Padrão: Data de Vencimento da parcela.
+                Padrão: Data do dia atual. Permitido retroagir no máximo 1 dia (ontem).
               </p>
             </div>
           </div>
@@ -2834,6 +2908,105 @@ const Historico = () => {
             </Button>
             <Button onClick={confirmSettlement} className="bg-primary text-primary-foreground font-mono text-[10px] tracking-widest">
               CONFIRMAR LIQUIDAÇÃO
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Overdue Interest Adjustment Confirmation Dialog */}
+      <Dialog open={overdueConfirmOpen} onOpenChange={(o) => {
+        if (!o) {
+          setOverdueConfirmOpen(false);
+          setPendingSettlementData(null);
+        }
+      }}>
+        <DialogContent className="max-w-xl bg-background/95 backdrop-blur-xl border-[hsl(var(--cost-red)/0.4)] shadow-[0_0_50px_hsl(var(--cost-red)/0.2)]">
+          <DialogHeader>
+            <DialogTitle className="font-display text-[hsl(var(--cost-red))] flex items-center gap-2 text-lg">
+              <AlertTriangle className="h-5 w-5 animate-pulse" />
+              Aviso de Correção de Juros: Atraso Excedido
+            </DialogTitle>
+            <DialogDescription className="font-mono text-[10px] tracking-wider uppercase">
+              A tolerância de 5 dias de atraso foi ultrapassada
+            </DialogDescription>
+          </DialogHeader>
+
+          {pendingSettlementData && (
+            <div className="py-4 space-y-4">
+              <div className="rounded-lg bg-[hsl(var(--cost-red)/0.04)] border border-[hsl(var(--cost-red)/0.2)] p-4 space-y-2.5">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-mono text-muted-foreground uppercase">Cliente:</span>
+                  <span className="font-bold text-foreground">{pendingSettlementData.row.clientName}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-mono text-muted-foreground uppercase">Operação:</span>
+                  <span className="font-mono text-foreground">OP #{String(pendingSettlementData.row.opNumber).padStart(3, "0")} · NF {pendingSettlementData.row.invoiceNumber}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-mono text-muted-foreground uppercase">Parcela:</span>
+                  <span className="font-mono text-foreground">{pendingSettlementData.row.parcelLabel}</span>
+                </div>
+                <div className="h-px bg-[hsl(var(--cost-red)/0.15)] my-2" />
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-mono text-muted-foreground uppercase">Vencimento Original:</span>
+                  <span className="font-mono text-foreground">{pendingSettlementData.row.dueDate.split("-").reverse().join("/")}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-mono text-muted-foreground uppercase">Data de Liquidação:</span>
+                  <span className="font-mono text-foreground">{pendingSettlementData.settlementDate.split("-").reverse().join("/")}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-mono text-muted-foreground uppercase">Tempo de Atraso:</span>
+                  <span className="font-mono font-bold text-[hsl(var(--cost-red))] bg-[hsl(var(--cost-red)/0.1)] px-2 py-0.5 rounded-full">{pendingSettlementData.delayDays} dias</span>
+                </div>
+              </div>
+
+              <div className="border border-border/40 rounded-lg overflow-hidden bg-card/20">
+                <div className="bg-muted/10 px-4 py-2 border-b border-border/40 font-mono text-[9px] tracking-wider text-muted-foreground uppercase">
+                  DEMONSTRATIVO DE VALORES
+                </div>
+                <div className="p-4 space-y-3 font-mono text-xs">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground uppercase">Valor Bruto Original:</span>
+                    <span className="text-foreground font-semibold">{formatBRL(pendingSettlementData.row.value)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[hsl(var(--cost-red))] font-bold uppercase">Acréscimo de Juros:</span>
+                    <span className="text-[hsl(var(--cost-red))] font-bold">+{formatBRL(pendingSettlementData.adjustment)}</span>
+                  </div>
+                  <div className="h-px bg-border/40 my-1" />
+                  <div className="flex justify-between items-center text-sm font-bold">
+                    <span className="text-foreground uppercase">Novo Valor Corrigido:</span>
+                    <span className="text-foreground text-base tracking-tight">{formatBRL(pendingSettlementData.valueNew)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3 bg-[hsl(var(--cost-red)/0.06)] border border-[hsl(var(--cost-red)/0.2)] rounded-lg text-[10px] text-muted-foreground leading-relaxed flex items-start gap-2">
+                <AlertTriangle className="h-4.5 w-4.5 text-[hsl(var(--cost-red))] shrink-0 mt-0.5" />
+                <p>
+                  <strong>Atenção:</strong> Ao confirmar, o valor bruto desta parcela será alterado permanentemente no banco de dados para incluir a correção de juros acumulados, e a data de vencimento será atualizada para a data da liquidação.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="flex-col sm:flex-row gap-2 mt-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setOverdueConfirmOpen(false);
+                setPendingSettlementData(null);
+              }}
+              className="font-mono text-[10px] tracking-widest"
+            >
+              CANCELAR LIQUIDAÇÃO
+            </Button>
+            <Button
+              onClick={executeSettlementWithAdjustment}
+              className="bg-[hsl(var(--cost-red))] text-white hover:bg-[hsl(var(--cost-red)/0.9)] font-mono text-[10px] tracking-widest gap-1.5"
+            >
+              CONFIRMAR E AJUSTAR VALOR
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -44,9 +44,8 @@ export const AppHeader = () => {
           {isAdmin && (
             <Button
               asChild
-              variant="ghost"
               size="sm"
-              className="h-8 px-2 md:px-3 text-[10px] md:text-xs font-mono tracking-wider hover:text-primary"
+              className="h-8 px-3 text-[10px] md:text-xs font-mono tracking-wider text-muted-foreground bg-transparent rounded-full border-0 gap-1 transition-all hover:animate-color-cycle hover:text-primary-foreground hover:shadow-md"
             >
               <Link to="/admin">
                 <Shield className="mr-1 md:mr-1.5 h-3 w-3 md:h-3.5 md:w-3.5" />
@@ -55,10 +54,9 @@ export const AppHeader = () => {
             </Button>
           )}
           <Button
-            variant="ghost"
             size="sm"
             onClick={signOut}
-            className="h-8 px-2 md:px-3 text-[10px] md:text-xs font-mono tracking-wider hover:text-primary"
+            className="h-8 px-3 text-[10px] md:text-xs font-mono tracking-wider text-muted-foreground bg-transparent rounded-full border-0 gap-1 transition-all hover:animate-color-cycle hover:text-primary-foreground hover:shadow-md"
           >
             <LogOut className="mr-1 md:mr-1.5 h-3 w-3 md:h-3.5 md:w-3.5" />
             SAIR

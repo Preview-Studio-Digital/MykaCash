@@ -1186,7 +1186,7 @@ export const AccountCashFlow = () => {
               }
             }}>
               <DialogTrigger asChild>
-                <Button className="flex-1 md:flex-none rounded-full px-3 md:px-6 h-9 font-mono text-[10px] md:text-[11px] tracking-[0.2em] md:tracking-[0.3em] animate-color-cycle text-primary-foreground transition-all gap-2 border-0 whitespace-nowrap">
+                <Button className="flex-1 md:flex-none rounded-full px-3 md:px-6 h-9 font-mono text-[10px] md:text-[11px] tracking-[0.2em] md:tracking-[0.3em] bg-muted/50 text-muted-foreground border border-border/40 shadow-[0_0_20px_rgba(0,0,0,0.2)] hover:animate-color-cycle hover:text-primary-foreground hover:border-transparent hover:shadow-md transition-all gap-2 whitespace-nowrap">
                   <Plus className="h-3.5 w-3.5" /> <span className="hidden sm:inline">NOVA MOVIMENTAÇÃO</span><span className="sm:hidden">NOVA</span>
                 </Button>
               </DialogTrigger>
@@ -1287,7 +1287,7 @@ export const AccountCashFlow = () => {
               </DialogContent>
             </Dialog>
             <Button 
-              className="flex-1 md:flex-none rounded-full px-3 md:px-6 h-9 font-mono text-[10px] md:text-[11px] tracking-[0.2em] md:tracking-[0.3em] bg-muted/50 text-muted-foreground shadow-[0_0_20px_rgba(0,0,0,0.2)] hover:bg-muted/80 hover:text-foreground transition-all gap-2 border border-border/40 whitespace-nowrap"
+              className="flex-1 md:flex-none rounded-full px-3 md:px-6 h-9 font-mono text-[10px] md:text-[11px] tracking-[0.2em] md:tracking-[0.3em] bg-muted/50 text-muted-foreground border border-border/40 shadow-[0_0_20px_rgba(0,0,0,0.2)] hover:animate-color-cycle hover:text-primary-foreground hover:border-transparent hover:shadow-md transition-all gap-2 whitespace-nowrap"
               onClick={handleExport}
             >
               <Download className="h-3.5 w-3.5" /> EXPORTAR

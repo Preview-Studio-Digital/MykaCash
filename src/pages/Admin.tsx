@@ -212,28 +212,37 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-border/60 px-3 sm:px-6 py-3 flex items-center justify-between gap-2 bg-background/50 backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-2 md:gap-6 min-w-0">
+      <header className="border-b border-border/60 px-3 sm:px-6 py-3 grid grid-cols-3 items-center gap-2 bg-background/50 backdrop-blur-md sticky top-0 z-50">
+        <div className="flex items-center justify-start min-w-0">
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-widest text-muted-foreground hover:text-primary transition-colors"
+            className="hover:opacity-80 transition-opacity shrink-0"
           >
-            <ArrowLeft className="h-3.5 w-3.5" /> <span className="hidden xs:inline sm:inline">VOLTAR</span>
+            <span className="font-title title-gradient title-shimmer font-extrabold leading-none tracking-tighter text-base sm:text-lg md:text-xl">
+              MYKACA$H
+            </span>
           </Link>
-          <h1 className="font-title title-gradient text-base sm:text-lg font-bold tracking-tight truncate">ADMIN<span className="hidden sm:inline">ISTRAÇÃO</span></h1>
         </div>
 
-        <button
-          onClick={() => setActiveTab("configuracoes")}
-          className={cn(
-            "inline-flex items-center gap-1.5 font-mono text-[10px] tracking-widest transition-all rounded-full px-2.5 sm:px-4 py-1.5 sm:py-2 border shrink-0",
-            activeTab === "configuracoes"
-              ? "text-foreground border-foreground bg-muted/20"
-              : "text-muted-foreground border-border/40 hover:text-foreground bg-background/50 hover:bg-muted/40"
-          )}
-        >
-          <Settings className="h-3.5 w-3.5" /> <span className="hidden sm:inline">CONFIGURAÇÕES</span>
-        </button>
+        <div className="flex items-center justify-center text-center min-w-0">
+          <h1 className="font-title title-gradient text-base sm:text-lg font-bold tracking-tight truncate uppercase">
+            ADMINISTRAÇÃO
+          </h1>
+        </div>
+
+        <div className="flex items-center justify-end shrink-0">
+          <button
+            onClick={() => setActiveTab("configuracoes")}
+            className={cn(
+              "inline-flex items-center gap-1.5 font-mono text-[10px] tracking-widest transition-all rounded-full px-2.5 sm:px-4 py-1.5 sm:py-2 border border-transparent hover:animate-color-cycle hover:text-primary-foreground hover:shadow-md",
+              activeTab === "configuracoes"
+                ? "text-foreground border-foreground bg-muted/20"
+                : "text-muted-foreground bg-transparent hover:bg-muted/10"
+            )}
+          >
+            <Settings className="h-3.5 w-3.5" /> <span className="hidden sm:inline">CONFIGURAÇÕES</span>
+          </button>
+        </div>
       </header>
 
       <div className="container max-w-[1600px] mx-auto px-3 sm:px-4 py-6">
