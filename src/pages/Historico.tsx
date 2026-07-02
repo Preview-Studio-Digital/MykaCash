@@ -509,6 +509,13 @@ const Historico = () => {
       );
     }
 
+    // Ordenação padrão: data de abertura mais recente primeiro, depois por número de registro decrescente
+    baseRows.sort((a, b) => {
+      const dateCmp = b.operationDate.localeCompare(a.operationDate);
+      if (dateCmp !== 0) return dateCmp;
+      return (b.opNumber ?? 0) - (a.opNumber ?? 0);
+    });
+
     return baseRows;
   }, [rows, statusFilter, range.from, range.to, searchTerm]);
 
@@ -1178,7 +1185,8 @@ const Historico = () => {
     { id: "a_vencer", label: "A VENCER" },
   ];
 
-  // Hover state (handled natively in CSS)
+  // Hover state for registro action buttons
+  const [regHoverKey, setRegHoverKey] = useState<string | null>(null);
 
   // Sorting state
   type SortKey =
@@ -1219,10 +1227,17 @@ const Historico = () => {
     arr.sort((a, b) => {
       const av = (a as any)[sortKey];
       const bv = (b as any)[sortKey];
-      if (typeof av === "number" && typeof bv === "number") return (av - bv) * dir;
-      const as = String(av ?? "").toLowerCase();
-      const bs = String(bv ?? "").toLowerCase();
-      return as.localeCompare(bs, "pt-BR", { numeric: true }) * dir;
+      let primary: number;
+      if (typeof av === "number" && typeof bv === "number") {
+        primary = (av - bv) * dir;
+      } else {
+        const as = String(av ?? "").toLowerCase();
+        const bs = String(bv ?? "").toLowerCase();
+        primary = as.localeCompare(bs, "pt-BR", { numeric: true }) * dir;
+      }
+      if (primary !== 0) return primary;
+      // Desempate: número de registro decrescente (mais recente no topo)
+      return (b.opNumber ?? 0) - (a.opNumber ?? 0);
     });
     return arr;
   }, [filteredRows, sortKey, sortDir]);
@@ -1448,7 +1463,7 @@ const Historico = () => {
   const renderResumoDoDia = () => {
     if (resumoDoDiaRows.length === 0) {
       return (
-        <section className="rounded-2xl border border-border/60 bg-gradient-card p-4 md:p-5 shadow-card animate-fade-up mb-6">
+        <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up mb-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
@@ -1475,7 +1490,6 @@ const Historico = () => {
         </div>
 
         <div className="space-y-4">
-          <div className="border border-border/40 rounded-xl overflow-hidden bg-background/20 backdrop-blur-sm shadow-sm p-4">
             {/* Mobile cards */}
             <div className="space-y-2 md:hidden">
               {resumoDoDiaRows.map((r) => {
@@ -1617,30 +1631,33 @@ const Historico = () => {
                           rowClass(r)
                         )}
                       >
-                        <td className="px-1.5 py-2 text-muted-foreground group">
-                          <div className="relative flex items-center justify-center">
-                            {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"}
-                            {canManage && (
-                              <div className="absolute right-full top-1/2 -translate-y-1/2 pr-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-10">
-                                <div className="flex items-center gap-0.5 bg-background/95 backdrop-blur-sm border border-border/50 rounded-md p-0.5 shadow-sm">
-                                  <button
-                                    onClick={() => openEdit(r.invoiceId)}
-                                    className="rounded p-1 text-muted-foreground transition-colors hover:bg-primary/15 hover:text-primary"
-                                    title="Editar abertura"
-                                    aria-label="Editar"
-                                  >
-                                    <Pencil className="h-3 w-3" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteOperation(r.invoiceId)}
-                                    className="rounded p-1 text-muted-foreground transition-colors hover:bg-cost-red/15 hover:text-cost-red"
-                                    title="Remover abertura"
-                                    aria-label="Remover"
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </button>
-                                </div>
+                        <td
+                          className="px-1.5 py-2 text-muted-foreground relative"
+                          onMouseEnter={() => canManage && setRegHoverKey(r.key)}
+                          onMouseLeave={() => setRegHoverKey((k) => k === r.key ? null : k)}
+                        >
+                          <div className="flex items-center justify-center">
+                            {regHoverKey === r.key && canManage ? (
+                              <div className="flex items-center gap-0.5 bg-background/95 backdrop-blur-sm border border-border/50 rounded-md p-0.5 shadow-lg">
+                                <button
+                                  onClick={() => openEdit(r.invoiceId)}
+                                  className="rounded p-1 text-muted-foreground transition-colors hover:bg-primary/15 hover:text-primary"
+                                  title="Editar abertura"
+                                  aria-label="Editar"
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteOperation(r.invoiceId)}
+                                  className="rounded p-1 text-muted-foreground transition-colors hover:bg-cost-red/15 hover:text-cost-red"
+                                  title="Remover abertura"
+                                  aria-label="Remover"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
                               </div>
+                            ) : (
+                              r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"
                             )}
                           </div>
                         </td>
@@ -1688,7 +1705,7 @@ const Historico = () => {
                             </button>
                           </div>
                         </td>
-                        <td className="px-2 py-2 max-w-[160px] truncate text-left" title={r.clientName}>
+                        <td className="px-2 py-2 max-w-[160px] truncate" title={r.clientName}>
                           {r.clientName}
                         </td>
                         <td className="px-1.5 py-2">{r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}</td>
@@ -1707,7 +1724,6 @@ const Historico = () => {
                 </tbody>
               </table>
             </div>
-          </div>
         </div>
       </section>
     );
@@ -3111,30 +3127,33 @@ const Historico = () => {
                                       rowClass(r)
                                     )}
                                   >
-                                      <td className="px-1.5 py-2 text-muted-foreground group">
-                                        <div className="relative flex items-center justify-center">
-                                          {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"}
-                                          {canManage && (
-                                            <div className="absolute right-full top-1/2 -translate-y-1/2 pr-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-10">
-                                              <div className="flex items-center gap-0.5 bg-background/95 backdrop-blur-sm border border-border/50 rounded-md p-0.5 shadow-sm">
-                                                <button
-                                                  onClick={() => openEdit(r.invoiceId)}
-                                                  className="rounded p-1 text-muted-foreground transition-colors hover:bg-primary/15 hover:text-primary"
-                                                  title="Editar abertura"
-                                                  aria-label="Editar"
-                                                >
-                                                  <Pencil className="h-3 w-3" />
-                                                </button>
-                                                <button
-                                                  onClick={() => handleDeleteOperation(r.invoiceId)}
-                                                  className="rounded p-1 text-muted-foreground transition-colors hover:bg-cost-red/15 hover:text-cost-red"
-                                                  title="Remover abertura"
-                                                  aria-label="Remover"
-                                                >
-                                                  <Trash2 className="h-3 w-3" />
-                                                </button>
-                                              </div>
+                                      <td
+                                        className="px-1.5 py-2 text-muted-foreground relative"
+                                        onMouseEnter={() => canManage && setRegHoverKey(r.key)}
+                                        onMouseLeave={() => setRegHoverKey((k) => k === r.key ? null : k)}
+                                      >
+                                        <div className="flex items-center justify-center">
+                                          {regHoverKey === r.key && canManage ? (
+                                            <div className="flex items-center gap-0.5 bg-background/95 backdrop-blur-sm border border-border/50 rounded-md p-0.5 shadow-lg">
+                                              <button
+                                                onClick={() => openEdit(r.invoiceId)}
+                                                className="rounded p-1 text-muted-foreground transition-colors hover:bg-primary/15 hover:text-primary"
+                                                title="Editar abertura"
+                                                aria-label="Editar"
+                                              >
+                                                <Pencil className="h-3 w-3" />
+                                              </button>
+                                              <button
+                                                onClick={() => handleDeleteOperation(r.invoiceId)}
+                                                className="rounded p-1 text-muted-foreground transition-colors hover:bg-cost-red/15 hover:text-cost-red"
+                                                title="Remover abertura"
+                                                aria-label="Remover"
+                                              >
+                                                <Trash2 className="h-3 w-3" />
+                                              </button>
                                             </div>
+                                          ) : (
+                                            r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"
                                           )}
                                         </div>
                                       </td>
