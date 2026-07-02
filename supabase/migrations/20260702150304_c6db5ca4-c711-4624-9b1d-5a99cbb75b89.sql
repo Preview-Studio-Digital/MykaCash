@@ -1,0 +1,1 @@
+ALTER TABLE public.operation_logs ADD COLUMN IF NOT EXISTS value numeric;
