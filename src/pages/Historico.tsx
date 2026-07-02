@@ -406,7 +406,7 @@ const Historico = () => {
   );
 
   useEffect(() => {
-    if (loading || !user) return;
+    if (loading || !user || showSplash) return;
     if (pathname !== "/") return;
     if (overdueRows.length === 0) return;
     const key = `mykacash_overdue_alert_shown:${user.id}`;
@@ -414,7 +414,7 @@ const Historico = () => {
     sessionStorage.setItem(key, "1");
     setOverdueAlertOpen(true);
     playSound("overdue");
-  }, [loading, user, overdueRows.length, pathname]);
+  }, [loading, user, overdueRows.length, pathname, showSplash]);
 
 
 
