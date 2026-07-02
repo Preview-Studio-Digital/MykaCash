@@ -24,6 +24,14 @@ export const AppHeader = () => {
       });
   }, [user?.id]);
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Bom dia";
+    if (hour >= 12 && hour < 18) return "Boa tarde";
+    return "Boa noite";
+  };
+
+  const greeting = getGreeting();
   const headerName = displayName ?? (user?.user_metadata as any)?.display_name ?? user?.email;
 
   return (
@@ -35,12 +43,15 @@ export const AppHeader = () => {
       {/* Header bar */}
       <div className="relative z-10 mx-auto w-full max-w-[1600px] px-2 md:px-4 lg:px-6 flex items-center justify-between gap-2 pt-2.5 pb-3 md:pt-3 md:pb-4 text-xs font-mono tracking-widest text-muted-foreground">
         <Link to="/" className="hover:opacity-80 transition-opacity shrink-0">
-          <span className="font-title title-gradient title-shimmer font-extrabold leading-none tracking-tighter text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
+          <span className="font-title title-gradient title-shimmer font-extrabold leading-none tracking-tighter text-xl sm:text-2xl md:text-3xl lg:text-4xl">
             MYKACA$H
           </span>
         </Link>
+
         <div className="flex items-center gap-1 sm:gap-3 md:gap-4 shrink-0 -translate-y-[1px]">
-          <span className="hidden sm:inline">{headerName}</span>
+          <span className="hidden sm:inline">
+            {greeting}, <span className="font-semibold text-foreground">{headerName}</span>!
+          </span>
           {isAdmin && (
             <Button
               asChild

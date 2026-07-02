@@ -307,7 +307,7 @@ export const RegistrationSection = ({
     if (invoiceToEdit) {
       const { data, error: updateError } = await supabase
         .from("invoices")
-        .update({ ...invoiceData, created_by: user?.id ?? null })
+        .update({ ...invoiceData, created_by: user?.id ?? null, updated_at: new Date().toISOString() })
         .eq("id", invoiceToEdit.id)
         .select()
         .single();

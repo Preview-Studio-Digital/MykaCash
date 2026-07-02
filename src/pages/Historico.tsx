@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import { AppHeader } from "@/components/AppHeader";
 import { PageNav } from "@/components/PageNav";
+import VaporizeTextCycle from "@/components/ui/vapour-text-effect";
 import { RegistrationSection } from "@/components/RegistrationSection";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/DateField";
@@ -54,7 +55,7 @@ const MONTHS_PT = [
   "DEZEMBRO"
 ];
 
-type SettledEntry = string | { id: string; date: string };
+type SettledEntry = string | { id: string; date: string; settled_at?: string };
 type InvoiceRow = {
   id: string;
   invoice_number: string;
@@ -66,6 +67,7 @@ type InvoiceRow = {
   settled_installments: SettledEntry[];
   client_id: string;
   created_at: string;
+  updated_at?: string;
   created_by: string | null;
   clients?: { name: string } | null;
   profiles?: { display_name: string | null; username: string | null } | null;
@@ -146,6 +148,8 @@ const yearOf = (iso: string) => (iso ? iso.slice(0, 4) : "");
 const formatBRLNum = (n: number) =>
   n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+let globalSplashShown = false;
+
 const Historico = () => {
   const { user, isAdmin } = useAuth();
   const [period, setPeriod] = useState<Period>("total");
@@ -166,6 +170,47 @@ const Historico = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [negativeBalanceAlertOpen, setNegativeBalanceAlertOpen] = useState(false);
   const { pathname } = useLocation();
+  const [showSplash, setShowSplash] = useState(!globalSplashShown);
+  const [splashFade, setSplashFade] = useState(false);
+  const [fontLoaded, setFontLoaded] = useState(false);
+
+  useEffect(() => {
+    if (typeof document !== "undefined" && "fonts" in document) {
+      document.fonts.ready.then(() => {
+        setFontLoaded(true);
+      }).catch(() => {
+        setFontLoaded(true);
+      });
+    } else {
+      setFontLoaded(true);
+    }
+  }, []);
+
+
+
+  useEffect(() => {
+    if (!showSplash) return;
+
+    const minDelay = new Promise((r) => setTimeout(r, 3600));
+    const dataLoaded = new Promise((r) => {
+      const check = () => {
+        if (!loading) {
+          r(true);
+        } else {
+          setTimeout(check, 100);
+        }
+      };
+      check();
+    });
+
+    Promise.all([minDelay, dataLoaded]).then(() => {
+      globalSplashShown = true;
+      setSplashFade(true);
+      setTimeout(() => {
+        setShowSplash(false);
+      }, 700);
+    });
+  }, [loading, showSplash]);
 
   const [overdueConfirmOpen, setOverdueConfirmOpen] = useState(false);
   const [pendingSettlementData, setPendingSettlementData] = useState<{
@@ -200,7 +245,7 @@ const Historico = () => {
       supabase
         .from("invoices")
         .select(
-          "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, created_by, ordem, clients(name), profiles:created_by(display_name, username)"
+          "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, updated_at, created_by, ordem, clients(name), profiles:created_by(display_name, username)"
         )
         .order("operation_date", { ascending: false }),
       supabase
@@ -228,6 +273,8 @@ const Historico = () => {
 
   const todayStr = todayISO();
 
+
+
   // Build flat rows (one per installment)
   const rows = useMemo(() => {
     type Row = {
@@ -252,6 +299,8 @@ const Historico = () => {
       settledDate: string | null;
       settlementDate: string | null;
       overdue: boolean;
+      settledAt: string | null;
+      updatedAt: string | null;
       createdBy: string;
       createdAt: string;
       isAuthor: boolean;
@@ -264,7 +313,13 @@ const Historico = () => {
         ? (inv.settled_installments as any)
         : [];
       const settledMap = new Map<string, string | null>();
-      settledEntries.forEach((e) => settledMap.set(settledIdOf(e), settledDateOf(e)));
+      const settledAtMap = new Map<string, string | null>();
+      settledEntries.forEach((e) => {
+        settledMap.set(settledIdOf(e), settledDateOf(e));
+        if (typeof e !== "string" && e.settled_at) {
+          settledAtMap.set(e.id, e.settled_at);
+        }
+      });
       const factoringRate = Number(inv.factoring_monthly_rate ?? FACTORING_MONTHLY_RATE_PCT);
       const result = calculate({
         invoiceValue: Number(inv.invoice_value) || 0,
@@ -286,6 +341,8 @@ const Historico = () => {
         const settledDate = settled ? settledMap.get(i.id) ?? null : null;
         const settlementDate = settled ? (settledDate ?? i.dueDate) : null;
         const overdue = !settled && i.dueDate < todayStr;
+        const settledAt = settled ? settledAtMap.get(i.id) ?? null : null;
+        const updatedAt = (inv as any).updated_at || inv.created_at;
         const factoringCost = i.value * (factoringRate / 100) * (i.days / 30);
         const savings = factoringCost - cost;
         out.push({
@@ -309,6 +366,8 @@ const Historico = () => {
           settled,
           settledDate,
           settlementDate,
+          settledAt,
+          updatedAt,
           overdue,
           createdBy,
           createdAt: inv.created_at,
@@ -319,6 +378,27 @@ const Historico = () => {
     }
     return out;
   }, [invoices, todayStr, now, user]);
+  
+  const resumoDoDiaRows = useMemo(() => {
+    const out: Array<(typeof rows)[number] & { actionType: "INICIADA" | "EDITADA" | "LIQUIDADA" }> = [];
+    
+    for (const r of rows) {
+      const isInitiated = r.createdAt ? localISO(new Date(r.createdAt)) === todayStr : false;
+      const isLiquidated = r.settled && r.settledAt ? localISO(new Date(r.settledAt)) === todayStr : false;
+      
+      if (isLiquidated) {
+        out.push({ ...r, actionType: "LIQUIDADA" });
+      } else if (isInitiated) {
+        out.push({ ...r, actionType: "INICIADA" });
+      } else if (r.updatedAt) {
+        const isEdited = localISO(new Date(r.updatedAt)) === todayStr;
+        if (isEdited) {
+          out.push({ ...r, actionType: "EDITADA" });
+        }
+      }
+    }
+    return out;
+  }, [rows, todayStr]);
 
   const overdueRows = useMemo(
     () => rows.filter((r) => !r.settled && r.overdue),
@@ -949,7 +1029,7 @@ const Historico = () => {
       ? (inv.settled_installments as any)
       : [];
     
-    const next: SettledEntry[] = [...current, { id: settlingRow.installmentId, date: settlementDate }];
+    const next: SettledEntry[] = [...current, { id: settlingRow.installmentId, date: settlementDate, settled_at: new Date().toISOString() }];
     await saveSettlement(inv.id, next, "Parcela marcada como liquidada");
     setSettlingRow(null);
   };
@@ -1004,7 +1084,7 @@ const Historico = () => {
       ? (inv.settled_installments as any)
       : [];
     
-    const next: SettledEntry[] = [...current, { id: row.installmentId, date: settlementDate }];
+    const next: SettledEntry[] = [...current, { id: row.installmentId, date: settlementDate, settled_at: new Date().toISOString() }];
     await saveSettlement(inv.id, next, "Parcela marcada como liquidada com juros de atraso");
     
     // Fechar modais
@@ -1098,8 +1178,7 @@ const Historico = () => {
     { id: "a_vencer", label: "A VENCER" },
   ];
 
-  // Hover state to preview liquidation in orange
-  const [hoverKey, setHoverKey] = useState<string | null>(null);
+  // Hover state (handled natively in CSS)
 
   // Sorting state
   type SortKey =
@@ -1209,7 +1288,7 @@ const Historico = () => {
     const active = sortKey === sKey;
     const Icon = sortDir === "asc" ? ArrowUp : ArrowDown;
     return (
-      <th className={"px-1.5 py-2 text-center font-medium " + className}>
+      <th className={"px-1.5 py-2 text-center font-medium whitespace-nowrap " + className}>
         <button
           type="button"
           onClick={() => toggleSort(sKey)}
@@ -1236,12 +1315,9 @@ const Historico = () => {
     return r.dueDate >= ws && r.dueDate <= we;
   };
 
-  // Row coloring — when hovering the status pill of an open/overdue row, show orange preview
+  // Row coloring
   const rowClass = (r: (typeof rows)[number]) => {
     if (r.settled) return "bg-[hsl(var(--factoring-amber)/0.22)] hover:bg-[hsl(var(--factoring-amber)/0.28)]";
-    if (hoverKey === r.key) {
-      return "bg-[hsl(var(--factoring-amber)/0.22)]";
-    }
     if (r.overdue) return "bg-[hsl(var(--cost-red)/0.12)] hover:bg-[hsl(var(--cost-red)/0.18)]";
     if (isDueSoon(r)) return "row-due-soon hover:bg-[hsl(var(--net-green)/0.45)]";
     return "bg-[hsl(var(--net-green)/0.06)] hover:bg-[hsl(var(--net-green)/0.10)]";
@@ -1368,6 +1444,274 @@ const Historico = () => {
 
   // alias para compatibilidade com versão anterior (evita ReferenceError no Lovable)
   const renderFilters = renderFiltersBar;
+
+  const renderResumoDoDia = () => {
+    if (resumoDoDiaRows.length === 0) {
+      return (
+        <section className="rounded-2xl border border-border/60 bg-gradient-card p-4 md:p-5 shadow-card animate-fade-up mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+              <h2 className="font-mono text-sm sm:text-base md:text-lg tracking-[0.2em] font-bold uppercase">Resumo do Dia</h2>
+            </div>
+            <span className="font-mono text-xs lg:text-sm tracking-[0.3em] text-muted-foreground">
+              SEM OPERAÇÕES HOJE
+            </span>
+          </div>
+        </section>
+      );
+    }
+
+    return (
+      <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up mb-6">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+            <h2 className="font-mono text-sm sm:text-base md:text-lg tracking-[0.2em] font-bold uppercase">Resumo do Dia</h2>
+          </div>
+          <span className="font-mono text-xs lg:text-sm tracking-[0.3em] text-muted-foreground">
+            {resumoDoDiaRows.length} {resumoDoDiaRows.length === 1 ? "OPERAÇÃO" : "OPERAÇÕES"}
+          </span>
+        </div>
+
+        <div className="space-y-4">
+          <div className="border border-border/40 rounded-xl overflow-hidden bg-background/20 backdrop-blur-sm shadow-sm p-4">
+            {/* Mobile cards */}
+            <div className="space-y-2 md:hidden">
+              {resumoDoDiaRows.map((r) => {
+                const canManage = isAdmin || (r.isAuthor && r.withinEditWindow);
+                return (
+                  <div
+                    key={`resumo-${r.key}`}
+                    className={cn(
+                      "group/card rounded-lg border px-3 py-1.5 relative shadow-sm backdrop-blur-sm transition-all",
+                      r.settled
+                        ? "bg-factoring-amber/10 border-factoring-amber/25 text-factoring-amber-foreground"
+                        : r.overdue
+                        ? "bg-cost-red/10 border-cost-red/25 text-cost-red-foreground"
+                        : "bg-net-green/15 border-net-green/25 text-net-green-foreground"
+                    )}
+                  >
+                    {/* Row 0: Action Badge */}
+                    <div className="mb-1 flex justify-between items-center">
+                      <span className={cn(
+                        "rounded-full px-2 py-0.5 font-mono text-[9px] tracking-wider font-bold border",
+                        r.actionType === "INICIADA" && "bg-primary/20 text-primary border-primary/30",
+                        r.actionType === "EDITADA" && "bg-blue-500/20 text-blue-400 border-blue-500/30",
+                        r.actionType === "LIQUIDADA" && "bg-factoring-amber/20 text-factoring-amber border-factoring-amber/30"
+                      )}>
+                        {r.actionType}
+                      </span>
+                    </div>
+
+                    {/* Row 1: Client Name + OP/NF & Status Button */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex items-baseline gap-1.5 flex-1">
+                        <span className="text-base font-bold truncate text-foreground">{r.clientName}</span>
+                        <span className="font-mono text-xs text-muted-foreground/80 shrink-0">
+                          ({r.opNumber ? `REG: ${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "REG: —"} · NF: {r.invoiceNumber})
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => toggleSettlement(r)}
+                        title={r.settled ? "Tocar para desfazer a liquidação" : "Tocar para marcar como LIQUIDADA"}
+                        className={cn(
+                          "rounded-full px-2.5 py-0.5 font-mono text-[10px] tracking-wider font-bold transition-all shrink-0 active:scale-95",
+                          r.settled
+                            ? "bg-factoring-amber/20 text-factoring-amber border border-factoring-amber/35 hover:bg-factoring-amber/30"
+                            : r.overdue
+                            ? "bg-cost-red/20 text-cost-red border border-cost-red/35 hover:bg-cost-red/30"
+                            : "bg-net-green/15 text-net-green border border-net-green/30 hover:bg-net-green/25"
+                        )}
+                      >
+                        {r.settled ? "LIQUIDADA" : r.overdue ? "VENCIDA" : "ANDAMENTO"}
+                      </button>
+                    </div>
+
+                    {/* Row 2: Dates Grid */}
+                    <div className="mt-1.5 grid grid-cols-3 gap-2 border-t border-border/10 pt-1 font-mono text-xs text-muted-foreground">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Abertura</span>
+                        <span className="text-foreground/90 font-semibold">{fmtDateShort(r.operationDate)}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Vencimento</span>
+                        <span className="text-foreground/90 font-semibold">{fmtDateShort(r.dueDate)}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Liquidação</span>
+                        <span className="text-foreground/90 font-semibold">{r.settlementDate ? fmtDateShort(r.settlementDate) : "—"}</span>
+                      </div>
+                    </div>
+
+                    {/* Row 3: Values & Actions */}
+                    <div className="mt-1.5 flex items-center justify-between border-t border-border/10 pt-1">
+                      <div className="flex items-center gap-4">
+                        <div className="flex flex-col font-mono text-xs tabular-nums text-muted-foreground">
+                          <span className="text-[10px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Bruto</span>
+                          <span className="text-factoring-amber font-bold text-sm sm:text-base">{formatBRL(r.value)}</span>
+                        </div>
+                        <div className="flex flex-col font-mono text-xs tabular-nums text-muted-foreground">
+                          <span className="text-[10px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Líquido</span>
+                          <span className="text-net-green font-bold text-sm sm:text-base">{formatBRL(r.presentValue)}</span>
+                        </div>
+                      </div>
+                      {canManage && (
+                        <div className="flex items-center gap-1 self-end pb-0.5">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openEdit(r.invoiceId)}
+                            className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-primary hover:bg-muted/10 transition-colors"
+                            aria-label="Editar"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDeleteOperation(r.invoiceId)}
+                            className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-cost-red hover:bg-muted/10 transition-colors"
+                            aria-label="Remover"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-visible">
+              <table className="w-full table-auto text-xs lg:text-sm">
+                <thead className="bg-muted/40 font-mono tracking-widest">
+                  <tr className="text-muted-foreground whitespace-nowrap">
+                    <th className="px-1.5 py-2 text-center font-medium">REGISTRO</th>
+                    <th className="px-1.5 py-2 text-center font-medium">AÇÃO</th>
+                    <th className="px-1.5 py-2 text-center font-medium">STATUS</th>
+                    <th className="px-1.5 py-2 text-left font-medium">CLIENTE</th>
+                    <th className="px-1.5 py-2 text-center font-medium">NF</th>
+                    <th className="px-1.5 py-2 text-center font-medium">ABERTURA</th>
+                    <th className="px-1.5 py-2 text-center font-medium">VENCIMENTO</th>
+                    <th className="px-1.5 py-2 text-center font-medium">LIQUIDAÇÃO</th>
+                    <th className="px-1.5 py-2 text-center font-medium">DIAS</th>
+                    <th className="px-1.5 py-2 text-center font-medium">TAXA EFET.</th>
+                    <th className="px-1.5 py-2 text-center font-medium">BRUTO (R$)</th>
+                    <th className="px-1.5 py-2 text-center font-medium">LÍQUIDO (R$)</th>
+                    <th className="px-1.5 py-2 text-center font-medium">CUSTO (R$)</th>
+                    <th className="px-1.5 py-2 text-center font-medium">AUTOR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {resumoDoDiaRows.map((r) => {
+                    const canManage = isAdmin || (r.isAuthor && r.withinEditWindow);
+                    return (
+                      <tr
+                        key={`resumo-tr-${r.key}`}
+                        className={cn(
+                          "group/row border-t border-border/40 font-mono tabular-nums text-center transition-colors h-9",
+                          rowClass(r)
+                        )}
+                      >
+                        <td className="px-1.5 py-2 text-muted-foreground group">
+                          <div className="relative flex items-center justify-center">
+                            {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"}
+                            {canManage && (
+                              <div className="absolute right-full top-1/2 -translate-y-1/2 pr-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-10">
+                                <div className="flex items-center gap-0.5 bg-background/95 backdrop-blur-sm border border-border/50 rounded-md p-0.5 shadow-sm">
+                                  <button
+                                    onClick={() => openEdit(r.invoiceId)}
+                                    className="rounded p-1 text-muted-foreground transition-colors hover:bg-primary/15 hover:text-primary"
+                                    title="Editar abertura"
+                                    aria-label="Editar"
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteOperation(r.invoiceId)}
+                                    className="rounded p-1 text-muted-foreground transition-colors hover:bg-cost-red/15 hover:text-cost-red"
+                                    title="Remover abertura"
+                                    aria-label="Remover"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-1.5 py-2">
+                          <span className={cn(
+                            "rounded-full px-2 py-0.5 font-mono text-[9px] tracking-wider font-bold border inline-block",
+                            r.actionType === "INICIADA" && "bg-primary/20 text-primary border-primary/30",
+                            r.actionType === "EDITADA" && "bg-blue-500/20 text-blue-400 border-blue-500/30",
+                            r.actionType === "LIQUIDADA" && "bg-factoring-amber/20 text-factoring-amber border-factoring-amber/30"
+                          )}>
+                            {r.actionType}
+                          </span>
+                        </td>
+                        <td className="px-2 py-2">
+                          <div className="inline-flex items-center justify-center">
+                            <button
+                              type="button"
+                              onClick={() => toggleSettlement(r)}
+                              title={
+                                r.settled
+                                  ? "Clique para desfazer a liquidação"
+                                  : "Clique para marcar como LIQUIDADA"
+                              }
+                              className={cn(
+                                "group status-pill relative inline-flex items-center justify-center h-5 w-[92px] whitespace-nowrap rounded-full px-2 text-[10px] tracking-widest transition-all cursor-pointer",
+                                r.settled
+                                  ? "bg-factoring-amber/20 text-factoring-amber hover:bg-factoring-amber/30"
+                                  : r.overdue
+                                  ? "bg-cost-red/20 text-cost-red hover:bg-factoring-amber/30 hover:text-factoring-amber"
+                                  : "bg-net-green/15 text-net-green hover:bg-factoring-amber/30 hover:text-factoring-amber"
+                              )}
+                            >
+                              <span className="group-hover:hidden">
+                                {r.settled
+                                  ? "LIQUIDADA"
+                                  : r.overdue
+                                  ? "VENCIDA"
+                                  : isDueSoon(r)
+                                  ? weekdayShortPt(r.dueDate)
+                                  : "ANDAMENTO"}
+                              </span>
+                              <span className="hidden group-hover:inline">
+                                {r.settled ? "DESFAZER" : "LIQUIDAR"}
+                              </span>
+                            </button>
+                          </div>
+                        </td>
+                        <td className="px-2 py-2 max-w-[160px] truncate text-left" title={r.clientName}>
+                          {r.clientName}
+                        </td>
+                        <td className="px-1.5 py-2">{r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}</td>
+                        <td className="px-1.5 py-2">{fmtDateShort(r.operationDate)}</td>
+                        <td className="px-1.5 py-2">{fmtDateShort(r.dueDate)}</td>
+                        <td className="px-1.5 py-2">{r.settlementDate ? fmtDateShort(r.settlementDate) : "—"}</td>
+                        <td className="px-1.5 py-2">{r.days}</td>
+                        <td className="px-1.5 py-2">{formatPct(r.effectivePct)}</td>
+                        <td className="px-1.5 py-2 text-factoring-amber font-bold">{formatBRL(r.value)}</td>
+                        <td className="px-1.5 py-2 text-net-green font-bold">{formatBRL(r.presentValue)}</td>
+                        <td className="px-1.5 py-2 text-cost-red font-bold">{formatBRL(r.cost)}</td>
+                        <td className="px-1.5 py-2 text-muted-foreground truncate max-w-[100px]" title={r.createdBy}>{r.createdBy}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  };
 
   // === Métricas GLOBAIS (independem de período/filtro) ===
   const globalStats = useMemo(() => {
@@ -1631,7 +1975,41 @@ const Historico = () => {
 
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
+      {showSplash && (
+        <>
+          <style>{`html, body { overflow: hidden !important; }`}</style>
+          <div className={cn(
+            "fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-md transition-opacity duration-700 ease-out",
+            splashFade ? "opacity-0 pointer-events-none" : "opacity-100"
+          )}>
+            <div className="w-full max-w-[600px] h-[200px] flex items-center justify-center">
+              {fontLoaded && (
+                <VaporizeTextCycle
+                  texts={["MYKACA$H"]}
+                  font={{
+                    fontFamily: '"Allerta Stencil", "Space Grotesk", system-ui, sans-serif',
+                    fontSize: "52px",
+                    fontWeight: 800,
+                  }}
+                  color="gradient"
+                  spread={4}
+                  density={6}
+                  animation={{
+                    vaporizeDuration: 2.2,
+                    fadeInDuration: 1.0,
+                    waitDuration: 0.6,
+                  }}
+                  direction="left-to-right"
+                  alignment="center"
+                  loop={false}
+                />
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
       <AppHeader />
       <main className="mx-auto w-full max-w-[1600px] px-2 md:px-4 lg:px-6 py-4 md:py-6 pb-36 space-y-8">
         <PageNav />
@@ -1640,7 +2018,7 @@ const Historico = () => {
           <div className="flex flex-col items-center justify-center py-24 gap-3">
             <span className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
             <div className="font-mono text-xs tracking-widest text-muted-foreground uppercase animate-pulse">
-              Carregando dados do sistema...
+              Carregando dados...
             </div>
           </div>
         ) : (
@@ -2508,6 +2886,9 @@ const Historico = () => {
         {/* Secondary filters (Middle) */}
         {renderFilters()}
 
+        {/* Resumo do Dia */}
+        {renderResumoDoDia()}
+
         {/* Table */}
         <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -2700,14 +3081,14 @@ const Historico = () => {
                         </div>
 
                         {/* Desktop table */}
-                        <div className="hidden md:block overflow-hidden">
+                        <div className="hidden md:block overflow-visible">
                           <table className="w-full table-auto text-xs lg:text-sm">
                             <thead className="bg-muted/40 font-mono tracking-widest">
-                              <tr className="text-muted-foreground">
+                              <tr className="text-muted-foreground whitespace-nowrap">
                                 <th className="px-1.5 py-2 text-center font-medium">REGISTRO</th>
                                 <th className="px-1.5 py-2 text-center font-medium">STATUS</th>
                                 <SortableTh label="CLIENTE" sKey="clientName" />
-                                <SortableTh label="NOTA FISCAL" sKey="invoiceNumber" />
+                                <SortableTh label="NF" sKey="invoiceNumber" />
                                 <SortableTh label="ABERTURA" sKey="operationDate" />
                                 <SortableTh label="VENCIMENTO" sKey="dueDate" />
                                 <SortableTh label="LIQUIDAÇÃO" sKey="settlementDate" />
@@ -2725,34 +3106,56 @@ const Historico = () => {
                                 return (
                                   <tr
                                     key={r.key}
-                                    className={
-                                      "group/row border-t border-border/40 font-mono tabular-nums text-center transition-colors " +
+                                    className={cn(
+                                      "group/row border-t border-border/40 font-mono tabular-nums text-center transition-colors h-9",
                                       rowClass(r)
-                                    }
+                                    )}
                                   >
-                                    <td className="px-1.5 py-2 text-muted-foreground">{r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"}</td>
-                                    <td className="relative px-2 py-2">
+                                      <td className="px-1.5 py-2 text-muted-foreground group">
+                                        <div className="relative flex items-center justify-center">
+                                          {r.opNumber ? `${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "—"}
+                                          {canManage && (
+                                            <div className="absolute right-full top-1/2 -translate-y-1/2 pr-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-10">
+                                              <div className="flex items-center gap-0.5 bg-background/95 backdrop-blur-sm border border-border/50 rounded-md p-0.5 shadow-sm">
+                                                <button
+                                                  onClick={() => openEdit(r.invoiceId)}
+                                                  className="rounded p-1 text-muted-foreground transition-colors hover:bg-primary/15 hover:text-primary"
+                                                  title="Editar abertura"
+                                                  aria-label="Editar"
+                                                >
+                                                  <Pencil className="h-3 w-3" />
+                                                </button>
+                                                <button
+                                                  onClick={() => handleDeleteOperation(r.invoiceId)}
+                                                  className="rounded p-1 text-muted-foreground transition-colors hover:bg-cost-red/15 hover:text-cost-red"
+                                                  title="Remover abertura"
+                                                  aria-label="Remover"
+                                                >
+                                                  <Trash2 className="h-3 w-3" />
+                                                </button>
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </td>
+                                    <td className="px-2 py-2">
                                       <div className="inline-flex items-center justify-center">
                                         <button
                                           type="button"
                                           onClick={() => toggleSettlement(r)}
-                                          onMouseEnter={() => !r.settled && setHoverKey(r.key)}
-                                          onMouseLeave={() => setHoverKey((k) => (k === r.key ? null : k))}
-                                          onFocus={() => !r.settled && setHoverKey(r.key)}
-                                          onBlur={() => setHoverKey((k) => (k === r.key ? null : k))}
                                           title={
                                             r.settled
                                               ? "Clique para desfazer a liquidação"
                                               : "Clique para marcar como LIQUIDADA"
                                           }
-                                          className={
-                                            "group relative inline-block rounded-full px-2 py-0.5 text-[10px] tracking-widest transition-all cursor-pointer " +
-                                            (r.settled
+                                          className={cn(
+                                            "group status-pill relative inline-flex items-center justify-center h-5 w-[92px] whitespace-nowrap rounded-full px-2 text-[10px] tracking-widest transition-all cursor-pointer",
+                                            r.settled
                                               ? "bg-factoring-amber/20 text-factoring-amber hover:bg-factoring-amber/30"
                                               : r.overdue
                                               ? "bg-cost-red/20 text-cost-red hover:bg-factoring-amber/30 hover:text-factoring-amber"
-                                              : "bg-net-green/15 text-net-green hover:bg-factoring-amber/30 hover:text-factoring-amber")
-                                          }
+                                              : "bg-net-green/15 text-net-green hover:bg-factoring-amber/30 hover:text-factoring-amber"
+                                          )}
                                         >
                                           <span className="group-hover:hidden">
                                             {r.settled
@@ -2767,26 +3170,6 @@ const Historico = () => {
                                             {r.settled ? "DESFAZER" : "LIQUIDAR"}
                                           </span>
                                         </button>
-                                        {canManage && (
-                                          <div className="absolute left-[calc(100%-0.25rem)] top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 pointer-events-none group-hover/row:opacity-100 group-hover/row:pointer-events-auto transition-all bg-background/95 backdrop-blur-sm border border-border/50 rounded-md p-0.5 shadow-sm z-10">
-                                            <button
-                                              onClick={() => openEdit(r.invoiceId)}
-                                              className="rounded p-1 text-muted-foreground transition-colors hover:bg-primary/15 hover:text-primary"
-                                              title="Editar abertura"
-                                              aria-label="Editar"
-                                            >
-                                              <Pencil className="h-3 w-3" />
-                                            </button>
-                                            <button
-                                              onClick={() => handleDeleteOperation(r.invoiceId)}
-                                              className="rounded p-1 text-muted-foreground transition-colors hover:bg-cost-red/15 hover:text-cost-red"
-                                              title="Remover abertura"
-                                              aria-label="Remover"
-                                            >
-                                              <Trash2 className="h-3 w-3" />
-                                            </button>
-                                          </div>
-                                        )}
                                       </div>
                                     </td>
                                     <td className="px-2 py-2 max-w-[160px] truncate" title={r.clientName}>

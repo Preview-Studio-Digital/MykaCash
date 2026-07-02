@@ -74,8 +74,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // (token refreshes are handled internally by the supabase client).
     };
 
-    // Load initial session (with minimum 1s loading screen)
-    const minDelay = new Promise((r) => setTimeout(r, 1000));
+    // Load initial session (with minimum 100ms loading screen)
+    const minDelay = new Promise((r) => setTimeout(r, 100));
     Promise.all([supabase.auth.getSession(), minDelay]).then(([{ data }]) => {
       if (!active) return;
       applySession(data.session);

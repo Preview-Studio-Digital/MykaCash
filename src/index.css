@@ -282,3 +282,9 @@
   background: hsl(var(--cost-red) / 0.8) !important;
   box-shadow: 0 0 10px hsl(var(--cost-red) / 0.5);
 }
+
+/* NATIVE ROW HOVER PREVIEW FOR STATUS PILL (Zero Lag) */
+.group\/row:has(.status-pill:hover) {
+  background-color: hsl(var(--factoring-amber) / 0.22) !important;
+}
+
