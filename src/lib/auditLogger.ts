@@ -38,7 +38,7 @@ export const logOperationAction = async (
     
     // Fallback: If column "value" does not exist in the database (unmigrated database), retry without it.
     // PostgreSQL error code for undefined_column is '42703'
-    if (error && (error.code === "42703" || error.message?.includes("column \"value\" of relation \"operation_logs\" does not exist"))) {
+    if (error && (error.code === "42703" || error.code === "PGRST204" || error.message?.toLowerCase().includes("'value'") || error.message?.includes("column \"value\" of relation \"operation_logs\" does not exist"))) {
       console.warn("Operation_logs table doesn't have 'value' column yet. Retrying without it.");
       delete logData.value;
       const retry = await supabase.from("operation_logs").insert(logData);
