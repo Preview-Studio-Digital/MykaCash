@@ -3252,7 +3252,7 @@ const Historico = () => {
         )}
 
         <footer className="border-t border-border/40 py-6 text-center mt-8">
-          <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">MYKACA$H · VERSÃO 3.0</p>
+          <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">MYKACA$H · VERSÃO 3.1</p>
         </footer>
       </main>
 
@@ -3435,10 +3435,14 @@ const Historico = () => {
                     new Date(r.dueDate + "T00:00:00").getTime()) /
                     86400000
                 );
+                const isUnder5Days = daysLate < 5;
+                const borderClass = isUnder5Days ? "border-[hsl(var(--factoring-amber)/0.3)]" : "border-[hsl(var(--cost-red)/0.3)]";
+                const bgClass = isUnder5Days ? "bg-[hsl(var(--factoring-amber)/0.06)]" : "bg-[hsl(var(--cost-red)/0.06)]";
+                const textClass = isUnder5Days ? "text-[hsl(var(--factoring-amber))]" : "text-[hsl(var(--cost-red))]";
                 return (
                   <div
                     key={r.key}
-                    className="rounded-lg border border-[hsl(var(--cost-red)/0.3)] bg-[hsl(var(--cost-red)/0.06)] p-3"
+                    className={`rounded-lg border ${borderClass} ${bgClass} p-3`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -3450,10 +3454,10 @@ const Historico = () => {
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="font-display font-bold text-base text-[hsl(var(--cost-red))]">
+                        <div className={`font-display font-bold text-base ${textClass}`}>
                           {formatBRL(r.value)}
                         </div>
-                        <div className="font-mono text-[10px] tracking-wider uppercase text-[hsl(var(--cost-red))]">
+                        <div className={`font-mono text-[10px] tracking-wider uppercase ${textClass}`}>
                           {daysLate} {daysLate === 1 ? "dia" : "dias"} em atraso
                         </div>
                       </div>
