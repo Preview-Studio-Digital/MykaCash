@@ -3028,7 +3028,7 @@ const Historico = () => {
                                     onClick={() => toggleSettlement(r)}
                                     title={r.settled ? "Tocar para desfazer a liquidação" : "Tocar para marcar como LIQUIDADA"}
                                     className={cn(
-                                      "rounded-full px-2.5 py-0.5 font-mono text-[10px] tracking-wider font-bold transition-all shrink-0 active:scale-95",
+                                      "rounded-full px-2.5 py-0.5 font-mono text-[9px] tracking-wider font-bold transition-all shrink-0 active:scale-95",
                                       r.settled
                                         ? "bg-factoring-amber/20 text-factoring-amber border border-factoring-amber/35 hover:bg-factoring-amber/30"
                                         : r.overdue
