@@ -3041,17 +3041,17 @@ const Historico = () => {
                                 </div>
 
                                 {/* Row 2: Dates Grid */}
-                                <div className="mt-1.5 grid grid-cols-3 gap-2 border-t border-border/10 pt-1 font-mono text-xs text-muted-foreground">
+                                <div className="mt-1.5 grid grid-cols-3 gap-2 border-t border-border/10 pt-1 font-mono text-[10px] text-muted-foreground">
                                   <div className="flex flex-col">
-                                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Abertura</span>
+                                    <span className="text-[9px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Abertura</span>
                                     <span className="text-foreground/90 font-semibold">{fmtDateShort(r.operationDate)}</span>
                                   </div>
                                   <div className="flex flex-col">
-                                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Vencimento</span>
+                                    <span className="text-[9px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Vencimento</span>
                                     <span className="text-foreground/90 font-semibold">{fmtDateShort(r.dueDate)}</span>
                                   </div>
                                   <div className="flex flex-col">
-                                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Liquidação</span>
+                                    <span className="text-[9px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Liquidação</span>
                                     <span className="text-foreground/90 font-semibold">{r.settlementDate ? fmtDateShort(r.settlementDate) : "—"}</span>
                                   </div>
                                 </div>
