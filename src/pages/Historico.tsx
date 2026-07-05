@@ -1509,7 +1509,7 @@ const Historico = () => {
                     {/* Row 0: Action Badge */}
                     <div className="mb-1 flex justify-between items-center">
                       <span className={cn(
-                        "rounded-full px-2 py-0.5 font-mono text-[9px] tracking-wider font-bold border",
+                        "rounded-full px-2 py-0.5 font-mono text-[8px] tracking-wider font-bold border",
                         r.actionType === "INICIADA" && "bg-primary/20 text-primary border-primary/30",
                         r.actionType === "EDITADA" && "bg-blue-500/20 text-blue-400 border-blue-500/30",
                         r.actionType === "LIQUIDADA" && "bg-factoring-amber/20 text-factoring-amber border-factoring-amber/30"
@@ -1521,8 +1521,8 @@ const Historico = () => {
                     {/* Row 1: Client Name + OP/NF & Status Button */}
                     <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0 flex items-baseline gap-1.5 flex-1">
-                        <span className="text-base font-bold truncate text-foreground">{r.clientName}</span>
-                        <span className="font-mono text-xs text-muted-foreground/80 shrink-0">
+                        <span className="text-sm font-bold truncate text-foreground">{r.clientName}</span>
+                        <span className="font-mono text-[10px] text-muted-foreground/80 shrink-0">
                           ({r.opNumber ? `REG: ${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "REG: —"} · NF: {r.invoiceNumber})
                         </span>
                       </div>
@@ -1531,7 +1531,7 @@ const Historico = () => {
                         onClick={() => toggleSettlement(r)}
                         title={r.settled ? "Tocar para desfazer a liquidação" : "Tocar para marcar como LIQUIDADA"}
                         className={cn(
-                          "rounded-full px-2.5 py-0.5 font-mono text-[10px] tracking-wider font-bold transition-all shrink-0 active:scale-95",
+                          "rounded-full px-2.5 py-0.5 font-mono text-[9px] tracking-wider font-bold transition-all shrink-0 active:scale-95",
                           r.settled
                             ? "bg-factoring-amber/20 text-factoring-amber border border-factoring-amber/35 hover:bg-factoring-amber/30"
                             : r.overdue
@@ -1544,17 +1544,17 @@ const Historico = () => {
                     </div>
 
                     {/* Row 2: Dates Grid */}
-                    <div className="mt-1.5 grid grid-cols-3 gap-2 border-t border-border/10 pt-1 font-mono text-xs text-muted-foreground">
+                    <div className="mt-1.5 grid grid-cols-3 gap-2 border-t border-border/10 pt-1 font-mono text-[10px] text-muted-foreground">
                       <div className="flex flex-col">
-                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Abertura</span>
+                        <span className="text-[9px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Abertura</span>
                         <span className="text-foreground/90 font-semibold">{fmtDateShort(r.operationDate)}</span>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Vencimento</span>
+                        <span className="text-[9px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Vencimento</span>
                         <span className="text-foreground/90 font-semibold">{fmtDateShort(r.dueDate)}</span>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Liquidação</span>
+                        <span className="text-[9px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Liquidação</span>
                         <span className="text-foreground/90 font-semibold">{r.settlementDate ? fmtDateShort(r.settlementDate) : "—"}</span>
                       </div>
                     </div>
