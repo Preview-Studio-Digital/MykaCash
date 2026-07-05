@@ -1562,37 +1562,15 @@ const Historico = () => {
                     {/* Row 3: Values & Actions */}
                     <div className="mt-1.5 flex items-center justify-between border-t border-border/10 pt-1">
                       <div className="flex items-center gap-4">
-                        <div className="flex flex-col font-mono text-xs tabular-nums text-muted-foreground">
-                          <span className="text-[10px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Bruto</span>
-                          <span className="text-factoring-amber font-bold text-sm sm:text-base">{formatBRL(r.value)}</span>
+                        <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
+                          <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Bruto</span>
+                          <span className="text-factoring-amber font-bold text-xs sm:text-sm">{formatBRL(r.value)}</span>
                         </div>
-                        <div className="flex flex-col font-mono text-xs tabular-nums text-muted-foreground">
-                          <span className="text-[10px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Líquido</span>
-                          <span className="text-net-green font-bold text-sm sm:text-base">{formatBRL(r.presentValue)}</span>
+                        <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
+                          <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Líquido</span>
+                          <span className="text-net-green font-bold text-xs sm:text-sm">{formatBRL(r.presentValue)}</span>
                         </div>
                       </div>
-                      {canManage && (
-                        <div className="flex items-center gap-1 self-end pb-0.5">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => openEdit(r.invoiceId)}
-                            className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-primary hover:bg-muted/10 transition-colors"
-                            aria-label="Editar"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleDeleteOperation(r.invoiceId)}
-                            className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-cost-red hover:bg-muted/10 transition-colors"
-                            aria-label="Remover"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
                     </div>
                   </div>
                 );
