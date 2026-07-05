@@ -3018,8 +3018,8 @@ const Historico = () => {
                                 {/* Row 1: Client Name + OP/NF & Status Button */}
                                 <div className="flex items-center justify-between gap-2">
                                   <div className="min-w-0 flex items-baseline gap-1.5 flex-1">
-                                    <span className="text-base font-bold truncate text-foreground">{r.clientName}</span>
-                                    <span className="font-mono text-xs text-muted-foreground/80 shrink-0">
+                                    <span className="text-sm font-bold truncate text-foreground">{r.clientName}</span>
+                                    <span className="font-mono text-[10px] text-muted-foreground/80 shrink-0">
                                       ({r.opNumber ? `REG: ${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "REG: —"} · NF: {r.invoiceNumber})
                                     </span>
                                   </div>
