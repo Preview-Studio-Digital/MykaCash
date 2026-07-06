@@ -218,7 +218,7 @@ const Admin = () => {
             to="/"
             className="hover:opacity-80 transition-opacity shrink-0"
           >
-            <span className="font-title title-gradient title-shimmer font-extrabold leading-none tracking-tighter text-base sm:text-lg md:text-xl">
+            <span className="font-title title-gradient title-shimmer font-extrabold leading-none tracking-tighter text-sm sm:text-base md:text-lg">
               MYKACA$H
             </span>
           </Link>
