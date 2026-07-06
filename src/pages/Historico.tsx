@@ -1825,15 +1825,41 @@ const Historico = () => {
     };
   }, [globalStats]);
 
-  // === Consultor AI: recomendação adaptativa que muda forma e conteúdo a cada nova operação ===
+  // === Consultor AI: recomendação adaptativa que muda forma e conteúdo a cada nova operação ou liquidação ===
   const opsCount = rows.length;
   const settledCount = rows.reduce((n, r) => n + (r.settled ? 1 : 0), 0);
   const eventCount = opsCount + settledCount;
+
+  // Encontrar o evento mais recente (abertura ou liquidação)
+  const latestCreatedRow = rows.reduce<any>((latest, r) => {
+    if (!latest) return r;
+    const tLatest = latest.createdAt ? new Date(latest.createdAt).getTime() : 0;
+    const tr = r.createdAt ? new Date(r.createdAt).getTime() : 0;
+    return tr > tLatest ? r : latest;
+  }, null);
+
+  const latestSettledRow = rows.reduce<any>((latest, r) => {
+    if (!r.settled || !r.settledAt) return latest;
+    if (!latest) return r;
+    const tLatest = latest.settledAt ? new Date(latest.settledAt).getTime() : 0;
+    const tr = new Date(r.settledAt).getTime();
+    return tr > tLatest ? r : latest;
+  }, null);
+
+  const latestCreatedTime = latestCreatedRow?.createdAt ? new Date(latestCreatedRow.createdAt).getTime() : 0;
+  const latestSettledTime = latestSettledRow?.settledAt ? new Date(latestSettledRow.settledAt).getTime() : 0;
+
+  const isLatestEventSettlement = latestSettledTime > latestCreatedTime;
+
+  const activeRowForLabel = isLatestEventSettlement ? latestSettledRow : latestCreatedRow;
   const latestOpNumber = rows.reduce((max, r) => {
     const n = Number(r.opNumber) || 0;
     return n > max ? n : max;
   }, 0);
-  const opLabel = latestOpNumber > 0 ? String(latestOpNumber).padStart(4, "0") : String(opsCount).padStart(4, "0");
+
+  const opLabel = activeRowForLabel?.opNumber
+    ? String(activeRowForLabel.opNumber).padStart(4, "0")
+    : (latestOpNumber > 0 ? String(latestOpNumber).padStart(4, "0") : String(opsCount).padStart(4, "0"));
 
   const advisorRecommendation = useMemo(() => {
     const {
@@ -1846,7 +1872,7 @@ const Historico = () => {
       return {
         tone: "neutral" as const,
         headline: "Aguardando primeiro lançamento",
-        body: "Cadastre uma operação para iniciarmos o diagnóstico adaptativo. A cada novo registro a recomendação será recalculada considerando comprometimento de receita, rolagem, taxa efetiva e velocidade diária.",
+        body: "Cadastre uma operação para iniciarmos o diagnóstico adaptativo. A cada novo registro ou liquidação a recomendação será recalculada considerando comprometimento de receita, rolagem, taxa efetiva e velocidade diária.",
       };
     }
 
@@ -1874,26 +1900,32 @@ const Historico = () => {
 
     const pick = <T,>(arr: T[]): T => arr[eventCount % arr.length];
 
+    // Variáveis dinâmicas baseadas no tipo de evento mais recente (abertura ou liquidação)
+    const eventAction = isLatestEventSettlement ? "liquidada" : "aberta";
+    const eventPrefix = isLatestEventSettlement ? "a liquidação da operação" : "a abertura da operação";
+    const eventLancement = isLatestEventSettlement ? "a liquidação do lançamento" : "a abertura da operação";
+    const eventRegistry = isLatestEventSettlement ? "a liquidação do registro" : "a abertura do registro";
+
     const openings: Record<typeof tone, string[]> = {
       up: [
-        `Operação ${opLabel} registrada — risco ${riskLevel} (score ${scoreNumeric}/100, nota ${healthScore}).`,
-        `Bom trabalho. Após o registro ${opLabel}, o risco segue ${riskLevel} e os indicadores continuam equilibrados (${healthScore}).`,
-        `Cenário confortável após o lançamento ${opLabel}: ${formatPct(rolloverRate)} de rolagem e ${formatPct(cashCommitmentPct)} de receita comprometida — risco ${riskLevel}.`,
+        `Operação ${opLabel} ${eventAction} — risco ${riskLevel} (score ${scoreNumeric}/100, nota ${healthScore}).`,
+        `Bom trabalho. Após ${eventRegistry} ${opLabel}, o risco segue ${riskLevel} e os indicadores continuam equilibrados (${healthScore}).`,
+        `Cenário confortável após ${eventLancement} ${opLabel}: ${formatPct(rolloverRate)} de rolagem e ${formatPct(cashCommitmentPct)} de receita comprometida — risco ${riskLevel}.`,
       ],
       warn: [
-        `Diagnóstico atualizado após a operação ${opLabel}: risco ${riskLevel} (score ${scoreNumeric}, ${healthScore}).`,
-        `O lançamento ${opLabel} mantém o risco em ${riskLevel} — exposição em ${formatBRL(totalDebt)} contra ${formatBRL(totalBorrowed)} captados.`,
-        `Após o registro ${opLabel}, risco ${riskLevel}: ${formatPct(cashCommitmentPct)} da receita futura comprometida e taxa efetiva média em ${formatPct(effectiveRate)}.`,
+        `Diagnóstico atualizado após ${eventPrefix} ${opLabel}: risco ${riskLevel} (score ${scoreNumeric}, ${healthScore}).`,
+        `${isLatestEventSettlement ? 'A liquidação' : 'A abertura'} ${opLabel} mantém o risco em ${riskLevel} — exposição em ${formatBRL(totalDebt)} contra ${formatBRL(totalBorrowed)} captados.`,
+        `Após ${eventRegistry} ${opLabel}, risco ${riskLevel}: ${formatPct(cashCommitmentPct)} da receita futura comprometida e taxa efetiva média em ${formatPct(effectiveRate)}.`,
       ],
       alert: [
-        `Atenção: após a operação ${opLabel} o risco subiu para ${riskLevel} (score ${scoreNumeric}, ${healthScore}).`,
-        `O lançamento ${opLabel} eleva o risco a ${riskLevel} — ${formatPct(rolloverRate)} de rolagem e ${formatPct(cashCommitmentPct)} de comprometimento da receita.`,
-        `Sinal amarelo forte após o registro ${opLabel}: risco ${riskLevel}, ${formatBRL(totalDebt)} em aberto e ~${Math.round(daysToClear)} dias úteis para zerar a posição.`,
+        `Atenção: após ${eventPrefix} ${opLabel} o risco subiu para ${riskLevel} (score ${scoreNumeric}, ${healthScore}).`,
+        `${isLatestEventSettlement ? 'A liquidação' : 'A abertura'} ${opLabel} eleva o risco a ${riskLevel} — ${formatPct(rolloverRate)} de rolagem e ${formatPct(cashCommitmentPct)} de comprometimento da receita.`,
+        `Sinal amarelo forte após ${eventRegistry} ${opLabel}: risco ${riskLevel}, ${formatBRL(totalDebt)} em aberto e ~${Math.round(daysToClear)} dias úteis para zerar a posição.`,
       ],
       down: [
-        `Alerta crítico após a operação ${opLabel}: risco ${riskLevel} (score ${scoreNumeric}, ${healthScore}) e ${formatPct(rolloverRate)} de rolagem indicam dependência crescente de novas captações.`,
-        `Cenário ${riskLevel} após o registro ${opLabel} — receita comprometida em ${formatPct(cashCommitmentPct)} e ${Math.round(daysToClear)} dias úteis necessários para zerar a posição no ritmo atual.`,
-        `O lançamento ${opLabel} intensifica a pressão (risco ${riskLevel}): ${formatBRL(totalDebt)} em aberto contra apenas ${formatBRL(totalSettled)} liquidados.`,
+        `Alerta crítico após ${eventPrefix} ${opLabel}: risco ${riskLevel} (score ${scoreNumeric}, ${healthScore}) e ${formatPct(rolloverRate)} de rolagem indicam dependência crescente de novas captações.`,
+        `Cenário ${riskLevel} após ${eventRegistry} ${opLabel} — receita comprometida em ${formatPct(cashCommitmentPct)} e ${Math.round(daysToClear)} dias úteis necessários para zerar a posição no ritmo atual.`,
+        `${isLatestEventSettlement ? 'A liquidação' : 'A abertura'} ${opLabel} intensifica a pressão (risco ${riskLevel}): ${formatBRL(totalDebt)} em aberto contra apenas ${formatBRL(totalSettled)} liquidados.`,
       ],
     };
 
@@ -1925,7 +1957,7 @@ const Historico = () => {
       return pick([
         `Indicadores equilibrados: liquidação em ${formatPct(100 - rolloverRate)} do volume e taxa média controlada em ${formatPct(effectiveRate)}.`,
         `Sem vilão dominante. Você está usando a antecipação como instrumento tático e não como dívida recorrente — exatamente o uso recomendado.`,
-        `Composição saudável entre captação e liquidação após o registro ${opLabel}. A economia projetada anual frente ao factoring soma ${formatBRL(annualSavingsProjected)}.`,
+        `Composição saudável entre captação e liquidação após ${eventRegistry} ${opLabel}. A economia projetada anual frente ao factoring soma ${formatBRL(annualSavingsProjected)}.`,
       ]);
     })();
 
@@ -1963,7 +1995,7 @@ const Historico = () => {
       headline,
       body: `${pick(openings[tone])} ${diagnosis} ${pick(actions[tone])}`,
     };
-  }, [opsCount, settledCount, eventCount, opLabel, alertMetrics]);
+  }, [opsCount, settledCount, eventCount, opLabel, alertMetrics, isLatestEventSettlement]);
 
 
 

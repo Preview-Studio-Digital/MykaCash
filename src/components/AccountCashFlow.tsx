@@ -224,7 +224,7 @@ export const AccountCashFlow = () => {
               type: "operation_out",
               amount: inst.presentValue,
               date: inv.operation_date,
-              description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${letter}` : "—"} · Saída: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}${letter}`,
+              description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${letter}` : "—"} · ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}${letter}`,
               reference_id: inv.id,
               created_at: inv.created_at
             });
@@ -235,7 +235,7 @@ export const AccountCashFlow = () => {
             type: "operation_out",
             amount: calc.netValue,
             date: inv.operation_date,
-            description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}` : "—"} · Saída: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}`,
+            description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}` : "—"} · ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}`,
             reference_id: inv.id,
             created_at: inv.created_at
           });
@@ -261,7 +261,7 @@ export const AccountCashFlow = () => {
             type: "installment_in",
             amount: inst.value,
             date: actualSettledDate, 
-            description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${letter}` : "—"} · Entrada: ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}${letter}`,
+            description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${letter}` : "—"} · ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}${letter}`,
             reference_id: inv.id,
             created_at: inv.created_at // Using invoice created_at as fallback for sorting
           });
