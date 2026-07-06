@@ -290,16 +290,22 @@ export const AdminAuditLogs = () => {
                           : "border-border/20 bg-card/20 hover:bg-card/40"
                       }`}
                     >
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-start gap-2 sm:gap-3">
                         {/* Action Badge */}
                         <div
-                          className={`flex items-center justify-center p-2 rounded-lg border shrink-0 ${badge.bg}`}
+                          className={`flex items-center justify-center gap-1 p-1.5 sm:p-2 rounded-lg border shrink-0 ${badge.bg}`}
                           title={badge.label}
                         >
-                          <IconComponent className="h-4 w-4" />
+                          <IconComponent className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline text-[10px] font-bold leading-none">
+                            {badge.label}
+                          </span>
+                          <span className="sm:hidden text-[9px] font-bold leading-none">
+                            {badge.mobileLabel}
+                          </span>
                         </div>
                         {/* Log Text */}
-                        <div className="leading-relaxed text-muted-foreground pt-0.5">
+                        <div className="leading-relaxed text-muted-foreground text-[11px] sm:text-xs pt-0.5">
                           {formatLogText(log)}
                         </div>
                       </div>
