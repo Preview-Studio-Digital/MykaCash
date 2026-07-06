@@ -168,53 +168,53 @@ export const AdminAuditLogs = () => {
       case "CREATE":
         return (
           <span>
-            <strong className="text-foreground">{log.author}</strong> abriu a operação{" "}
-            <span className="font-mono text-xs text-muted-foreground">
-              (Registro: {op}, Cliente: {client}, NF: {nf}{valText}, Horário: {time})
+            <strong className="text-foreground text-xs sm:text-sm">{log.author}</strong> abriu a operação{" "}
+            <span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
+              (Reg: {op}, Cliente: {client}, NF: {nf}{valText}, {time})
             </span>
           </span>
         );
       case "UPDATE":
         return (
           <span>
-            <strong className="text-foreground">{log.author}</strong> editou a operação{" "}
-            <span className="font-mono text-xs text-muted-foreground">
-              (Registro: {op}, Cliente: {client}, NF: {nf}{valText}, Horário: {time})
+            <strong className="text-foreground text-xs sm:text-sm">{log.author}</strong> editou a operação{" "}
+            <span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
+              (Reg: {op}, Cliente: {client}, NF: {nf}{valText}, {time})
             </span>
           </span>
         );
       case "SETTLE":
         return (
           <span>
-            <strong className="text-foreground">{log.author}</strong> liquidou a operação{" "}
-            <span className="font-mono text-xs text-muted-foreground">
-              (Registro: {op}, Cliente: {client}, NF: {nf}{valText}, Horário: {time})
+            <strong className="text-foreground text-xs sm:text-sm">{log.author}</strong> liquidou a operação{" "}
+            <span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
+              (Reg: {op}, Cliente: {client}, NF: {nf}{valText}, {time})
             </span>
           </span>
         );
       case "UNSETTLE":
         return (
           <span>
-            <strong className="text-foreground">{log.author}</strong> removeu a liquidação da operação{" "}
-            <span className="font-mono text-xs text-muted-foreground">
-              (Registro: {op}, Cliente: {client}, NF: {nf}{valText}, Horário: {time})
+            <strong className="text-foreground text-xs sm:text-sm">{log.author}</strong> removeu a liquidação{" "}
+            <span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
+              (Reg: {op}, Cliente: {client}, NF: {nf}{valText}, {time})
             </span>
           </span>
         );
       case "DELETE":
         return (
           <span>
-            <strong className="text-foreground">{log.author}</strong> deletou a operação{" "}
-            <span className="font-mono text-xs text-muted-foreground">
-              (Registro: {op}, Cliente: {client}, NF: {nf}{valText}, Horário: {time})
+            <strong className="text-foreground text-xs sm:text-sm">{log.author}</strong> deletou a operação{" "}
+            <span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
+              (Reg: {op}, Cliente: {client}, NF: {nf}{valText}, {time})
             </span>
           </span>
         );
       default:
         return (
           <span>
-            <strong className="text-foreground">{log.author}</strong> realizou {log.action}{" "}
-            <span className="font-mono text-xs text-muted-foreground">
+            <strong className="text-foreground text-xs sm:text-sm">{log.author}</strong> realizou {log.action}{" "}
+            <span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
               ({time}{valText ? `, ${valText.substring(2)}` : ""})
             </span>
           </span>
