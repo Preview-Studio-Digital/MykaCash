@@ -390,7 +390,7 @@ const Historico = () => {
         out.push({ ...r, actionType: "LIQUIDADA" });
       } else if (isInitiated) {
         out.push({ ...r, actionType: "INICIADA" });
-      } else if (r.updatedAt) {
+      } else if (r.updatedAt && !r.settled) {
         const isEdited = localISO(new Date(r.updatedAt)) === todayStr;
         if (isEdited) {
           out.push({ ...r, actionType: "EDITADA" });
