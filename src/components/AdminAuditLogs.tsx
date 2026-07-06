@@ -96,36 +96,42 @@ export const AdminAuditLogs = () => {
           icon: FileText,
           bg: "bg-cost-red/10 border-cost-red/30 text-cost-red",
           label: "Abertura",
+          mobileLabel: "Abert.",
         };
       case "UPDATE":
         return {
           icon: Edit,
           bg: "bg-muted/40 border-muted/50 text-muted-foreground",
           label: "Edição",
+          mobileLabel: "Edit.",
         };
       case "SETTLE":
         return {
           icon: CheckCircle2,
           bg: "bg-net-green/15 border-net-green/30 text-net-green",
           label: "Liquidação",
+          mobileLabel: "Liq.",
         };
       case "UNSETTLE":
         return {
           icon: ArrowLeftRight,
           bg: "bg-factoring-amber/15 border-factoring-amber/30 text-factoring-amber",
           label: "Estorno",
+          mobileLabel: "Est.",
         };
       case "DELETE":
         return {
           icon: Trash2,
           bg: "bg-cost-red/10 border-cost-red/30 text-cost-red",
           label: "Exclusão",
+          mobileLabel: "Exc.",
         };
       default:
         return {
           icon: AlertCircle,
           bg: "bg-muted text-muted-foreground",
           label: action,
+          mobileLabel: action,
         };
     }
   };
