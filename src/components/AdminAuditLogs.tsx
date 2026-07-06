@@ -96,36 +96,42 @@ export const AdminAuditLogs = () => {
           icon: FileText,
           bg: "bg-cost-red/10 border-cost-red/30 text-cost-red",
           label: "Abertura",
+          mobileLabel: "Abert.",
         };
       case "UPDATE":
         return {
           icon: Edit,
           bg: "bg-muted/40 border-muted/50 text-muted-foreground",
           label: "Edição",
+          mobileLabel: "Edit.",
         };
       case "SETTLE":
         return {
           icon: CheckCircle2,
           bg: "bg-net-green/15 border-net-green/30 text-net-green",
           label: "Liquidação",
+          mobileLabel: "Liq.",
         };
       case "UNSETTLE":
         return {
           icon: ArrowLeftRight,
           bg: "bg-factoring-amber/15 border-factoring-amber/30 text-factoring-amber",
           label: "Estorno",
+          mobileLabel: "Est.",
         };
       case "DELETE":
         return {
           icon: Trash2,
           bg: "bg-cost-red/10 border-cost-red/30 text-cost-red",
           label: "Exclusão",
+          mobileLabel: "Exc.",
         };
       default:
         return {
           icon: AlertCircle,
           bg: "bg-muted text-muted-foreground",
           label: action,
+          mobileLabel: action,
         };
     }
   };
@@ -162,53 +168,53 @@ export const AdminAuditLogs = () => {
       case "CREATE":
         return (
           <span>
-            <strong className="text-foreground">{log.author}</strong> abriu a operação{" "}
-            <span className="font-mono text-xs text-muted-foreground">
-              (Registro: {op}, Cliente: {client}, NF: {nf}{valText}, Horário: {time})
+            <strong className="text-foreground text-xs sm:text-sm">{log.author}</strong> abriu a operação{" "}
+            <span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
+              (Reg: {op}, Cliente: {client}, NF: {nf}{valText}, {time})
             </span>
           </span>
         );
       case "UPDATE":
         return (
           <span>
-            <strong className="text-foreground">{log.author}</strong> editou a operação{" "}
-            <span className="font-mono text-xs text-muted-foreground">
-              (Registro: {op}, Cliente: {client}, NF: {nf}{valText}, Horário: {time})
+            <strong className="text-foreground text-xs sm:text-sm">{log.author}</strong> editou a operação{" "}
+            <span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
+              (Reg: {op}, Cliente: {client}, NF: {nf}{valText}, {time})
             </span>
           </span>
         );
       case "SETTLE":
         return (
           <span>
-            <strong className="text-foreground">{log.author}</strong> liquidou a operação{" "}
-            <span className="font-mono text-xs text-muted-foreground">
-              (Registro: {op}, Cliente: {client}, NF: {nf}{valText}, Horário: {time})
+            <strong className="text-foreground text-xs sm:text-sm">{log.author}</strong> liquidou a operação{" "}
+            <span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
+              (Reg: {op}, Cliente: {client}, NF: {nf}{valText}, {time})
             </span>
           </span>
         );
       case "UNSETTLE":
         return (
           <span>
-            <strong className="text-foreground">{log.author}</strong> removeu a liquidação da operação{" "}
-            <span className="font-mono text-xs text-muted-foreground">
-              (Registro: {op}, Cliente: {client}, NF: {nf}{valText}, Horário: {time})
+            <strong className="text-foreground text-xs sm:text-sm">{log.author}</strong> removeu a liquidação{" "}
+            <span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
+              (Reg: {op}, Cliente: {client}, NF: {nf}{valText}, {time})
             </span>
           </span>
         );
       case "DELETE":
         return (
           <span>
-            <strong className="text-foreground">{log.author}</strong> deletou a operação{" "}
-            <span className="font-mono text-xs text-muted-foreground">
-              (Registro: {op}, Cliente: {client}, NF: {nf}{valText}, Horário: {time})
+            <strong className="text-foreground text-xs sm:text-sm">{log.author}</strong> deletou a operação{" "}
+            <span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
+              (Reg: {op}, Cliente: {client}, NF: {nf}{valText}, {time})
             </span>
           </span>
         );
       default:
         return (
           <span>
-            <strong className="text-foreground">{log.author}</strong> realizou {log.action}{" "}
-            <span className="font-mono text-xs text-muted-foreground">
+            <strong className="text-foreground text-xs sm:text-sm">{log.author}</strong> realizou {log.action}{" "}
+            <span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
               ({time}{valText ? `, ${valText.substring(2)}` : ""})
             </span>
           </span>
@@ -284,16 +290,22 @@ export const AdminAuditLogs = () => {
                           : "border-border/20 bg-card/20 hover:bg-card/40"
                       }`}
                     >
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-start gap-2 sm:gap-3">
                         {/* Action Badge */}
                         <div
-                          className={`flex items-center justify-center p-2 rounded-lg border shrink-0 ${badge.bg}`}
+                          className={`flex items-center justify-center gap-1 p-1.5 sm:p-2 rounded-lg border shrink-0 ${badge.bg}`}
                           title={badge.label}
                         >
-                          <IconComponent className="h-4 w-4" />
+                          <IconComponent className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline text-[10px] font-bold leading-none">
+                            {badge.label}
+                          </span>
+                          <span className="sm:hidden text-[9px] font-bold leading-none">
+                            {badge.mobileLabel}
+                          </span>
                         </div>
                         {/* Log Text */}
-                        <div className="leading-relaxed text-muted-foreground pt-0.5">
+                        <div className="leading-relaxed text-muted-foreground text-[11px] sm:text-xs pt-0.5">
                           {formatLogText(log)}
                         </div>
                       </div>
