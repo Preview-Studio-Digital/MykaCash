@@ -212,20 +212,20 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-border/60 px-3 sm:px-6 py-3 grid grid-cols-3 items-center gap-2 bg-background/50 backdrop-blur-md sticky top-0 z-50">
+      <header className="border-b border-border/60 px-2 sm:px-3 md:px-6 py-3 grid grid-cols-3 items-center gap-1 sm:gap-2 bg-background/50 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center justify-start min-w-0">
           <Link
             to="/"
             className="hover:opacity-80 transition-opacity shrink-0"
           >
-            <span className="font-title title-gradient title-shimmer font-extrabold leading-none tracking-tighter text-sm sm:text-base md:text-lg">
+            <span className="font-title title-gradient title-shimmer font-extrabold leading-none tracking-tighter text-xs sm:text-base md:text-lg">
               MYKACA$H
             </span>
           </Link>
         </div>
 
         <div className="flex items-center justify-center text-center min-w-0">
-          <h1 className="font-title title-gradient text-base sm:text-lg font-bold tracking-tight truncate uppercase">
+          <h1 className="font-title title-gradient text-sm sm:text-base md:text-lg font-bold tracking-tight whitespace-nowrap uppercase">
             ADMINISTRAÇÃO
           </h1>
         </div>
