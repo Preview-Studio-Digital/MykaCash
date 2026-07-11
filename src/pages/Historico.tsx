@@ -3383,12 +3383,12 @@ const Historico = () => {
                     <span className="text-foreground font-semibold">{formatBRL(pendingSettlementData.row.value)}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[hsl(var(--cost-red))] font-bold uppercase">Acréscimo de Juros:</span>
+                    <span className="text-[hsl(var(--cost-red))] font-bold uppercase">Encargo Adicional (3%/mês):</span>
                     <span className="text-[hsl(var(--cost-red))] font-bold">+{formatBRL(pendingSettlementData.adjustment)}</span>
                   </div>
                   <div className="h-px bg-border/40 my-1" />
                   <div className="flex justify-between items-center text-sm font-bold">
-                    <span className="text-foreground uppercase">Novo Valor Corrigido:</span>
+                    <span className="text-foreground uppercase">Valor da Nova Op. Adicional:</span>
                     <span className="text-foreground text-base tracking-tight">{formatBRL(pendingSettlementData.valueNew)}</span>
                   </div>
                 </div>
