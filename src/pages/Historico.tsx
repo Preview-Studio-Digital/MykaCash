@@ -72,6 +72,8 @@ type InvoiceRow = {
   clients?: { name: string } | null;
   profiles?: { display_name: string | null; username: string | null } | null;
   ordem?: number | null;
+  is_additional?: boolean | null;
+  parent_invoice_id?: string | null;
 };
 
 const settledIdOf = (e: SettledEntry): string => (typeof e === "string" ? e : e.id);
