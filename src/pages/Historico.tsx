@@ -307,6 +307,7 @@ const Historico = () => {
       createdAt: string;
       isAuthor: boolean;
       withinEditWindow: boolean;
+      isAdditional: boolean;
     };
     const out: Row[] = [];
     for (const inv of invoices) {
