@@ -1561,7 +1561,7 @@ const Historico = () => {
                             : "bg-net-green/15 text-net-green border border-net-green/30 hover:bg-net-green/25"
                         )}
                       >
-                        {r.settled ? "LIQUIDADA" : r.overdue ? "VENCIDA" : "ANDAMENTO"}
+                        {r.isAdditional ? "ADICIONAL" : r.settled ? "LIQUIDADA" : r.overdue ? "VENCIDA" : "ANDAMENTO"}
                       </button>
                     </div>
 
