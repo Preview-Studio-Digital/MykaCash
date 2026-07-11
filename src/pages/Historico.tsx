@@ -1022,7 +1022,8 @@ const Historico = () => {
     const delayDays = diffDaysHelper(settlingRow.dueDate, settlementDate);
 
     if (delayDays > 5) {
-      const r = (inv.monthly_rate || 0) / 100;
+      // Encargo adicional: taxa fixa de 3%/mês sobre os dias em atraso
+      const r = 0.03;
       const valueNew = settlingRow.value * Math.pow(1 + r, delayDays / 30);
       const adjustment = valueNew - settlingRow.value;
 
