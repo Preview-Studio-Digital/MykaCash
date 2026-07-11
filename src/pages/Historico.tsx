@@ -329,8 +329,10 @@ const Historico = () => {
         operationDate: inv.operation_date,
         monthlyRate: Number(inv.monthly_rate) || 0,
         installments: installments as Installment[],
+        skipMinFloor: !!(inv as any).is_additional,
       });
       const showIdx = result.installmentCalcs.length > 1;
+      const isAdditional = !!(inv as any).is_additional;
       const createdAtMs = new Date(inv.created_at).getTime();
       const withinEditWindow = now - createdAtMs < 1 * 60 * 1000;
       const isAuthor = !!user && inv.created_by === user.id;
