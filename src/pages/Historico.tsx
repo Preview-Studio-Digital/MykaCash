@@ -1086,7 +1086,10 @@ const Historico = () => {
       installments: [
         { id: newInstallmentId, value: faceValue, dueDate: settlementDate },
       ],
-      settled_installments: [],
+      // A adicional nasce já liquidada — o encargo é pago junto com a original.
+      settled_installments: [
+        { id: newInstallmentId, date: settlementDate, settled_at: new Date().toISOString() },
+      ],
       created_by: user?.id ?? null,
       is_additional: true,
       parent_invoice_id: inv.id,
