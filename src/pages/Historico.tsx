@@ -1049,60 +1049,75 @@ const Historico = () => {
 
   const executeSettlementWithAdjustment = async () => {
     if (!pendingSettlementData) return;
-    const { row, delayDays, valueNew, adjustment, settlementDate } = pendingSettlementData;
+    const { row, delayDays, settlementDate } = pendingSettlementData;
     const inv = invoices.find((i) => i.id === row.invoiceId);
     if (!inv) return;
 
-    const installments = Array.isArray(inv.installments) ? inv.installments : [];
-    const nextInstallments = installments.map((inst: any) => {
-      if (inst.id === row.installmentId) {
-        return {
-          ...inst,
-          value: Math.round(valueNew * 100) / 100,
-          dueDate: settlementDate
-        };
-      }
-      return inst;
-    });
-
-    // Atualiza a parcela com novos valores e nova data de vencimento no banco
-    const { error: updateError } = await supabase
-      .from("invoices")
-      .update({ installments: nextInstallments })
-      .eq("id", inv.id);
-
-    if (updateError) {
-      console.error("Erro ao atualizar parcela com correção:", updateError);
-      toast.error("Erro ao aplicar correção de atraso");
-      setOverdueConfirmOpen(false);
-      setPendingSettlementData(null);
-      return;
-    }
-
-    // Registrar log de auditoria do ajuste
-    const opNumStr = inv.ordem ? String(inv.ordem).padStart(4, "0") : "—";
-    const clientName = inv.clients?.name ?? "—";
-    const invoiceNumber = inv.invoice_number;
-    await logOperationAction(
-      "UPDATE",
-      opNumStr,
-      clientName,
-      invoiceNumber,
-      `Aplicou correção de atraso de ${delayDays} dias no valor de ${formatBRL(adjustment)} (Registro: ${opNumStr}, Valor da Operação: ${formatBRL(inv.invoice_value)})`,
-      inv.invoice_value
-    );
-
-    // Salva a liquidação
-    const current: SettledEntry[] = Array.isArray(inv.settled_installments)
+    // 1) Liquida a operação original pelo valor e data originais (sem editar a parcela).
+    const currentSettled: SettledEntry[] = Array.isArray(inv.settled_installments)
       ? (inv.settled_installments as any)
       : [];
-    
-    const next: SettledEntry[] = [...current, { id: row.installmentId, date: settlementDate, settled_at: new Date().toISOString() }];
-    await saveSettlement(inv.id, next, "Parcela marcada como liquidada com juros de atraso");
-    
+    const nextSettled: SettledEntry[] = [
+      ...currentSettled,
+      { id: row.installmentId, date: settlementDate, settled_at: new Date().toISOString() },
+    ];
+    await saveSettlement(inv.id, nextSettled, "Parcela marcada como liquidada");
+
+    // 2) Cria uma NOVA operação "ADICIONAL" que cobre o período extra
+    //    (do vencimento original até a data efetiva de liquidação),
+    //    taxa 3%/mês, sem piso de 1,5%.
+    const ADDITIONAL_MONTHLY_RATE = 3;
+    const rAdd = ADDITIONAL_MONTHLY_RATE / 100;
+    // Valor de face na maturidade = valor original * (1 + 3%)^(delay/30)
+    const faceValue = Math.round(row.value * Math.pow(1 + rAdd, delayDays / 30) * 100) / 100;
+    const newInstallmentId =
+      (typeof crypto !== "undefined" && "randomUUID" in crypto)
+        ? (crypto as any).randomUUID()
+        : `ins_${Date.now()}`;
+
+    const additionalInsert: any = {
+      client_id: inv.client_id,
+      invoice_number: inv.invoice_number,
+      invoice_value: faceValue,
+      operation_date: row.dueDate, // data inicial = vencimento original
+      monthly_rate: ADDITIONAL_MONTHLY_RATE,
+      factoring_monthly_rate: inv.factoring_monthly_rate ?? FACTORING_MONTHLY_RATE_PCT,
+      installments: [
+        { id: newInstallmentId, value: faceValue, dueDate: settlementDate },
+      ],
+      settled_installments: [],
+      created_by: user?.id ?? null,
+      is_additional: true,
+      parent_invoice_id: inv.id,
+    };
+
+    const { data: newInv, error: insertErr } = await supabase
+      .from("invoices")
+      .insert(additionalInsert)
+      .select("id, ordem")
+      .single();
+
+    if (insertErr) {
+      console.error("Erro ao criar operação adicional:", insertErr);
+      toast.error("Liquidação registrada, mas não foi possível criar a operação adicional.");
+    } else {
+      const newOpStr = newInv?.ordem ? String(newInv.ordem).padStart(4, "0") : "—";
+      const origOpStr = inv.ordem ? String(inv.ordem).padStart(4, "0") : "—";
+      const adjustment = Math.round((faceValue - row.value) * 100) / 100;
+      await logOperationAction(
+        "CREATE",
+        newOpStr,
+        inv.clients?.name ?? "—",
+        inv.invoice_number,
+        `Operação ADICIONAL gerada por atraso de ${delayDays} dias na operação ${origOpStr}. Taxa 3%/mês. Encargo: ${formatBRL(adjustment)}`,
+        faceValue,
+      );
+    }
+
     // Fechar modais
     setOverdueConfirmOpen(false);
     setPendingSettlementData(null);
+    load();
   };
 
   const handleDeleteOperation = async (invoiceId: string) => {
