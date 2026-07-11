@@ -378,6 +378,7 @@ const Historico = () => {
           createdAt: inv.created_at,
           isAuthor,
           withinEditWindow,
+          isAdditional,
         });
       });
     }
