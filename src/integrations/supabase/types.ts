@@ -81,9 +81,11 @@ export type Database = {
           installments: Json
           invoice_number: string
           invoice_value: number
+          is_additional: boolean
           monthly_rate: number
           operation_date: string
           ordem: number
+          parent_invoice_id: string | null
           settled_installments: Json
           updated_at: string
         }
@@ -96,9 +98,11 @@ export type Database = {
           installments?: Json
           invoice_number: string
           invoice_value: number
+          is_additional?: boolean
           monthly_rate: number
           operation_date: string
           ordem?: number
+          parent_invoice_id?: string | null
           settled_installments?: Json
           updated_at?: string
         }
@@ -111,9 +115,11 @@ export type Database = {
           installments?: Json
           invoice_number?: string
           invoice_value?: number
+          is_additional?: boolean
           monthly_rate?: number
           operation_date?: string
           ordem?: number
+          parent_invoice_id?: string | null
           settled_installments?: Json
           updated_at?: string
         }
@@ -130,6 +136,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_parent_invoice_id_fkey"
+            columns: ["parent_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]

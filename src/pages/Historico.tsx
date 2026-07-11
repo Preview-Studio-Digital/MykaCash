@@ -72,6 +72,8 @@ type InvoiceRow = {
   clients?: { name: string } | null;
   profiles?: { display_name: string | null; username: string | null } | null;
   ordem?: number | null;
+  is_additional?: boolean | null;
+  parent_invoice_id?: string | null;
 };
 
 const settledIdOf = (e: SettledEntry): string => (typeof e === "string" ? e : e.id);
@@ -245,7 +247,7 @@ const Historico = () => {
       supabase
         .from("invoices")
         .select(
-          "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, updated_at, created_by, ordem, clients(name), profiles:created_by(display_name, username)"
+          "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, updated_at, created_by, ordem, is_additional, parent_invoice_id, clients(name), profiles:created_by(display_name, username)"
         )
         .order("operation_date", { ascending: false }),
       supabase
@@ -305,6 +307,7 @@ const Historico = () => {
       createdAt: string;
       isAuthor: boolean;
       withinEditWindow: boolean;
+      isAdditional: boolean;
     };
     const out: Row[] = [];
     for (const inv of invoices) {
@@ -326,8 +329,10 @@ const Historico = () => {
         operationDate: inv.operation_date,
         monthlyRate: Number(inv.monthly_rate) || 0,
         installments: installments as Installment[],
+        skipMinFloor: !!(inv as any).is_additional,
       });
       const showIdx = result.installmentCalcs.length > 1;
+      const isAdditional = !!(inv as any).is_additional;
       const createdAtMs = new Date(inv.created_at).getTime();
       const withinEditWindow = now - createdAtMs < 1 * 60 * 1000;
       const isAuthor = !!user && inv.created_by === user.id;
@@ -373,6 +378,7 @@ const Historico = () => {
           createdAt: inv.created_at,
           isAuthor,
           withinEditWindow,
+          isAdditional,
         });
       });
     }
@@ -1016,7 +1022,8 @@ const Historico = () => {
     const delayDays = diffDaysHelper(settlingRow.dueDate, settlementDate);
 
     if (delayDays > 5) {
-      const r = (inv.monthly_rate || 0) / 100;
+      // Encargo adicional: taxa fixa de 3%/mês sobre os dias em atraso
+      const r = 0.03;
       const valueNew = settlingRow.value * Math.pow(1 + r, delayDays / 30);
       const adjustment = valueNew - settlingRow.value;
 
@@ -1043,60 +1050,75 @@ const Historico = () => {
 
   const executeSettlementWithAdjustment = async () => {
     if (!pendingSettlementData) return;
-    const { row, delayDays, valueNew, adjustment, settlementDate } = pendingSettlementData;
+    const { row, delayDays, settlementDate } = pendingSettlementData;
     const inv = invoices.find((i) => i.id === row.invoiceId);
     if (!inv) return;
 
-    const installments = Array.isArray(inv.installments) ? inv.installments : [];
-    const nextInstallments = installments.map((inst: any) => {
-      if (inst.id === row.installmentId) {
-        return {
-          ...inst,
-          value: Math.round(valueNew * 100) / 100,
-          dueDate: settlementDate
-        };
-      }
-      return inst;
-    });
-
-    // Atualiza a parcela com novos valores e nova data de vencimento no banco
-    const { error: updateError } = await supabase
-      .from("invoices")
-      .update({ installments: nextInstallments })
-      .eq("id", inv.id);
-
-    if (updateError) {
-      console.error("Erro ao atualizar parcela com correção:", updateError);
-      toast.error("Erro ao aplicar correção de atraso");
-      setOverdueConfirmOpen(false);
-      setPendingSettlementData(null);
-      return;
-    }
-
-    // Registrar log de auditoria do ajuste
-    const opNumStr = inv.ordem ? String(inv.ordem).padStart(4, "0") : "—";
-    const clientName = inv.clients?.name ?? "—";
-    const invoiceNumber = inv.invoice_number;
-    await logOperationAction(
-      "UPDATE",
-      opNumStr,
-      clientName,
-      invoiceNumber,
-      `Aplicou correção de atraso de ${delayDays} dias no valor de ${formatBRL(adjustment)} (Registro: ${opNumStr}, Valor da Operação: ${formatBRL(inv.invoice_value)})`,
-      inv.invoice_value
-    );
-
-    // Salva a liquidação
-    const current: SettledEntry[] = Array.isArray(inv.settled_installments)
+    // 1) Liquida a operação original pelo valor e data originais (sem editar a parcela).
+    const currentSettled: SettledEntry[] = Array.isArray(inv.settled_installments)
       ? (inv.settled_installments as any)
       : [];
-    
-    const next: SettledEntry[] = [...current, { id: row.installmentId, date: settlementDate, settled_at: new Date().toISOString() }];
-    await saveSettlement(inv.id, next, "Parcela marcada como liquidada com juros de atraso");
-    
+    const nextSettled: SettledEntry[] = [
+      ...currentSettled,
+      { id: row.installmentId, date: settlementDate, settled_at: new Date().toISOString() },
+    ];
+    await saveSettlement(inv.id, nextSettled, "Parcela marcada como liquidada");
+
+    // 2) Cria uma NOVA operação "ADICIONAL" que cobre o período extra
+    //    (do vencimento original até a data efetiva de liquidação),
+    //    taxa 3%/mês, sem piso de 1,5%.
+    const ADDITIONAL_MONTHLY_RATE = 3;
+    const rAdd = ADDITIONAL_MONTHLY_RATE / 100;
+    // Valor de face na maturidade = valor original * (1 + 3%)^(delay/30)
+    const faceValue = Math.round(row.value * Math.pow(1 + rAdd, delayDays / 30) * 100) / 100;
+    const newInstallmentId =
+      (typeof crypto !== "undefined" && "randomUUID" in crypto)
+        ? (crypto as any).randomUUID()
+        : `ins_${Date.now()}`;
+
+    const additionalInsert: any = {
+      client_id: inv.client_id,
+      invoice_number: inv.invoice_number,
+      invoice_value: faceValue,
+      operation_date: row.dueDate, // data inicial = vencimento original
+      monthly_rate: ADDITIONAL_MONTHLY_RATE,
+      factoring_monthly_rate: inv.factoring_monthly_rate ?? FACTORING_MONTHLY_RATE_PCT,
+      installments: [
+        { id: newInstallmentId, value: faceValue, dueDate: settlementDate },
+      ],
+      settled_installments: [],
+      created_by: user?.id ?? null,
+      is_additional: true,
+      parent_invoice_id: inv.id,
+    };
+
+    const { data: newInv, error: insertErr } = await supabase
+      .from("invoices")
+      .insert(additionalInsert)
+      .select("id, ordem")
+      .single();
+
+    if (insertErr) {
+      console.error("Erro ao criar operação adicional:", insertErr);
+      toast.error("Liquidação registrada, mas não foi possível criar a operação adicional.");
+    } else {
+      const newOpStr = newInv?.ordem ? String(newInv.ordem).padStart(4, "0") : "—";
+      const origOpStr = inv.ordem ? String(inv.ordem).padStart(4, "0") : "—";
+      const adjustment = Math.round((faceValue - row.value) * 100) / 100;
+      await logOperationAction(
+        "CREATE",
+        newOpStr,
+        inv.clients?.name ?? "—",
+        inv.invoice_number,
+        `Operação ADICIONAL gerada por atraso de ${delayDays} dias na operação ${origOpStr}. Taxa 3%/mês. Encargo: ${formatBRL(adjustment)}`,
+        faceValue,
+      );
+    }
+
     // Fechar modais
     setOverdueConfirmOpen(false);
     setPendingSettlementData(null);
+    load();
   };
 
   const handleDeleteOperation = async (invoiceId: string) => {
@@ -1539,7 +1561,7 @@ const Historico = () => {
                             : "bg-net-green/15 text-net-green border border-net-green/30 hover:bg-net-green/25"
                         )}
                       >
-                        {r.settled ? "LIQUIDADA" : r.overdue ? "VENCIDA" : "ANDAMENTO"}
+                        {r.isAdditional ? "ADICIONAL" : r.settled ? "LIQUIDADA" : r.overdue ? "VENCIDA" : "ANDAMENTO"}
                       </button>
                     </div>
 
@@ -3046,7 +3068,7 @@ const Historico = () => {
                                         : "bg-net-green/15 text-net-green border border-net-green/30 hover:bg-net-green/25"
                                     )}
                                   >
-                                    {r.settled ? "LIQUIDADA" : r.overdue ? "VENCIDA" : "ANDAMENTO"}
+                                    {r.isAdditional ? "ADICIONAL" : r.settled ? "LIQUIDADA" : r.overdue ? "VENCIDA" : "ANDAMENTO"}
                                   </button>
                                 </div>
 
@@ -3361,12 +3383,12 @@ const Historico = () => {
                     <span className="text-foreground font-semibold">{formatBRL(pendingSettlementData.row.value)}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[hsl(var(--cost-red))] font-bold uppercase">Acréscimo de Juros:</span>
+                    <span className="text-[hsl(var(--cost-red))] font-bold uppercase">Encargo Adicional (3%/mês):</span>
                     <span className="text-[hsl(var(--cost-red))] font-bold">+{formatBRL(pendingSettlementData.adjustment)}</span>
                   </div>
                   <div className="h-px bg-border/40 my-1" />
                   <div className="flex justify-between items-center text-sm font-bold">
-                    <span className="text-foreground uppercase">Novo Valor Corrigido:</span>
+                    <span className="text-foreground uppercase">Valor da Nova Op. Adicional:</span>
                     <span className="text-foreground text-base tracking-tight">{formatBRL(pendingSettlementData.valueNew)}</span>
                   </div>
                 </div>
@@ -3375,7 +3397,7 @@ const Historico = () => {
               <div className="p-3 bg-[hsl(var(--cost-red)/0.06)] border border-[hsl(var(--cost-red)/0.2)] rounded-lg text-[10px] text-muted-foreground leading-relaxed flex items-start gap-2">
                 <AlertTriangle className="h-4.5 w-4.5 text-[hsl(var(--cost-red))] shrink-0 mt-0.5" />
                 <p>
-                  <strong>Atenção:</strong> Ao confirmar, o valor bruto desta parcela será alterado permanentemente no banco de dados para incluir a correção de juros acumulados, e a data de vencimento será atualizada para a data da liquidação.
+                  <strong>Atenção:</strong> A operação original será liquidada pelo valor e vencimento originais. Uma nova operação <strong>ADICIONAL</strong> será gerada automaticamente cobrindo o período do vencimento até a data da liquidação, com taxa de 3%/mês e sem o piso de 1,5%.
                 </p>
               </div>
             </div>

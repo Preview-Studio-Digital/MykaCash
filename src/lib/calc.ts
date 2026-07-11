@@ -9,6 +9,11 @@ export type CalcInput = {
   operationDate: string; // yyyy-mm-dd
   monthlyRate: number; // percent e.g. 2.5 means 2.5%/month
   installments: Installment[];
+  /**
+   * Quando true, desativa o piso de taxa efetiva de 1,5% (usado em operações "adicionais"
+   * geradas por atraso, cujo custo deve refletir integralmente a taxa configurada).
+   */
+  skipMinFloor?: boolean;
 };
 
 export type InstallmentCalc = {
@@ -49,7 +54,8 @@ export const calculate = (input: CalcInput): CalcResult => {
 
   // Piso de taxa efetiva: 1,5%. Se o cálculo natural ficar abaixo,
   // usa 1,5% sobre o valor para determinar o valor líquido.
-  const MIN_EFFECTIVE_PCT = 1.5;
+  // Operações "adicionais" (geradas por atraso) desativam o piso.
+  const MIN_EFFECTIVE_PCT = input.skipMinFloor ? 0 : 1.5;
 
   let sumPV = 0;
   let sumDaysWeighted = 0;
