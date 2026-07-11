@@ -54,7 +54,8 @@ export const calculate = (input: CalcInput): CalcResult => {
 
   // Piso de taxa efetiva: 1,5%. Se o cálculo natural ficar abaixo,
   // usa 1,5% sobre o valor para determinar o valor líquido.
-  const MIN_EFFECTIVE_PCT = 1.5;
+  // Operações "adicionais" (geradas por atraso) desativam o piso.
+  const MIN_EFFECTIVE_PCT = input.skipMinFloor ? 0 : 1.5;
 
   let sumPV = 0;
   let sumDaysWeighted = 0;
