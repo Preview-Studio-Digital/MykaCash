@@ -3397,7 +3397,7 @@ const Historico = () => {
               <div className="p-3 bg-[hsl(var(--cost-red)/0.06)] border border-[hsl(var(--cost-red)/0.2)] rounded-lg text-[10px] text-muted-foreground leading-relaxed flex items-start gap-2">
                 <AlertTriangle className="h-4.5 w-4.5 text-[hsl(var(--cost-red))] shrink-0 mt-0.5" />
                 <p>
-                  <strong>Atenção:</strong> Ao confirmar, o valor bruto desta parcela será alterado permanentemente no banco de dados para incluir a correção de juros acumulados, e a data de vencimento será atualizada para a data da liquidação.
+                  <strong>Atenção:</strong> A operação original será liquidada pelo valor e vencimento originais. Uma nova operação <strong>ADICIONAL</strong> será gerada automaticamente cobrindo o período do vencimento até a data da liquidação, com taxa de 3%/mês e sem o piso de 1,5%.
                 </p>
               </div>
             </div>
