@@ -247,7 +247,7 @@ const Historico = () => {
       supabase
         .from("invoices")
         .select(
-          "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, updated_at, created_by, ordem, clients(name), profiles:created_by(display_name, username)"
+          "id, invoice_number, invoice_value, operation_date, monthly_rate, factoring_monthly_rate, installments, settled_installments, client_id, created_at, updated_at, created_by, ordem, is_additional, parent_invoice_id, clients(name), profiles:created_by(display_name, username)"
         )
         .order("operation_date", { ascending: false }),
       supabase
