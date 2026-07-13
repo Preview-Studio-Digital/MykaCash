@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Search, History, Calendar, FileText, CheckCircle2, AlertCircle, Edit, Trash2, ArrowLeftRight } from "lucide-react";
+import { Search, History, Calendar, FileText, CheckCircle2, AlertCircle, Edit, Trash2, ArrowLeftRight, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatBRL } from "@/lib/calc";
 
