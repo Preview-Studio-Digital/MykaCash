@@ -219,6 +219,15 @@ export const AdminAuditLogs = () => {
             </span>
           </span>
         );
+      case "ADDITIONAL":
+        return (
+          <span>
+            <strong className="text-foreground text-xs sm:text-sm">{log.author}</strong> abriu e liquidou operação adicional{" "}
+            <span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
+              (Reg: {op}, Cliente: {client}, NF: {nf}{valText}, {time})
+            </span>
+          </span>
+        );
       default:
         return (
           <span>
