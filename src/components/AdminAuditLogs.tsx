@@ -158,6 +158,8 @@ export const AdminAuditLogs = () => {
       labelText = "Valor Líquido";
     } else if (log.action === "SETTLE") {
       labelText = "Valor Liquidado";
+    } else if (log.action === "ADDITIONAL") {
+      labelText = "Valor Adicional";
     }
 
     let valText = "";
