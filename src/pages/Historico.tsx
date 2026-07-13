@@ -1686,7 +1686,9 @@ const Historico = () => {
                               }
                               className={cn(
                                 "group status-pill relative inline-flex items-center justify-center h-5 w-[92px] whitespace-nowrap rounded-full px-2 text-[10px] tracking-widest transition-all cursor-pointer",
-                                r.settled
+                                r.isAdditional
+                                  ? "bg-factoring-amber/20 text-factoring-amber hover:bg-factoring-amber/30"
+                                  : r.settled
                                   ? "bg-factoring-amber/20 text-factoring-amber hover:bg-factoring-amber/30"
                                   : r.overdue
                                   ? "bg-cost-red/20 text-cost-red hover:bg-factoring-amber/30 hover:text-factoring-amber"
@@ -1694,7 +1696,9 @@ const Historico = () => {
                               )}
                             >
                               <span className="group-hover:hidden">
-                                {r.settled
+                                {r.isAdditional
+                                  ? "ADICIONAL"
+                                  : r.settled
                                   ? "LIQUIDADA"
                                   : r.overdue
                                   ? "VENCIDA"
