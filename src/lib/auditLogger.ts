@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export const logOperationAction = async (
-  action: "CREATE" | "UPDATE" | "SETTLE" | "UNSETTLE" | "DELETE",
+  action: "CREATE" | "UPDATE" | "SETTLE" | "UNSETTLE" | "DELETE" | "ADDITIONAL",
   opNumber: string,
   clientName: string,
   invoiceNumber: string,
