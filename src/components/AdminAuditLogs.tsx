@@ -126,6 +126,13 @@ export const AdminAuditLogs = () => {
           label: "Exclusão",
           mobileLabel: "Exc.",
         };
+      case "ADDITIONAL":
+        return {
+          icon: Plus,
+          bg: "bg-factoring-amber/15 border-factoring-amber/40 text-factoring-amber",
+          label: "Adicional",
+          mobileLabel: "Adic.",
+        };
       default:
         return {
           icon: AlertCircle,
