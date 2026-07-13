@@ -305,6 +305,8 @@ export const AdminAuditLogs = () => {
                           ? "border-cost-red/30 bg-cost-red/5 hover:bg-cost-red/10"
                           : log.action === "UPDATE"
                           ? "border-muted/30 bg-muted/5 hover:bg-muted/10"
+                          : log.action === "ADDITIONAL"
+                          ? "border-factoring-amber/30 bg-factoring-amber/5 hover:bg-factoring-amber/10"
                           : "border-border/20 bg-card/20 hover:bg-card/40"
                       }`}
                     >
