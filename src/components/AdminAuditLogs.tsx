@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Search, History, Calendar, FileText, CheckCircle2, AlertCircle, Edit, Trash2, ArrowLeftRight } from "lucide-react";
+import { Search, History, Calendar, FileText, CheckCircle2, AlertCircle, Edit, Trash2, ArrowLeftRight, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatBRL } from "@/lib/calc";
 
@@ -126,6 +126,13 @@ export const AdminAuditLogs = () => {
           label: "Exclusão",
           mobileLabel: "Exc.",
         };
+      case "ADDITIONAL":
+        return {
+          icon: Plus,
+          bg: "bg-factoring-amber/15 border-factoring-amber/40 text-factoring-amber",
+          label: "Adicional",
+          mobileLabel: "Adic.",
+        };
       default:
         return {
           icon: AlertCircle,
@@ -151,6 +158,8 @@ export const AdminAuditLogs = () => {
       labelText = "Valor Líquido";
     } else if (log.action === "SETTLE") {
       labelText = "Valor Liquidado";
+    } else if (log.action === "ADDITIONAL") {
+      labelText = "Valor Adicional";
     }
 
     let valText = "";
@@ -205,6 +214,15 @@ export const AdminAuditLogs = () => {
         return (
           <span>
             <strong className="text-foreground text-xs sm:text-sm">{log.author}</strong> deletou a operação{" "}
+            <span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
+              (Reg: {op}, Cliente: {client}, NF: {nf}{valText}, {time})
+            </span>
+          </span>
+        );
+      case "ADDITIONAL":
+        return (
+          <span>
+            <strong className="text-foreground text-xs sm:text-sm">{log.author}</strong> abriu e liquidou operação adicional{" "}
             <span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
               (Reg: {op}, Cliente: {client}, NF: {nf}{valText}, {time})
             </span>
@@ -287,6 +305,8 @@ export const AdminAuditLogs = () => {
                           ? "border-cost-red/30 bg-cost-red/5 hover:bg-cost-red/10"
                           : log.action === "UPDATE"
                           ? "border-muted/30 bg-muted/5 hover:bg-muted/10"
+                          : log.action === "ADDITIONAL"
+                          ? "border-factoring-amber/30 bg-factoring-amber/5 hover:bg-factoring-amber/10"
                           : "border-border/20 bg-card/20 hover:bg-card/40"
                       }`}
                     >
