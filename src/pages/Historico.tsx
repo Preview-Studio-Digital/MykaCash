@@ -1109,11 +1109,11 @@ const Historico = () => {
       const origOpStr = inv.ordem ? String(inv.ordem).padStart(4, "0") : "—";
       const adjustment = Math.round((faceValue - row.value) * 100) / 100;
       await logOperationAction(
-        "CREATE",
+        "ADDITIONAL",
         newOpStr,
         inv.clients?.name ?? "—",
         inv.invoice_number,
-        `Operação ADICIONAL gerada por atraso de ${delayDays} dias na operação ${origOpStr}. Taxa 3%/mês. Encargo: ${formatBRL(adjustment)}`,
+        `Operação ADICIONAL aberta e liquidada por atraso de ${delayDays} dias na operação ${origOpStr}. Taxa 3%/mês. Encargo: ${formatBRL(adjustment)}`,
         faceValue,
       );
     }
