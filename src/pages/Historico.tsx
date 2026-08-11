@@ -576,10 +576,12 @@ const Historico = () => {
     const allEvents: Ev[] = [];
     if (statusFilter === "a_vencer") {
       for (const r of filteredRows) {
+        if (r.isAdditional) continue;
         allEvents.push({ date: r.dueDate.slice(0, 10), delta: -r.value });
       }
     } else if (statusFilter === "liquidadas") {
       for (const r of filteredRows) {
+        if (r.isAdditional) continue;
         if (r.settled) {
           // No gráfico de liquidadas, usamos a data real de liquidação se >= jun/2026, senão no vencimento
           const rawDate = (r.settledDate && r.settledDate >= "2026-06-01") ? r.settledDate : r.dueDate;
@@ -591,6 +593,7 @@ const Historico = () => {
       // Para TODAS, INICIADAS, ANDAMENTO e VENCIDAS:
       // Gráfico de SALDO EM ABERTO: Início (+) e Liquidação (-)
       for (const r of filteredRows) {
+        if (r.isAdditional) continue;
         // As operações entram no gráfico na DATA DE OPERAÇÃO.
         const evDate = (period === "data") ? r.createdAt : r.operationDate.slice(0, 10);
           
@@ -620,10 +623,17 @@ const Historico = () => {
       });
     });
     rows.forEach(r => {
-      accountEvents.push({ date: r.operationDate.slice(0, 10), delta: -r.presentValue });
-      if (r.settled) {
-        const inDate = r.settledDate || r.dueDate;
-        accountEvents.push({ date: inDate.slice(0, 10), delta: r.value });
+      if (r.isAdditional) {
+        if (r.settled) {
+          const inDate = r.settledDate || r.dueDate;
+          accountEvents.push({ date: inDate.slice(0, 10), delta: r.value - r.presentValue });
+        }
+      } else {
+        accountEvents.push({ date: r.operationDate.slice(0, 10), delta: -r.presentValue });
+        if (r.settled) {
+          const inDate = r.settledDate || r.dueDate;
+          accountEvents.push({ date: inDate.slice(0, 10), delta: r.value });
+        }
       }
     });
     accountEvents.sort((a, b) => a.date.localeCompare(b.date));
@@ -946,6 +956,25 @@ const Historico = () => {
     
     return series;
   }, [filteredRows, statusFilter, range.from, range.to, todayStr, period]);
+
+  const mobileTicks = useMemo(() => {
+    if (!isMobile || chartData.length === 0) return undefined;
+    const dates = chartData.map((d: any) => d.date);
+    const first = dates[0];
+    const last = dates[dates.length - 1];
+    
+    const monthTicks = new Set<string>();
+    for (let i = 1; i < dates.length - 1; i++) {
+      const prevM = dates[i - 1].slice(5, 7);
+      const currM = dates[i].slice(5, 7);
+      if (prevM !== currM && dates[i] !== "agora" && dates[i] !== first && dates[i] !== last) {
+        monthTicks.add(dates[i]);
+      }
+    }
+    
+    const middleTicks = Array.from(monthTicks).sort();
+    return [first, ...middleTicks, last].filter((val, index, self) => self.indexOf(val) === index);
+  }, [chartData, isMobile]);
 
   const chartGradId = useMemo(() => Math.random().toString(36).substr(2, 9), [chartData]);
 
@@ -1357,6 +1386,7 @@ const Historico = () => {
 
   // Row coloring
   const rowClass = (r: (typeof rows)[number]) => {
+    if (r.isAdditional) return "bg-purple-500/10 hover:bg-purple-500/15 text-purple-400";
     if (r.settled) return "bg-[hsl(var(--factoring-amber)/0.22)] hover:bg-[hsl(var(--factoring-amber)/0.28)]";
     if (r.overdue) return "bg-[hsl(var(--cost-red)/0.12)] hover:bg-[hsl(var(--cost-red)/0.18)]";
     if (isDueSoon(r)) return "row-due-soon hover:bg-[hsl(var(--net-green)/0.45)]";
@@ -1524,7 +1554,9 @@ const Historico = () => {
                     key={`resumo-${r.key}`}
                     className={cn(
                       "group/card rounded-lg border px-3 py-1.5 relative shadow-sm backdrop-blur-sm transition-all",
-                      r.settled
+                      r.isAdditional
+                        ? "bg-purple-500/10 border-purple-500/25 text-purple-400"
+                        : r.settled
                         ? "bg-factoring-amber/10 border-factoring-amber/25 text-factoring-amber-foreground"
                         : r.overdue
                         ? "bg-cost-red/10 border-cost-red/25 text-cost-red-foreground"
@@ -1535,11 +1567,13 @@ const Historico = () => {
                     <div className="mb-1 flex justify-between items-center">
                       <span className={cn(
                         "rounded-full px-2 py-0.5 font-mono text-[8px] tracking-wider font-bold border",
-                        r.actionType === "INICIADA" && "bg-primary/20 text-primary border-primary/30",
-                        r.actionType === "EDITADA" && "bg-blue-500/20 text-blue-400 border-blue-500/30",
-                        r.actionType === "LIQUIDADA" && "bg-factoring-amber/20 text-factoring-amber border-factoring-amber/30"
+                        r.isAdditional
+                          ? "bg-purple-500/20 text-purple-400 border-purple-500/30"
+                          : r.actionType === "INICIADA" && "bg-primary/20 text-primary border-primary/30",
+                        !r.isAdditional && r.actionType === "EDITADA" && "bg-blue-500/20 text-blue-400 border-blue-500/30",
+                        !r.isAdditional && r.actionType === "LIQUIDADA" && "bg-factoring-amber/20 text-factoring-amber border-factoring-amber/30"
                       )}>
-                        {r.actionType}
+                        {r.isAdditional ? "ADICIONAL" : r.actionType}
                       </span>
                     </div>
 
@@ -1557,7 +1591,9 @@ const Historico = () => {
                         title={r.settled ? "Tocar para desfazer a liquidação" : "Tocar para marcar como LIQUIDADA"}
                         className={cn(
                           "rounded-full px-2.5 py-0.5 font-mono text-[9px] tracking-wider font-bold transition-all shrink-0 active:scale-95",
-                          r.settled
+                          r.isAdditional
+                            ? "bg-purple-500/20 text-purple-400 border border-purple-500/30 hover:bg-purple-500/30"
+                            : r.settled
                             ? "bg-factoring-amber/20 text-factoring-amber border border-factoring-amber/35 hover:bg-factoring-amber/30"
                             : r.overdue
                             ? "bg-cost-red/20 text-cost-red border border-cost-red/35 hover:bg-cost-red/30"
@@ -1587,14 +1623,27 @@ const Historico = () => {
                     {/* Row 3: Values & Actions */}
                     <div className="mt-1.5 flex items-center justify-between border-t border-border/10 pt-1">
                       <div className="flex items-center gap-4">
-                        <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
-                          <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Bruto</span>
-                          <span className="text-factoring-amber font-bold text-xs sm:text-sm">{formatBRL(r.value)}</span>
-                        </div>
-                        <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
-                          <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Líquido</span>
-                          <span className="text-net-green font-bold text-xs sm:text-sm">{formatBRL(r.presentValue)}</span>
-                        </div>
+                        {!r.isAdditional ? (
+                          <>
+                            <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
+                              <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Bruto</span>
+                              <span className="text-factoring-amber font-bold text-xs sm:text-sm">{formatBRL(r.value)}</span>
+                            </div>
+                            <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
+                              <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Líquido</span>
+                              <span className="text-net-green font-bold text-xs sm:text-sm">{formatBRL(r.presentValue)}</span>
+                            </div>
+                            <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
+                              <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Custo</span>
+                              <span className="text-cost-red font-bold text-xs sm:text-sm">{formatBRL(r.cost)}</span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
+                            <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Custo</span>
+                            <span className="text-cost-red font-bold text-xs sm:text-sm">{formatBRL(r.value - r.presentValue)}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1608,7 +1657,6 @@ const Historico = () => {
                 <thead className="bg-muted/40 font-mono tracking-widest">
                   <tr className="text-muted-foreground whitespace-nowrap">
                     <th className="px-1.5 py-2 text-center font-medium">REGISTRO</th>
-                    <th className="px-1.5 py-2 text-center font-medium">AÇÃO</th>
                     <th className="px-1.5 py-2 text-center font-medium">STATUS</th>
                     <th className="px-1.5 py-2 text-left font-medium">CLIENTE</th>
                     <th className="px-1.5 py-2 text-center font-medium">NF</th>
@@ -1664,16 +1712,7 @@ const Historico = () => {
                             )}
                           </div>
                         </td>
-                        <td className="px-1.5 py-2">
-                          <span className={cn(
-                            "rounded-full px-2 py-0.5 font-mono text-[9px] tracking-wider font-bold border inline-block",
-                            r.actionType === "INICIADA" && "bg-primary/20 text-primary border-primary/30",
-                            r.actionType === "EDITADA" && "bg-blue-500/20 text-blue-400 border-blue-500/30",
-                            r.actionType === "LIQUIDADA" && "bg-factoring-amber/20 text-factoring-amber border-factoring-amber/30"
-                          )}>
-                            {r.actionType}
-                          </span>
-                        </td>
+
                         <td className="px-2 py-2">
                           <div className="inline-flex items-center justify-center">
                             <button
@@ -1687,7 +1726,7 @@ const Historico = () => {
                               className={cn(
                                 "group status-pill relative inline-flex items-center justify-center h-5 w-[92px] whitespace-nowrap rounded-full px-2 text-[10px] tracking-widest transition-all cursor-pointer",
                                 r.isAdditional
-                                  ? "bg-factoring-amber/20 text-factoring-amber hover:bg-factoring-amber/30"
+                                  ? "bg-purple-500/20 text-purple-400 hover:bg-purple-500/30"
                                   : r.settled
                                   ? "bg-factoring-amber/20 text-factoring-amber hover:bg-factoring-amber/30"
                                   : r.overdue
@@ -1721,8 +1760,8 @@ const Historico = () => {
                         <td className="px-1.5 py-2">{r.settlementDate ? fmtDateShort(r.settlementDate) : "—"}</td>
                         <td className="px-1.5 py-2">{r.days}</td>
                         <td className="px-1.5 py-2">{formatPct(r.effectivePct)}</td>
-                        <td className="px-1.5 py-2 text-factoring-amber font-bold">{formatBRL(r.value)}</td>
-                        <td className="px-1.5 py-2 text-net-green font-bold">{formatBRL(r.presentValue)}</td>
+                        <td className="px-1.5 py-2 text-factoring-amber font-bold">{r.isAdditional ? "—" : formatBRL(r.value)}</td>
+                        <td className="px-1.5 py-2 text-net-green font-bold">{r.isAdditional ? "—" : formatBRL(r.presentValue)}</td>
                         <td className="px-1.5 py-2 text-cost-red font-bold">{formatBRL(r.cost)}</td>
                         <td className="px-1.5 py-2 text-muted-foreground truncate max-w-[100px]" title={r.createdBy}>{r.createdBy}</td>
                       </tr>
@@ -2205,10 +2244,10 @@ const Historico = () => {
                     </h2>
                   </div>
                   <span 
-                    className="font-mono text-xs lg:text-sm tracking-[0.3em] text-muted-foreground"
-                    style={{ marginRight: 60 }}
+                    className="font-mono text-[9px] sm:text-xs lg:text-sm tracking-[0.3em] text-muted-foreground text-right leading-relaxed"
+                    style={{ marginRight: 10, textAlign: "right" }}
                   >
-                    PERÍODO: {periodDays} {periodDays === 1 ? "DIA" : "DIAS"}
+                    PERÍODO:<br />{periodDays} {periodDays === 1 ? "DIA" : "DIAS"}
                   </span>
                 </div>
                 <div className="h-64 w-full">
@@ -2227,9 +2266,6 @@ const Historico = () => {
                           monthBoundaries.push(chartData[i].date);
                         }
                       }
-                      const mobileTicks = isMobile
-                        ? getMobileXAxisTicks(chartData.map((d: any) => d.date))
-                        : undefined;
                       const maxScore = Math.max(1, ...chartData.map((d: any) => d.score ?? 0));
                       const minScore = Math.min(maxScore, ...chartData.map((d: any) => d.score ?? 0));
                       const lineRange = maxScore - minScore;
@@ -2295,7 +2331,19 @@ const Historico = () => {
                               tickFormatter={(val) => {
                                 if (val === "agora") return "agora";
                                 const parts = val.split("-");
-                                if (parts.length === 3) return parts[2];
+                                if (parts.length === 3) {
+                                  if (isMobile) {
+                                    const isFirst = mobileTicks && mobileTicks[0] === val;
+                                    const isLast = mobileTicks && mobileTicks[mobileTicks.length - 1] === val;
+                                    if (isFirst || isLast) {
+                                      return `${parts[2]}/${parts[1]}`; // "DD/MM"
+                                    }
+                                    const monthIdx = parseInt(parts[1], 10) - 1;
+                                    const monthsShort = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+                                    return monthsShort[monthIdx] || val;
+                                  }
+                                  return parts[2];
+                                }
                                 return val;
                               }}
                               tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
@@ -2479,10 +2527,10 @@ const Historico = () => {
               </h2>
             </div>
             <span 
-              className="font-mono text-xs lg:text-sm tracking-[0.3em] text-muted-foreground"
-              style={{ marginRight: 60 }}
+              className="font-mono text-[9px] sm:text-xs lg:text-sm tracking-[0.3em] text-muted-foreground text-right leading-relaxed"
+              style={{ marginRight: 10, textAlign: "right" }}
             >
-              PERÍODO: {periodDays} {periodDays === 1 ? "DIA" : "DIAS"}
+              PERÍODO:<br />{periodDays} {periodDays === 1 ? "DIA" : "DIAS"}
             </span>
           </div>
           <div className="h-64 w-full">
@@ -2547,10 +2595,6 @@ const Historico = () => {
                   }
                 }
 
-                const mobileTicks = isMobile
-                  ? getMobileXAxisTicks(chartData.map((d: any) => d.date))
-                  : undefined;
-
                 const gradId = chartGradId;
                 return (
                   <ResponsiveContainer width="100%" height="100%">
@@ -2582,7 +2626,19 @@ const Historico = () => {
                         tickFormatter={(val) => {
                           if (val === "agora") return "agora";
                           const parts = val.split("-");
-                          if (parts.length === 3) return parts[2];
+                          if (parts.length === 3) {
+                            if (isMobile) {
+                              const isFirst = mobileTicks && mobileTicks[0] === val;
+                              const isLast = mobileTicks && mobileTicks[mobileTicks.length - 1] === val;
+                              if (isFirst || isLast) {
+                                return `${parts[2]}/${parts[1]}`; // "DD/MM"
+                              }
+                              const monthIdx = parseInt(parts[1], 10) - 1;
+                              const monthsShort = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+                              return monthsShort[monthIdx] || val;
+                            }
+                            return parts[2];
+                          }
                           return val;
                         }}
                         tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
@@ -2983,14 +3039,14 @@ const Historico = () => {
                 const isOpen = isMonthOpen(month.key, month.rows);
                 const monthTotals = month.rows.reduce(
                   (a, r) => ({
-                    value: a.value + r.value,
-                    presentValue: a.presentValue + r.presentValue,
+                    value: a.value + (r.isAdditional ? 0 : r.value),
+                    presentValue: a.presentValue + (r.isAdditional ? 0 : r.presentValue),
                     cost: a.cost + r.cost,
                   }),
                   { value: 0, presentValue: 0, cost: 0 }
                 );
-                const totalValue = month.rows.reduce((sum, r) => sum + r.value, 0) || 1;
-                const monthEffective = month.rows.reduce((sum, r) => sum + r.effectivePct * r.value, 0) / totalValue;
+                const totalValue = month.rows.reduce((sum, r) => sum + (r.isAdditional ? 0 : r.value), 0) || 1;
+                const monthEffective = month.rows.reduce((sum, r) => sum + r.effectivePct * (r.isAdditional ? 0 : r.value), 0) / totalValue;
 
                 return (
                   <div key={month.key} className="border border-border/40 rounded-xl overflow-hidden bg-background/20 backdrop-blur-sm shadow-sm transition-all duration-300">
@@ -3047,7 +3103,9 @@ const Historico = () => {
                                 key={r.key}
                                 className={cn(
                                   "group/card rounded-lg border px-3 py-1.5 relative shadow-sm backdrop-blur-sm transition-all",
-                                  r.settled
+                                  r.isAdditional
+                                    ? "bg-purple-500/10 border-purple-500/25 text-purple-400"
+                                    : r.settled
                                     ? "bg-factoring-amber/10 border-factoring-amber/25 text-factoring-amber-foreground"
                                     : r.overdue
                                     ? "bg-cost-red/10 border-cost-red/25 text-cost-red-foreground"
@@ -3068,7 +3126,9 @@ const Historico = () => {
                                     title={r.settled ? "Tocar para desfazer a liquidação" : "Tocar para marcar como LIQUIDADA"}
                                     className={cn(
                                       "rounded-full px-2.5 py-0.5 font-mono text-[9px] tracking-wider font-bold transition-all shrink-0 active:scale-95",
-                                      r.settled
+                                      r.isAdditional
+                                        ? "bg-purple-500/20 text-purple-400 border border-purple-500/30 hover:bg-purple-500/30"
+                                        : r.settled
                                         ? "bg-factoring-amber/20 text-factoring-amber border border-factoring-amber/35 hover:bg-factoring-amber/30"
                                         : r.overdue
                                         ? "bg-cost-red/20 text-cost-red border border-cost-red/35 hover:bg-cost-red/30"
@@ -3098,14 +3158,27 @@ const Historico = () => {
                                 {/* Row 3: Values & Actions */}
                                 <div className="mt-1.5 flex items-center justify-between border-t border-border/10 pt-1">
                                   <div className="flex items-center gap-4">
-                                    <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
-                                      <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Bruto</span>
-                                      <span className="text-factoring-amber font-bold text-xs sm:text-sm">{formatBRL(r.value)}</span>
-                                    </div>
-                                    <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
-                                      <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Líquido</span>
-                                      <span className="text-net-green font-bold text-xs sm:text-sm">{formatBRL(r.presentValue)}</span>
-                                    </div>
+                                    {!r.isAdditional ? (
+                                      <>
+                                        <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
+                                          <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Bruto</span>
+                                          <span className="text-factoring-amber font-bold text-xs sm:text-sm">{formatBRL(r.value)}</span>
+                                        </div>
+                                        <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
+                                          <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Líquido</span>
+                                          <span className="text-net-green font-bold text-xs sm:text-sm">{formatBRL(r.presentValue)}</span>
+                                        </div>
+                                        <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
+                                          <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Custo</span>
+                                          <span className="text-cost-red font-bold text-xs sm:text-sm">{formatBRL(r.cost)}</span>
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
+                                        <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Custo</span>
+                                        <span className="text-cost-red font-bold text-xs sm:text-sm">{formatBRL(r.value - r.presentValue)}</span>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -3186,7 +3259,9 @@ const Historico = () => {
                                           }
                                           className={cn(
                                             "group status-pill relative inline-flex items-center justify-center h-5 w-[92px] whitespace-nowrap rounded-full px-2 text-[10px] tracking-widest transition-all cursor-pointer",
-                                            r.settled
+                                            r.isAdditional
+                                              ? "bg-purple-500/20 text-purple-400 hover:bg-purple-500/30"
+                                              : r.settled
                                               ? "bg-factoring-amber/20 text-factoring-amber hover:bg-factoring-amber/30"
                                               : r.overdue
                                               ? "bg-cost-red/20 text-cost-red hover:bg-factoring-amber/30 hover:text-factoring-amber"
@@ -3194,7 +3269,9 @@ const Historico = () => {
                                           )}
                                         >
                                           <span className="group-hover:hidden">
-                                            {r.settled
+                                            {r.isAdditional
+                                              ? "ADICIONAL"
+                                              : r.settled
                                               ? "LIQUIDADA"
                                               : r.overdue
                                               ? "VENCIDA"
@@ -3217,8 +3294,8 @@ const Historico = () => {
                                     <td className="px-1.5 py-2">{r.settlementDate ? fmtDateShort(r.settlementDate) : "—"}</td>
                                     <td className="px-1.5 py-2">{r.days}</td>
                                     <td className="px-1.5 py-2">{formatPct(r.effectivePct)}</td>
-                                    <td className="px-1.5 py-2 text-factoring-amber">{formatBRLNum(r.value)}</td>
-                                    <td className="px-1.5 py-2 text-net-green">{formatBRLNum(r.presentValue)}</td>
+                                    <td className="px-1.5 py-2 text-factoring-amber">{r.isAdditional ? "—" : formatBRLNum(r.value)}</td>
+                                    <td className="px-1.5 py-2 text-net-green">{r.isAdditional ? "—" : formatBRLNum(r.presentValue)}</td>
                                     <td className="px-1.5 py-2 text-cost-red">{formatBRLNum(r.cost)}</td>
                                     <td className="px-2 py-2 max-w-[120px] truncate" title={r.createdBy}>
                                       {r.createdBy}

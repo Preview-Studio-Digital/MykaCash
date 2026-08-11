@@ -205,16 +205,18 @@ export const AccountCashFlow = () => {
     // 2. Operations and Installments
     invoices.forEach(inv => {
       const installments = Array.isArray(inv.installments) ? inv.installments : [];
+      const isAdditional = !!(inv as any).is_additional;
       
       const calc = calculate({
         invoiceValue: Number(inv.invoice_value) || 0,
         operationDate: inv.operation_date,
         monthlyRate: Number(inv.monthly_rate) || 0,
-        installments: installments as Installment[]
+        installments: installments as Installment[],
+        skipMinFloor: isAdditional
       });
 
-      // Saída: Valor Líquido da Operação
-      if (inv.operation_date) {
+      // Saída: Valor Líquido da Operação (não gera saída real para operações adicionais)
+      if (!isAdditional && inv.operation_date) {
         if (calc.installmentCalcs.length > 0) {
           calc.installmentCalcs.forEach((inst, idx) => {
             const multi = calc.installmentCalcs.length > 1;
@@ -256,15 +258,30 @@ export const AccountCashFlow = () => {
           const actualSettledDate = settledMap.get(inst.id) || inst.dueDate;
           const multi = calc.installmentCalcs.length > 1;
           const letter = multi ? String.fromCharCode(96 + (idx + 1)) : "";
-          data.push({
-            id: `inst-in-${inst.id}`,
-            type: "installment_in",
-            amount: inst.value,
-            date: actualSettledDate, 
-            description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${letter}` : "—"} · ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}${letter}`,
-            reference_id: inv.id,
-            created_at: inv.created_at // Using invoice created_at as fallback for sorting
-          });
+          
+          if (isAdditional) {
+            // Operação adicional registra apenas o custo (lucro do atraso) como entrada
+            const profit = inst.value - inst.presentValue;
+            data.push({
+              id: `inst-in-${inst.id}`,
+              type: "installment_in",
+              amount: profit,
+              date: actualSettledDate, 
+              description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${letter}` : "—"} · ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}${letter} (ADICIONAL)`,
+              reference_id: inv.id,
+              created_at: inv.created_at
+            });
+          } else {
+            data.push({
+              id: `inst-in-${inst.id}`,
+              type: "installment_in",
+              amount: inst.value,
+              date: actualSettledDate, 
+              description: `REG ${inv.ordem ? `${String(inv.ordem).padStart(4, "0")}${letter}` : "—"} · ${inv.clients?.name || 'Cliente'} - NF ${inv.invoice_number || 'S/N'}${letter}`,
+              reference_id: inv.id,
+              created_at: inv.created_at // Using invoice created_at as fallback for sorting
+            });
+          }
         }
       });
     });
@@ -436,11 +453,13 @@ export const AccountCashFlow = () => {
 
     invoices.forEach(inv => {
       const installments = Array.isArray(inv.installments) ? inv.installments : [];
+      const isAdditional = !!(inv as any).is_additional;
       const calc = calculate({
         invoiceValue: Number(inv.invoice_value) || 0,
         operationDate: inv.operation_date,
         monthlyRate: Number(inv.monthly_rate) || 0,
-        installments: installments as Installment[]
+        installments: installments as Installment[],
+        skipMinFloor: isAdditional
       });
 
       // Profit for operations started in period
