@@ -2548,7 +2548,9 @@ const Historico = () => {
                   for (const p of chartData) {
                     const [y, m] = p.date.split("-");
                     const key = `${y}-${m}`;
-                    const label = MONTHS_PT[parseInt(m, 10) - 1] || m;
+                    const label = isMobile
+                      ? (["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"][parseInt(m, 10) - 1] || m)
+                      : (MONTHS_PT[parseInt(m, 10) - 1] || m);
                     const last = monthSegs[monthSegs.length - 1];
                     if (last && last.key === key) last.count += 1;
                     else monthSegs.push({ key, label, count: 1 });
@@ -2563,7 +2565,7 @@ const Historico = () => {
                   const total = chartData.length;
                   return (
                     <>
-                      <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: 30, marginRight: 45 }}>
+                      <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: isMobile ? 0 : 30, marginRight: isMobile ? 0 : 45 }}>
                         {monthSegs.map((s, i) => (
                           <div
                             key={i}
@@ -2758,12 +2760,13 @@ const Historico = () => {
                           }
                           return val;
                         }}
-                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                        tick={isMobile ? false : { fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                         stroke="hsl(var(--border))"
                       />
                       <YAxis
                         yAxisId="left"
-                        width={60}
+                        hide={isMobile}
+                        width={isMobile ? 0 : 60}
                         axisLine={false}
                         tickLine={false}
                         tickMargin={4}
@@ -2774,7 +2777,8 @@ const Historico = () => {
                       <YAxis
                         yAxisId="right"
                         orientation="right"
-                        width={45}
+                        hide={isMobile}
+                        width={isMobile ? 0 : 45}
                         axisLine={false}
                         tickLine={false}
                         tickMargin={4}
@@ -2921,7 +2925,9 @@ const Historico = () => {
             for (const p of chartData) {
               const [y, m] = p.date.split("-");
               const key = `${y}-${m}`;
-              const label = MONTHS_PT[parseInt(m, 10) - 1] || m;
+              const label = isMobile
+                ? (["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"][parseInt(m, 10) - 1] || m)
+                : (MONTHS_PT[parseInt(m, 10) - 1] || m);
               const last = monthSegs[monthSegs.length - 1];
               if (last && last.key === key) last.count += 1;
               else monthSegs.push({ key, label, count: 1 });
@@ -2938,7 +2944,7 @@ const Historico = () => {
             // Compensa as margens do AreaChart (left: 0 + YAxis ~45px, right: 16)
             return (
               <>
-                <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: 60, marginRight: 45 }}>
+                <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: isMobile ? 0 : 60, marginRight: isMobile ? 0 : 45 }}>
                   {monthSegs.map((s, i) => (
                     <div
                       key={i}
@@ -2949,7 +2955,7 @@ const Historico = () => {
                     </div>
                   ))}
                 </div>
-                <div className="mt-1 flex" style={{ marginLeft: 60, marginRight: 45 }}>
+                <div className="mt-1 flex" style={{ marginLeft: isMobile ? 0 : 60, marginRight: isMobile ? 0 : 45 }}>
                   {segs.map((s, i) => (
                     <div
                       key={i}
