@@ -216,11 +216,10 @@ const Admin = () => {
         <div className="flex items-center justify-start min-w-0">
           <Link
             to="/"
-            className="hover:opacity-80 transition-opacity shrink-0"
+            className="inline-flex items-center justify-center p-2 rounded-full border border-border/40 bg-background/50 hover:bg-muted/30 transition-all text-muted-foreground hover:text-foreground hover:scale-105 shrink-0"
+            title="Voltar para o início"
           >
-            <span className="font-title title-gradient title-shimmer font-extrabold leading-none tracking-tighter text-xs sm:text-base md:text-lg">
-              MYKACA$H
-            </span>
+            <ArrowLeft className="h-5 w-5" />
           </Link>
         </div>
 
