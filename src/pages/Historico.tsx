@@ -2751,7 +2751,7 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
                 const gradId = chartGradId;
                 return (
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                    <AreaChart data={chartData} margin={{ top: 10, right: isMobile ? 0 : 15, left: isMobile ? 0 : 5, bottom: 0 }}>
                       <defs>
                         <linearGradient id={`lineGrad-${gradId}`} x1="0" y1="0" x2="1" y2="0">
                           {stops.map((s, i) => (
