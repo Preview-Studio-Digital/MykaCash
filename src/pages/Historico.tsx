@@ -3546,7 +3546,7 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
         )}
 
         <footer className="border-t border-border/40 py-2 text-center mt-3">
-          <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">MYKACA$H · VERSÃO 3.1</p>
+          <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">MYKACA$H · VERSÃO 3.2</p>
         </footer>
       </main>
 
