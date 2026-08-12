@@ -2465,7 +2465,8 @@ const Historico = () => {
                             />
                             <YAxis
                               yAxisId="left"
-                              width={30}
+                              hide={isMobile}
+                              width={isMobile ? 0 : 30}
                               domain={[0, 100]}
                               axisLine={false}
                               tickLine={false}
@@ -2477,7 +2478,8 @@ const Historico = () => {
                             <YAxis
                               yAxisId="right"
                               orientation="right"
-                              width={45}
+                              hide={isMobile}
+                              width={isMobile ? 0 : 45}
                               domain={[0, 100]}
                               axisLine={false}
                               tickLine={false}
