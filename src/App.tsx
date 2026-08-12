@@ -23,13 +23,18 @@ const ScrollTracker = () => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       const body = document.body;
+      const html = document.documentElement;
 
       if (currentScrollY < lastScrollY) {
         body.classList.add("scrolling-up");
         body.classList.remove("scrolling-down");
+        html.classList.add("scrolling-up");
+        html.classList.remove("scrolling-down");
       } else if (currentScrollY > lastScrollY) {
         body.classList.add("scrolling-down");
         body.classList.remove("scrolling-up");
+        html.classList.add("scrolling-down");
+        html.classList.remove("scrolling-up");
       }
 
       lastScrollY = currentScrollY;
@@ -38,6 +43,7 @@ const ScrollTracker = () => {
       if (timeoutId) window.clearTimeout(timeoutId);
       timeoutId = window.setTimeout(() => {
         body.classList.remove("scrolling-up", "scrolling-down");
+        html.classList.remove("scrolling-up", "scrolling-down");
       }, 150);
     };
 

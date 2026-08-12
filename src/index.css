@@ -253,6 +253,19 @@
 }
 
 /* Custom Scrollbar Styles (Desktop & Mobile) */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--primary) / 0.4) hsl(var(--background));
+}
+
+.scrolling-up {
+  scrollbar-color: hsl(var(--net-green) / 0.8) hsl(var(--background)) !important;
+}
+
+.scrolling-down {
+  scrollbar-color: hsl(var(--cost-red) / 0.8) hsl(var(--background)) !important;
+}
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -274,7 +287,7 @@
   background: hsl(var(--primary) / 0.6);
 }
 
-/* Scroll direction colors */
+/* Webkit Scroll direction colors */
 .scrolling-up::-webkit-scrollbar-thumb {
   background: hsl(var(--net-green) / 0.8) !important;
   box-shadow: 0 0 10px hsl(var(--net-green) / 0.5);
