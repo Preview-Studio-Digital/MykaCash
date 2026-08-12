@@ -2851,7 +2851,7 @@ const Historico = () => {
                             strokeDasharray="4 4"
                             strokeWidth={2.5}
                             opacity={0.9}
-                            label={{
+                            label={isMobile ? undefined : {
                               value: labelText,
                               position: "insideTopLeft",
                               fill: "hsl(var(--muted-foreground))",
