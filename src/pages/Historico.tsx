@@ -2351,7 +2351,7 @@ const Historico = () => {
                   <div className="flex items-center gap-3">
                     <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
                     <h2 className="font-mono text-sm sm:text-base md:text-lg tracking-[0.2em] font-bold uppercase">
-                      Evolução do Score Financeiro
+                      SCORE FINANCEIRO
                     </h2>
                   </div>
                   <span 
