@@ -1677,30 +1677,28 @@ const Historico = () => {
                     </div>
 
                     {/* Row 3: Values & Actions */}
-                    <div className="mt-1.5 flex items-center justify-between border-t border-border/10 pt-1">
-                      <div className="flex items-center gap-2 sm:gap-4">
-                        {!r.isAdditional ? (
-                          <>
-                            <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
-                              <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Bruto</span>
-                              <span className="text-factoring-amber font-bold text-[10px] sm:text-xs">{formatBRL(r.value)}</span>
-                            </div>
-                            <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
-                              <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Líquido</span>
-                              <span className="text-net-green font-bold text-[10px] sm:text-xs">{formatBRL(r.presentValue)}</span>
-                            </div>
-                            <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
-                              <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Custo</span>
-                              <span className="text-cost-red font-bold text-[10px] sm:text-xs">{formatBRL(r.cost)}</span>
-                            </div>
-                          </>
-                        ) : (
+                    <div className="mt-1.5 grid grid-cols-3 gap-2 border-t border-border/10 pt-1">
+                      {!r.isAdditional ? (
+                        <>
+                          <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
+                            <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Bruto</span>
+                            <span className="text-factoring-amber font-bold text-[10px] sm:text-xs">{formatBRL(r.value)}</span>
+                          </div>
+                          <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
+                            <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Líquido</span>
+                            <span className="text-net-green font-bold text-[10px] sm:text-xs">{formatBRL(r.presentValue)}</span>
+                          </div>
                           <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
                             <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Custo</span>
-                            <span className="text-cost-red font-bold text-[10px] sm:text-xs">{formatBRL(r.value - r.presentValue)}</span>
+                            <span className="text-cost-red font-bold text-[10px] sm:text-xs">{formatBRL(r.cost)}</span>
                           </div>
-                        )}
-                      </div>
+                        </>
+                      ) : (
+                        <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground col-span-3">
+                          <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Custo</span>
+                          <span className="text-cost-red font-bold text-[10px] sm:text-xs">{formatBRL(r.value - r.presentValue)}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -3331,30 +3329,28 @@ const Historico = () => {
                                 </div>
 
                                 {/* Row 3: Values & Actions */}
-                                <div className="mt-1.5 flex items-center justify-between border-t border-border/10 pt-1">
-                                  <div className="flex items-center gap-2 sm:gap-4">
-                                    {!r.isAdditional ? (
-                                      <>
-                                        <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
-                                          <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Bruto</span>
-                                          <span className="text-factoring-amber font-bold text-[10px] sm:text-xs">{formatBRL(r.value)}</span>
-                                        </div>
-                                        <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
-                                          <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Líquido</span>
-                                          <span className="text-net-green font-bold text-[10px] sm:text-xs">{formatBRL(r.presentValue)}</span>
-                                        </div>
-                                        <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
-                                          <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Custo</span>
-                                          <span className="text-cost-red font-bold text-[10px] sm:text-xs">{formatBRL(r.cost)}</span>
-                                        </div>
-                                      </>
-                                    ) : (
+                                <div className="mt-1.5 grid grid-cols-3 gap-2 border-t border-border/10 pt-1">
+                                  {!r.isAdditional ? (
+                                    <>
+                                      <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
+                                        <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Bruto</span>
+                                        <span className="text-factoring-amber font-bold text-[10px] sm:text-xs">{formatBRL(r.value)}</span>
+                                      </div>
+                                      <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
+                                        <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Líquido</span>
+                                        <span className="text-net-green font-bold text-[10px] sm:text-xs">{formatBRL(r.presentValue)}</span>
+                                      </div>
                                       <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
                                         <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Custo</span>
-                                        <span className="text-cost-red font-bold text-[10px] sm:text-xs">{formatBRL(r.value - r.presentValue)}</span>
+                                        <span className="text-cost-red font-bold text-[10px] sm:text-xs">{formatBRL(r.cost)}</span>
                                       </div>
-                                    )}
-                                  </div>
+                                    </>
+                                  ) : (
+                                    <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground col-span-3">
+                                      <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Custo</span>
+                                      <span className="text-cost-red font-bold text-[10px] sm:text-xs">{formatBRL(r.value - r.presentValue)}</span>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             );
