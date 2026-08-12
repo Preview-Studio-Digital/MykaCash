@@ -2841,17 +2841,29 @@ const Historico = () => {
                         }}
                       />
 
-                      {monthBoundaries.map((dateKey) => (
-                        <ReferenceLine
-                          key={dateKey}
-                          x={dateKey}
-                          yAxisId="left"
-                          stroke="hsl(var(--muted-foreground))"
-                          strokeDasharray="4 4"
-                          strokeWidth={2.5}
-                          opacity={0.9}
-                        />
-                      ))}
+                      {monthBoundaries.map((dateKey) => {
+                        const parts = dateKey.split("-");
+                        const labelText = parts.length === 3 ? `${parts[2]}/${parts[1]}` : dateKey;
+                        return (
+                          <ReferenceLine
+                            key={dateKey}
+                            x={dateKey}
+                            yAxisId="left"
+                            stroke="hsl(var(--muted-foreground))"
+                            strokeDasharray="4 4"
+                            strokeWidth={2.5}
+                            opacity={0.9}
+                            label={{
+                              value: labelText,
+                              position: "insideTopLeft",
+                              fill: "hsl(var(--muted-foreground))",
+                              fontSize: 9,
+                              fontFamily: "monospace",
+                              offset: 5
+                            }}
+                          />
+                        );
+                      })}
 
                       <Area
                         yAxisId="left"
