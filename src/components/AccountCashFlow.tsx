@@ -1137,7 +1137,7 @@ export const AccountCashFlow = () => {
           for (const p of chartData) {
             const [y, m] = p.rawDate.split("-");
             const key = `${y}-${m}`;
-            const label = MONTHS_PT[parseInt(m, 10) - 1] || m;
+            const label = (["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"][parseInt(m, 10) - 1] || m);
             const last = monthSegs[monthSegs.length - 1];
             if (last && last.key === key) last.count += 1;
             else monthSegs.push({ key, label, count: 1 });
