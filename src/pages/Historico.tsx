@@ -2439,6 +2439,7 @@ const Historico = () => {
                             ))}
                             <XAxis
                               dataKey="date"
+                              hide={isMobile}
                               interval={0}
                               ticks={xAxisTicks}
                               tickFormatter={(val) => {
