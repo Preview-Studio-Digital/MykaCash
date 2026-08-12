@@ -1087,7 +1087,7 @@ export const AccountCashFlow = () => {
                   <stop offset={gradientOffset} stopColor="hsl(var(--cost-red))" stopOpacity={1} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--muted-foreground))" opacity={0.4} vertical={false} horizontal={true} />
+              <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--muted-foreground))" opacity={0.4} vertical={!isMobile} horizontal={true} />
               <XAxis 
                 dataKey="rawDate" 
                 axisLine={false}
