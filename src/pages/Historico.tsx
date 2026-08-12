@@ -2888,14 +2888,6 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
                             strokeDasharray="4 4"
                             strokeWidth={2.5}
                             opacity={0.9}
-                            label={isMobile ? undefined : {
-                              value: labelText,
-                              position: "insideTopLeft",
-                              fill: "hsl(var(--muted-foreground))",
-                              fontSize: 9,
-                              fontFamily: "monospace",
-                              offset: 5
-                            }}
                           />
                         );
                       })}
