@@ -1633,14 +1633,9 @@ const Historico = () => {
                       </span>
                     </div>
 
-                    {/* Row 1: Client Name + OP/NF & Status Button */}
+                    {/* Row 1: Client Name & Status Button */}
                     <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0 flex items-baseline gap-1.5 flex-1">
-                        <span className="text-sm font-bold truncate text-foreground">{r.clientName}</span>
-                        <span className="font-mono text-[10px] text-muted-foreground/80 shrink-0">
-                          ({r.opNumber ? `REG: ${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "REG: —"} · NF: {r.invoiceNumber})
-                        </span>
-                      </div>
+                      <span className="text-sm font-bold truncate text-foreground flex-1">{r.clientName}</span>
                       <button
                         type="button"
                         onClick={() => toggleSettlement(r)}
@@ -1658,6 +1653,11 @@ const Historico = () => {
                       >
                         {r.isAdditional ? "ADICIONAL" : r.settled ? "LIQUIDADA" : r.overdue ? "VENCIDA" : "ANDAMENTO"}
                       </button>
+                    </div>
+
+                    {/* Row 1.5: Registry & NF */}
+                    <div className="mt-0.5 font-mono text-[10px] text-muted-foreground/80">
+                      {r.opNumber ? `REG: ${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "REG: —"} · NF: {r.invoiceNumber}
                     </div>
 
                     {/* Row 2: Dates Grid */}
@@ -1678,26 +1678,26 @@ const Historico = () => {
 
                     {/* Row 3: Values & Actions */}
                     <div className="mt-1.5 flex items-center justify-between border-t border-border/10 pt-1">
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2 sm:gap-4">
                         {!r.isAdditional ? (
                           <>
                             <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
-                              <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Bruto</span>
-                              <span className="text-factoring-amber font-bold text-xs sm:text-sm">{formatBRL(r.value)}</span>
+                              <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Bruto</span>
+                              <span className="text-factoring-amber font-bold text-[10px] sm:text-xs">{formatBRL(r.value)}</span>
                             </div>
                             <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
-                              <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Líquido</span>
-                              <span className="text-net-green font-bold text-xs sm:text-sm">{formatBRL(r.presentValue)}</span>
+                              <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Líquido</span>
+                              <span className="text-net-green font-bold text-[10px] sm:text-xs">{formatBRL(r.presentValue)}</span>
                             </div>
                             <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
-                              <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Custo</span>
-                              <span className="text-cost-red font-bold text-xs sm:text-sm">{formatBRL(r.cost)}</span>
+                              <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Custo</span>
+                              <span className="text-cost-red font-bold text-[10px] sm:text-xs">{formatBRL(r.cost)}</span>
                             </div>
                           </>
                         ) : (
                           <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
-                            <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Custo</span>
-                            <span className="text-cost-red font-bold text-xs sm:text-sm">{formatBRL(r.value - r.presentValue)}</span>
+                            <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Custo</span>
+                            <span className="text-cost-red font-bold text-[10px] sm:text-xs">{formatBRL(r.value - r.presentValue)}</span>
                           </div>
                         )}
                       </div>
@@ -3275,14 +3275,9 @@ const Historico = () => {
                                     : "bg-net-green/15 border-net-green/25 text-net-green-foreground"
                                 )}
                               >
-                                {/* Row 1: Client Name + OP/NF & Status Button */}
+                                {/* Row 1: Client Name & Status Button */}
                                 <div className="flex items-center justify-between gap-2">
-                                  <div className="min-w-0 flex items-baseline gap-1.5 flex-1">
-                                    <span className="text-sm font-bold truncate text-foreground">{r.clientName}</span>
-                                    <span className="font-mono text-[10px] text-muted-foreground/80 shrink-0">
-                                      ({r.opNumber ? `REG: ${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "REG: —"} · NF: {r.invoiceNumber})
-                                    </span>
-                                  </div>
+                                  <span className="text-sm font-bold truncate text-foreground flex-1">{r.clientName}</span>
                                   <button
                                     type="button"
                                     onClick={() => toggleSettlement(r)}
@@ -3300,6 +3295,11 @@ const Historico = () => {
                                   >
                                     {r.isAdditional ? "ADICIONAL" : r.settled ? "LIQUIDADA" : r.overdue ? "VENCIDA" : "ANDAMENTO"}
                                   </button>
+                                </div>
+
+                                {/* Row 1.5: Registry & NF */}
+                                <div className="mt-0.5 font-mono text-[10px] text-muted-foreground/80">
+                                  {r.opNumber ? `REG: ${String(r.opNumber).padStart(4, "0")}${r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}` : "REG: —"} · NF: {r.invoiceNumber}
                                 </div>
 
                                 {/* Row 2: Dates Grid */}
@@ -3320,26 +3320,26 @@ const Historico = () => {
 
                                 {/* Row 3: Values & Actions */}
                                 <div className="mt-1.5 flex items-center justify-between border-t border-border/10 pt-1">
-                                  <div className="flex items-center gap-4">
+                                  <div className="flex items-center gap-2 sm:gap-4">
                                     {!r.isAdditional ? (
                                       <>
                                         <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
-                                          <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Bruto</span>
-                                          <span className="text-factoring-amber font-bold text-xs sm:text-sm">{formatBRL(r.value)}</span>
+                                          <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Bruto</span>
+                                          <span className="text-factoring-amber font-bold text-[10px] sm:text-xs">{formatBRL(r.value)}</span>
                                         </div>
                                         <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
-                                          <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Líquido</span>
-                                          <span className="text-net-green font-bold text-xs sm:text-sm">{formatBRL(r.presentValue)}</span>
+                                          <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Líquido</span>
+                                          <span className="text-net-green font-bold text-[10px] sm:text-xs">{formatBRL(r.presentValue)}</span>
                                         </div>
                                         <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
-                                          <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Custo</span>
-                                          <span className="text-cost-red font-bold text-xs sm:text-sm">{formatBRL(r.cost)}</span>
+                                          <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Custo</span>
+                                          <span className="text-cost-red font-bold text-[10px] sm:text-xs">{formatBRL(r.cost)}</span>
                                         </div>
                                       </>
                                     ) : (
                                       <div className="flex flex-col font-mono text-[10px] tabular-nums text-muted-foreground">
-                                        <span className="text-[9px] uppercase tracking-wider block text-muted-foreground/60 mb-0.5">Custo</span>
-                                        <span className="text-cost-red font-bold text-xs sm:text-sm">{formatBRL(r.value - r.presentValue)}</span>
+                                        <span className="text-[8px] uppercase tracking-wider block text-muted-foreground/50 mb-0.5">Custo</span>
+                                        <span className="text-cost-red font-bold text-[10px] sm:text-xs">{formatBRL(r.value - r.presentValue)}</span>
                                       </div>
                                     )}
                                   </div>
