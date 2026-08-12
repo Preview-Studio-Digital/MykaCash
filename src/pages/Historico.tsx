@@ -2738,6 +2738,7 @@ const Historico = () => {
                       <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--muted-foreground))" opacity={0.4} vertical={true} horizontal={true} />
                       <XAxis
                         dataKey="date"
+                        hide={isMobile}
                         interval={0}
                         ticks={xAxisTicks}
                         tickFormatter={(val) => {
