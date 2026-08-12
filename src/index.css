@@ -252,19 +252,21 @@
   animation: border-color-cycle 4s ease-in-out infinite;
 }
 
-/* Custom Scrollbar Styles */
+/* Custom Scrollbar Styles (Desktop & Mobile) */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
+  height: 8px;
+  display: block !important;
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(var(--background));
+  background: hsl(var(--background)) !important;
 }
 
 ::-webkit-scrollbar-thumb {
   background: hsl(var(--primary) / 0.4);
   border-radius: 20px;
-  border: 2px solid hsl(var(--background));
+  border: 1px solid hsl(var(--background));
   transition: background-color 0.3s ease;
 }
 
