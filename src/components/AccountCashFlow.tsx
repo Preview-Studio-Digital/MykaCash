@@ -898,10 +898,64 @@ export const AccountCashFlow = () => {
     return boundaries;
   }, [chartData]);
 
-  const mobileTicks = useMemo(() => {
-    if (!isMobile || chartData.length === 0) return undefined;
-    return getMobileXAxisTicks(chartData.map((d) => d.rawDate));
-  }, [isMobile, chartData]);
+  const xAxisTicks = useMemo(() => {
+    if (chartData.length === 0) return undefined;
+    const dates = chartData.map((d) => d.rawDate);
+    const first = dates[0];
+    const last = dates[dates.length - 1];
+    
+    if (isMobile) {
+      return getMobileXAxisTicks(dates);
+    } else {
+      // Desktop: 2 intervalos por semana (a cada ~3.5 dias), ancorados nas viradas de mês
+      const boundaries: number[] = [];
+      for (let i = 1; i < dates.length; i++) {
+        if (dates[i - 1].substring(0, 7) !== dates[i].substring(0, 7)) {
+          boundaries.push(i);
+        }
+      }
+
+      const ticks: string[] = [];
+      const segments: { start: number; end: number }[] = [];
+
+      if (boundaries.length === 0) {
+        segments.push({ start: 0, end: dates.length - 1 });
+      } else {
+        segments.push({ start: 0, end: boundaries[0] - 1 });
+        for (let j = 1; j < boundaries.length; j++) {
+          segments.push({ start: boundaries[j - 1], end: boundaries[j] - 1 });
+        }
+        segments.push({ start: boundaries[boundaries.length - 1], end: dates.length - 1 });
+      }
+
+      for (const seg of segments) {
+        const L = seg.end - seg.start + 1;
+        ticks.push(dates[seg.start]);
+        
+        if (L > 1) {
+          const numIntervals = Math.round(L / 3.5);
+          if (numIntervals > 1) {
+            for (let k = 1; k < numIntervals; k++) {
+              const tickIdx = seg.start + Math.round((k * L) / numIntervals);
+              if (tickIdx <= seg.end) {
+                ticks.push(dates[tickIdx]);
+              }
+            }
+          }
+        }
+      }
+
+      if (last === "agora") ticks.push("agora");
+
+      return ticks
+        .filter((val, index, self) => self.indexOf(val) === index)
+        .sort((a, b) => {
+          if (a === "agora") return 1;
+          if (b === "agora") return -1;
+          return a.localeCompare(b);
+        });
+    }
+  }, [chartData, isMobile]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -1040,7 +1094,7 @@ export const AccountCashFlow = () => {
                 tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                 dy={10}
                 interval={0}
-                ticks={mobileTicks}
+                ticks={xAxisTicks}
                 tickFormatter={(val) => {
                   const parts = val.split("-");
                   if (parts.length === 3) return parts[2];
