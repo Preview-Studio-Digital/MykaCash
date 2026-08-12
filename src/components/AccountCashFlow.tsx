@@ -1025,16 +1025,16 @@ export const AccountCashFlow = () => {
 
       {/* Chart Section */}
       <section className="rounded-2xl border border-border/40 bg-card/30 backdrop-blur-sm p-6 shadow-panel">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-          <div className="flex items-center gap-3">
-            <span className="h-2 w-2 rounded-full animate-color-cycle" />
-            <h4 className="font-mono text-xs sm:text-base md:text-lg tracking-[0.2em] font-bold uppercase">Evolução do Saldo</h4>
+        <div className="flex flex-row items-center justify-between mb-8 gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <span className="h-2 w-2 rounded-full animate-color-cycle shrink-0" />
+            <h4 className="font-mono text-xs sm:text-base md:text-lg tracking-[0.2em] font-bold uppercase truncate">Evolução do Saldo</h4>
           </div>
 
           {/* Filters Bar */}
-          <div className="flex flex-wrap md:flex-nowrap items-center justify-end gap-2">
+          <div className="flex items-center justify-end gap-1 sm:gap-2 shrink-0">
             <Select value={period} onValueChange={(v: any) => setPeriod(v)}>
-              <SelectTrigger className="w-[140px] h-9 bg-background/50 border-border/40">
+              <SelectTrigger className="w-[95px] sm:w-[140px] h-7 sm:h-9 bg-background/50 border-border/40 text-[10px] sm:text-xs px-2 sm:px-3">
                 <SelectValue placeholder="Período" />
               </SelectTrigger>
               <SelectContent>
@@ -1048,22 +1048,22 @@ export const AccountCashFlow = () => {
 
             {period === 'dia' && (
               <DateField 
-                className="h-9 w-[130px] [&>input]:bg-background/50 [&>input]:border-border/40 [&>input]:h-9 text-xs" 
+                className="h-7 sm:h-9 w-[95px] sm:w-[130px] [&>input]:bg-background/50 [&>input]:border-border/40 [&>input]:h-7 sm:[&>input]:h-9 text-[10px] sm:text-xs" 
                 value={fromDate}
                 onChange={setFromDate}
               />
             )}
             
             {period === 'periodo' && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 <DateField 
-                  className="h-9 w-[130px] [&>input]:bg-background/50 [&>input]:border-border/40 [&>input]:h-9 text-xs" 
+                  className="h-7 sm:h-9 w-[85px] sm:w-[130px] [&>input]:bg-background/50 [&>input]:border-border/40 [&>input]:h-7 sm:[&>input]:h-9 text-[9px] sm:text-xs" 
                   value={fromDate}
                   onChange={setFromDate}
                 />
-                <span className="text-muted-foreground text-[10px] font-mono shrink-0">ATÉ</span>
+                <span className="text-muted-foreground text-[8px] sm:text-[10px] font-mono shrink-0">ATÉ</span>
                 <DateField 
-                  className="h-9 w-[130px] [&>input]:bg-background/50 [&>input]:border-border/40 [&>input]:h-9 text-xs" 
+                  className="h-7 sm:h-9 w-[85px] sm:w-[130px] [&>input]:bg-background/50 [&>input]:border-border/40 [&>input]:h-7 sm:[&>input]:h-9 text-[9px] sm:text-xs" 
                   value={toDate}
                   onChange={setToDate}
                 />
