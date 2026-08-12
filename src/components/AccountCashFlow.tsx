@@ -1237,7 +1237,7 @@ export const AccountCashFlow = () => {
         <div className="p-4 md:p-6 border-b border-border/40 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="flex items-center gap-3">
             <span className="h-2 w-2 rounded-full animate-color-cycle" />
-            <h4 className="font-mono text-xs sm:text-base md:text-lg tracking-[0.1em] sm:tracking-[0.2em] font-bold uppercase whitespace-nowrap">Histórico de Movimentações</h4>
+            <h4 className="font-mono text-sm sm:text-base md:text-lg tracking-[0.2em] font-bold uppercase whitespace-nowrap">Histórico de Movimentações</h4>
           </div>
           <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             {/* Search Input */}
