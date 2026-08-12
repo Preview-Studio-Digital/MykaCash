@@ -1103,7 +1103,8 @@ export const AccountCashFlow = () => {
               />
               <YAxis 
                 yAxisId="left"
-                width={60}
+                hide={isMobile}
+                width={isMobile ? 0 : 60}
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
@@ -1112,7 +1113,8 @@ export const AccountCashFlow = () => {
               <YAxis 
                 yAxisId="right"
                 orientation="right"
-                width={60}
+                hide={isMobile}
+                width={isMobile ? 0 : 60}
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
@@ -1203,7 +1205,7 @@ export const AccountCashFlow = () => {
 
           return (
             <>
-              <div className="mt-4 flex bg-muted/20 rounded-sm" style={{ marginLeft: 60, marginRight: 60 }}>
+              <div className="mt-4 flex bg-muted/20 rounded-sm" style={{ marginLeft: isMobile ? 0 : 60, marginRight: isMobile ? 0 : 60 }}>
                 {monthSegs.map((s, i) => (
                   <div
                     key={i}
@@ -1214,7 +1216,7 @@ export const AccountCashFlow = () => {
                   </div>
                 ))}
               </div>
-              <div className="mt-1 flex" style={{ marginLeft: 60, marginRight: 60 }}>
+              <div className="mt-1 flex" style={{ marginLeft: isMobile ? 0 : 60, marginRight: isMobile ? 0 : 60 }}>
                 {yearSegs.map((s, i) => (
                   <div
                     key={i}
