@@ -1461,7 +1461,7 @@ const Historico = () => {
 
       <div className="flex flex-col items-center gap-2 px-4 py-3">
         {/* Period label */}
-        <span className="font-mono text-[9px] md:text-sm tracking-[0.15em] md:tracking-[0.3em] text-muted-foreground/70 whitespace-nowrap">
+        <span className="font-mono text-[9px] md:text-xs tracking-[0.15em] md:tracking-[0.25em] text-muted-foreground/70 whitespace-nowrap">
           {period === "total" ? (
             (() => {
               const label = {
@@ -1515,7 +1515,7 @@ const Historico = () => {
         <div className={cn("flex flex-wrap items-center justify-center gap-4 sm:gap-6", !mobileFiltersOpen && "hidden sm:flex")}>
           {/* Period pills */}
           <div className="flex flex-col items-center gap-1.5">
-            <span className="font-mono text-[10px] md:text-xs tracking-[0.2em] text-muted-foreground/60 uppercase">PERÍODO DE TEMPO</span>
+            <span className="font-mono text-[10px] md:text-[9px] tracking-[0.2em] text-muted-foreground/60 uppercase">PERÍODO DE TEMPO</span>
             <div className="inline-flex flex-wrap justify-center rounded-full border border-border/50 bg-background/60 p-0.5 gap-0.5 shadow-panel">
               {periodOptions.map((opt) => {
                 const active = period === opt.id;
@@ -1524,7 +1524,7 @@ const Historico = () => {
                     key={opt.id}
                     onClick={() => setPeriod(opt.id)}
                     className={
-                      "inline-flex items-center rounded-full px-3 py-1 font-mono text-[10px] md:text-xs tracking-[0.25em] transition-all whitespace-nowrap " +
+                      "inline-flex items-center rounded-full px-3 py-1 font-mono text-[10px] md:text-[10px] tracking-[0.25em] transition-all whitespace-nowrap " +
                       (active
                         ? "animate-color-cycle text-primary-foreground"
                         : "text-muted-foreground hover:text-foreground")
@@ -1542,7 +1542,7 @@ const Historico = () => {
 
           {/* Status pills */}
           <div className="flex flex-col items-center gap-1.5">
-            <span className="font-mono text-[10px] md:text-xs tracking-[0.2em] text-muted-foreground/60 uppercase">STATUS DAS OPERAÇÕES</span>
+            <span className="font-mono text-[10px] md:text-[9px] tracking-[0.2em] text-muted-foreground/60 uppercase">STATUS DAS OPERAÇÕES</span>
             <div className="inline-flex flex-wrap justify-center rounded-full border border-border/50 bg-background/60 p-0.5 gap-0.5 shadow-panel">
               {statusOptions.map((opt) => {
                 const active = statusFilter === opt.id;
@@ -1551,7 +1551,7 @@ const Historico = () => {
                     key={opt.id}
                     onClick={() => setStatusFilter(opt.id)}
                     className={
-                      "inline-flex items-center rounded-full px-3 py-1 font-mono text-[10px] md:text-xs tracking-[0.25em] transition-all whitespace-nowrap " +
+                      "inline-flex items-center rounded-full px-3 py-1 font-mono text-[10px] md:text-[10px] tracking-[0.25em] transition-all whitespace-nowrap " +
                       (active
                         ? "animate-color-cycle text-primary-foreground"
                         : "text-muted-foreground hover:text-foreground")
