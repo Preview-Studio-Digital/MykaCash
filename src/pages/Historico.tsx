@@ -175,6 +175,12 @@ const Historico = () => {
   const [showSplash, setShowSplash] = useState(!globalSplashShown);
   const [splashFade, setSplashFade] = useState(false);
   const [fontLoaded, setFontLoaded] = useState(false);
+  const [aiInsights, setAiInsights] = useState<{
+    dailySpeedText: string;
+    monthlyProjectionText: string;
+    annualVisionText: string;
+  } | null>(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
 
   useEffect(() => {
     if (typeof document !== "undefined" && "fonts" in document) {
@@ -683,7 +689,7 @@ const Historico = () => {
     if (range.from && !byDate.has(range.from)) byDate.set(range.from, 0);
     if (range.to && !byDate.has(range.to)) byDate.set(range.to, 0);
 
-    if (period === "semana" || period === "mes" || period === "periodo") {
+    if (period !== "data") {
       // Garante que todos os dias do período estejam presentes no eixo X
       const d = new Date(range.from + "T00:00:00");
       const end = new Date(range.to + "T00:00:00");
@@ -957,23 +963,73 @@ const Historico = () => {
     return series;
   }, [filteredRows, statusFilter, range.from, range.to, todayStr, period]);
 
-  const mobileTicks = useMemo(() => {
-    if (!isMobile || chartData.length === 0) return undefined;
+  const xAxisTicks = useMemo(() => {
+    if (chartData.length === 0) return undefined;
     const dates = chartData.map((d: any) => d.date);
     const first = dates[0];
     const last = dates[dates.length - 1];
     
-    const monthTicks = new Set<string>();
-    for (let i = 1; i < dates.length - 1; i++) {
-      const prevM = dates[i - 1].slice(5, 7);
-      const currM = dates[i].slice(5, 7);
-      if (prevM !== currM && dates[i] !== "agora" && dates[i] !== first && dates[i] !== last) {
-        monthTicks.add(dates[i]);
+    if (isMobile) {
+      const monthTicks = new Set<string>();
+      for (let i = 1; i < dates.length - 1; i++) {
+        const prevM = dates[i - 1].slice(5, 7);
+        const currM = dates[i].slice(5, 7);
+        if (prevM !== currM && dates[i] !== "agora" && dates[i] !== first && dates[i] !== last) {
+          monthTicks.add(dates[i]);
+        }
       }
+      
+      const middleTicks = Array.from(monthTicks).sort();
+      return [first, ...middleTicks, last].filter((val, index, self) => self.indexOf(val) === index);
+    } else {
+      // Desktop: 2 intervalos por semana (a cada ~3.5 dias), ancorados harmonicamente nas viradas de mês
+      const boundaries: number[] = [];
+      for (let i = 1; i < dates.length; i++) {
+        if (dates[i - 1].substring(0, 7) !== dates[i].substring(0, 7)) {
+          boundaries.push(i);
+        }
+      }
+
+      const ticks: string[] = [];
+      const segments: { start: number; end: number }[] = [];
+
+      if (boundaries.length === 0) {
+        segments.push({ start: 0, end: dates.length - 1 });
+      } else {
+        segments.push({ start: 0, end: boundaries[0] - 1 });
+        for (let j = 1; j < boundaries.length; j++) {
+          segments.push({ start: boundaries[j - 1], end: boundaries[j] - 1 });
+        }
+        segments.push({ start: boundaries[boundaries.length - 1], end: dates.length - 1 });
+      }
+
+      for (const seg of segments) {
+        const L = seg.end - seg.start + 1;
+        ticks.push(dates[seg.start]);
+        
+        if (L > 1) {
+          const numIntervals = Math.round(L / 3.5);
+          if (numIntervals > 1) {
+            for (let k = 1; k < numIntervals; k++) {
+              const tickIdx = seg.start + Math.round((k * L) / numIntervals);
+              if (tickIdx <= seg.end) {
+                ticks.push(dates[tickIdx]);
+              }
+            }
+          }
+        }
+      }
+
+      if (last === "agora") ticks.push("agora");
+
+      return ticks
+        .filter((val, index, self) => self.indexOf(val) === index)
+        .sort((a, b) => {
+          if (a === "agora") return 1;
+          if (b === "agora") return -1;
+          return a.localeCompare(b);
+        });
     }
-    
-    const middleTicks = Array.from(monthTicks).sort();
-    return [first, ...middleTicks, last].filter((val, index, self) => self.indexOf(val) === index);
   }, [chartData, isMobile]);
 
   const chartGradId = useMemo(() => Math.random().toString(36).substr(2, 9), [chartData]);
@@ -2065,6 +2121,63 @@ const Historico = () => {
     };
   }, [opsCount, settledCount, eventCount, opLabel, alertMetrics, isLatestEventSettlement]);
 
+  useEffect(() => {
+    if (invoices.length === 0) return;
+    
+    setLoadingInsights(true);
+    const delayDebounce = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("financial-insights", {
+          body: {
+            alertMetrics: {
+              scoreNumeric: alertMetrics.scoreNumeric,
+              healthScore: alertMetrics.healthScore,
+              riskLevel: alertMetrics.riskLevel,
+              totalDebt: formatBRL(alertMetrics.totalDebt),
+              dailySpeed: formatBRL(alertMetrics.dailySpeed),
+              daysToClear: Math.ceil(alertMetrics.daysToClear),
+              rolloverRate: Math.round(alertMetrics.rolloverRate),
+              totalBorrowed: formatBRL(alertMetrics.totalBorrowed),
+              totalSettled: formatBRL(alertMetrics.totalSettled),
+              effectiveRate: alertMetrics.effectiveRate.toFixed(2),
+              monthlyAnticipationVolume: formatBRL(alertMetrics.monthlyAnticipationVolume),
+              projectedInterest30d: formatBRL(alertMetrics.projectedInterest30d),
+              cashCommitmentPct: Math.round(alertMetrics.cashCommitmentPct),
+              projectedInterest1y: formatBRL(alertMetrics.projectedInterest1y),
+              annualSavingsProjected: formatBRL(alertMetrics.annualSavingsProjected),
+            }
+          }
+        });
+
+        if (error) throw error;
+        if (data && !data.error) {
+          setAiInsights(data);
+        } else {
+          throw new Error(data?.error || "Invalid response");
+        }
+      } catch (err) {
+        console.error("Erro ao carregar insights de IA:", err);
+        setAiInsights(null);
+      } finally {
+        setLoadingInsights(false);
+      }
+    }, 1000);
+
+    return () => clearTimeout(delayDebounce);
+  }, [
+    alertMetrics.scoreNumeric,
+    alertMetrics.totalDebt,
+    alertMetrics.dailySpeed,
+    alertMetrics.daysToClear,
+    alertMetrics.rolloverRate,
+    alertMetrics.monthlyAnticipationVolume,
+    alertMetrics.projectedInterest30d,
+    alertMetrics.cashCommitmentPct,
+    alertMetrics.projectedInterest1y,
+    alertMetrics.annualSavingsProjected,
+    invoices.length
+  ]);
+
 
 
 
@@ -2245,9 +2358,11 @@ const Historico = () => {
                   </div>
                   <span 
                     className="font-mono text-[9px] sm:text-xs lg:text-sm tracking-[0.3em] text-muted-foreground text-right leading-relaxed"
-                    style={{ marginRight: 10, textAlign: "right" }}
+                    style={{ marginRight: 12, textAlign: "right" }}
                   >
-                    PERÍODO:<br />{periodDays} {periodDays === 1 ? "DIA" : "DIAS"}
+                    PERÍODO:<br className="sm:hidden" />
+                    <span className="hidden sm:inline"> </span>
+                    {periodDays} {periodDays === 1 ? "DIA" : "DIAS"}
                   </span>
                 </div>
                 <div className="h-64 w-full">
@@ -2317,7 +2432,7 @@ const Historico = () => {
                               <ReferenceLine
                                 key={dateKey}
                                 x={dateKey}
-                                yAxisId="left"
+                                yAxisId="right"
                                 stroke="hsl(var(--muted-foreground))"
                                 strokeDasharray="4 4"
                                 strokeWidth={2}
@@ -2327,14 +2442,14 @@ const Historico = () => {
                             <XAxis
                               dataKey="date"
                               interval={0}
-                              ticks={mobileTicks}
+                              ticks={xAxisTicks}
                               tickFormatter={(val) => {
                                 if (val === "agora") return "agora";
                                 const parts = val.split("-");
                                 if (parts.length === 3) {
                                   if (isMobile) {
-                                    const isFirst = mobileTicks && mobileTicks[0] === val;
-                                    const isLast = mobileTicks && mobileTicks[mobileTicks.length - 1] === val;
+                                    const isFirst = xAxisTicks && xAxisTicks[0] === val;
+                                    const isLast = xAxisTicks && xAxisTicks[xAxisTicks.length - 1] === val;
                                     if (isFirst || isLast) {
                                       return `${parts[2]}/${parts[1]}`; // "DD/MM"
                                     }
@@ -2351,7 +2466,7 @@ const Historico = () => {
                             />
                             <YAxis
                               yAxisId="left"
-                              width={60}
+                              width={30}
                               domain={[0, 100]}
                               axisLine={false}
                               tickLine={false}
@@ -2363,7 +2478,7 @@ const Historico = () => {
                             <YAxis
                               yAxisId="right"
                               orientation="right"
-                              width={60}
+                              width={45}
                               domain={[0, 100]}
                               axisLine={false}
                               tickLine={false}
@@ -2448,7 +2563,7 @@ const Historico = () => {
                   const total = chartData.length;
                   return (
                     <>
-                      <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: 60, marginRight: 60 }}>
+                      <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: 30, marginRight: 45 }}>
                         {monthSegs.map((s, i) => (
                           <div
                             key={i}
@@ -2459,7 +2574,7 @@ const Historico = () => {
                           </div>
                         ))}
                       </div>
-                      <div className="mt-1 flex" style={{ marginLeft: 60, marginRight: 60 }}>
+                      <div className="mt-1 flex" style={{ marginLeft: 30, marginRight: 45 }}>
                         {segs.map((s, i) => (
                           <div
                             key={i}
@@ -2528,9 +2643,11 @@ const Historico = () => {
             </div>
             <span 
               className="font-mono text-[9px] sm:text-xs lg:text-sm tracking-[0.3em] text-muted-foreground text-right leading-relaxed"
-              style={{ marginRight: 10, textAlign: "right" }}
+              style={{ marginRight: 12, textAlign: "right" }}
             >
-              PERÍODO:<br />{periodDays} {periodDays === 1 ? "DIA" : "DIAS"}
+              PERÍODO:<br className="sm:hidden" />
+              <span className="hidden sm:inline"> </span>
+              {periodDays} {periodDays === 1 ? "DIA" : "DIAS"}
             </span>
           </div>
           <div className="h-64 w-full">
@@ -2622,14 +2739,14 @@ const Historico = () => {
                       <XAxis
                         dataKey="date"
                         interval={0}
-                        ticks={mobileTicks}
+                        ticks={xAxisTicks}
                         tickFormatter={(val) => {
                           if (val === "agora") return "agora";
                           const parts = val.split("-");
                           if (parts.length === 3) {
                             if (isMobile) {
-                              const isFirst = mobileTicks && mobileTicks[0] === val;
-                              const isLast = mobileTicks && mobileTicks[mobileTicks.length - 1] === val;
+                              const isFirst = xAxisTicks && xAxisTicks[0] === val;
+                              const isLast = xAxisTicks && xAxisTicks[xAxisTicks.length - 1] === val;
                               if (isFirst || isLast) {
                                 return `${parts[2]}/${parts[1]}`; // "DD/MM"
                               }
@@ -2657,7 +2774,7 @@ const Historico = () => {
                       <YAxis
                         yAxisId="right"
                         orientation="right"
-                        width={60}
+                        width={45}
                         axisLine={false}
                         tickLine={false}
                         tickMargin={4}
@@ -2821,7 +2938,7 @@ const Historico = () => {
             // Compensa as margens do AreaChart (left: 0 + YAxis ~45px, right: 16)
             return (
               <>
-                <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: 60, marginRight: 60 }}>
+                <div className="mt-1 flex bg-muted/40 rounded-sm" style={{ marginLeft: 60, marginRight: 45 }}>
                   {monthSegs.map((s, i) => (
                     <div
                       key={i}
@@ -2832,7 +2949,7 @@ const Historico = () => {
                     </div>
                   ))}
                 </div>
-                <div className="mt-1 flex" style={{ marginLeft: 60, marginRight: 60 }}>
+                <div className="mt-1 flex" style={{ marginLeft: 60, marginRight: 45 }}>
                   {segs.map((s, i) => (
                     <div
                       key={i}
@@ -2874,20 +2991,34 @@ const Historico = () => {
                 <h3 className="font-mono text-sm tracking-wider text-primary font-bold uppercase">
                   Diária & Velocidade
                 </h3>
-                <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
-                  A empresa está antecipando recebíveis a uma velocidade média de{" "}
-                  <strong className="text-primary-glow font-mono text-base">{formatBRL(alertMetrics.dailySpeed)}/dia útil</strong>. 
-                  Isso significa que seu fluxo de caixa futuro está sendo consumido de forma contínua para cobrir despesas de curto prazo.
-                </p>
-                <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
-                  Atualmente, o saldo bruto total já antecipado e em aberto é de{" "}
-                  <strong className="text-cost-red font-mono text-base">{formatBRL(alertMetrics.totalDebt)}</strong>. 
-                  Se a empresa parasse de realizar novas antecipações hoje, ela levaria aproximadamente{" "}
-                  <strong className="text-foreground font-mono text-base">{Math.ceil(alertMetrics.daysToClear)} dias úteis</strong> para liquidar todo o saldo devedor pendente através dos recebimentos normais.
-                </p>
-                <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
-                  Adicionalmente, detectamos um comportamento de **Rolagem de Recebíveis (Re-empréstimo)**. Do volume total captado no período (<strong>{formatBRL(alertMetrics.totalBorrowed)}</strong>), apenas <strong>{formatPct(alertMetrics.liquidationRate)}</strong> foi liquidado de fato (<strong>{formatBRL(alertMetrics.totalSettled)}</strong>). Isso significa que <strong>{formatPct(alertMetrics.rolloverRate)}</strong> do capital está sendo re-emprestado de imediato, gerando um acúmulo acelerado de juros e dependência de novas antecipações para pagar títulos antigos.
-                </p>
+                {loadingInsights ? (
+                  <div className="space-y-2 animate-pulse py-1">
+                    <div className="h-4 bg-white/5 rounded w-full"></div>
+                    <div className="h-4 bg-white/5 rounded w-5/6"></div>
+                    <div className="h-4 bg-white/5 rounded w-4/5"></div>
+                  </div>
+                ) : aiInsights?.dailySpeedText ? (
+                  <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
+                    {aiInsights.dailySpeedText}
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
+                      A empresa está antecipando recebíveis a uma velocidade média de{" "}
+                      <strong className="text-primary-glow font-mono text-base">{formatBRL(alertMetrics.dailySpeed)}/dia útil</strong>. 
+                      Isso significa que seu fluxo de caixa futuro está sendo consumido de forma contínua para cobrir despesas de curto prazo.
+                    </p>
+                    <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
+                      Atualmente, o saldo bruto total já antecipado e em aberto é de{" "}
+                      <strong className="text-cost-red font-mono text-base">{formatBRL(alertMetrics.totalDebt)}</strong>. 
+                      Se a empresa parasse de realizar novas antecipações hoje, ela levaria aproximadamente{" "}
+                      <strong className="text-foreground font-mono text-base">{Math.ceil(alertMetrics.daysToClear)} dias úteis</strong> para liquidar todo o saldo devedor pendente através dos recebimentos normais.
+                    </p>
+                    <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
+                      Adicionalmente, detectamos um comportamento de **Rolagem de Recebíveis (Re-empréstimo)**. Do volume total captado no período (<strong>{formatBRL(alertMetrics.totalBorrowed)}</strong>), apenas <strong>{formatPct(alertMetrics.liquidationRate)}</strong> foi liquidado de fato (<strong>{formatBRL(alertMetrics.totalSettled)}</strong>). Isso significa que <strong>{formatPct(alertMetrics.rolloverRate)}</strong> do capital está sendo re-emprestado de imediato, gerando um acúmulo acelerado de juros e dependência de novas antecipações para pagar títulos antigos.
+                    </p>
+                  </>
+                )}
                 <div className="flex flex-wrap gap-2 pt-2">
                   <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 font-mono text-[9px] tracking-wider text-primary border border-primary/20">
                     VELOCIDADE DIÁRIA: {formatBRL(alertMetrics.dailySpeed)}
@@ -2913,23 +3044,36 @@ const Historico = () => {
                 <h3 className="font-mono text-sm tracking-wider text-primary font-bold uppercase">
                   Projeção Mensal
                 </h3>
-                <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
-                  Com ritmo de antecipações atual, o volume projetado de novos recebíveis antecipados para os próximos 30 dias é de{" "}
-                  <strong className="text-primary-glow font-mono text-base">{formatBRL(alertMetrics.monthlyAnticipationVolume)}</strong>. 
-                  Deste montante, o custo financeiro direto de juros e taxas consumirá cerca de{" "}
-                  <strong className="text-cost-red font-mono text-base">{formatBRL(alertMetrics.projectedInterest30d)}</strong> de caixa líquido.
-                </p>
-                <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
-                  O grau de comprometimento da receita mensal está em{" "}
-                  <strong className={cn("font-mono text-base", alertMetrics.riskColor)}>{formatPct(alertMetrics.cashCommitmentPct)}</strong>.
-                  {alertMetrics.cashCommitmentPct >= 60 ? (
-                    <span> Este nível é considerado <strong className="text-cost-red">Crítico</strong>, o que significa que mais da metade do faturamento projetado já está pré-comprometido antes mesmo de entrar, criando um ciclo contínuo de dependência financeira.</span>
-                  ) : alertMetrics.cashCommitmentPct >= 25 ? (
-                    <span> Este nível requer <strong className="text-factoring-amber">Atenção</strong>. Embora administrável, recomenda-se alongar prazos com fornecedores para reduzir o ritmo de antecipações diárias.</span>
-                  ) : (
-                    <span> Este nível é considerado <strong className="text-net-green">Saudável</strong>. As antecipações estão alinhadas à capacidade operacional de curto prazo sem pressionar o fluxo de caixa futuro.</span>
-                  )}
-                </p>
+                {loadingInsights ? (
+                  <div className="space-y-2 animate-pulse py-1">
+                    <div className="h-4 bg-white/5 rounded w-full"></div>
+                    <div className="h-4 bg-white/5 rounded w-4/5"></div>
+                  </div>
+                ) : aiInsights?.monthlyProjectionText ? (
+                  <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
+                    {aiInsights.monthlyProjectionText}
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
+                      Com ritmo de antecipações atual, o volume projetado de novos recebíveis antecipados para os próximos 30 dias é de{" "}
+                      <strong className="text-primary-glow font-mono text-base">{formatBRL(alertMetrics.monthlyAnticipationVolume)}</strong>. 
+                      Deste montante, o custo financeiro direto de juros e taxas consumirá cerca de{" "}
+                      <strong className="text-cost-red font-mono text-base">{formatBRL(alertMetrics.projectedInterest30d)}</strong> de caixa líquido.
+                    </p>
+                    <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
+                      O grau de comprometimento da receita mensal está em{" "}
+                      <strong className={cn("font-mono text-base", alertMetrics.riskColor)}>{formatPct(alertMetrics.cashCommitmentPct)}</strong>.
+                      {alertMetrics.cashCommitmentPct >= 60 ? (
+                        <span> Este nível é considerado <strong className="text-cost-red">Crítico</strong>, o que significa que mais da metade do faturamento projetado já está pré-comprometido antes mesmo de entrar, criando um ciclo contínuo de dependência financeira.</span>
+                      ) : alertMetrics.cashCommitmentPct >= 25 ? (
+                        <span> Este nível requer <strong className="text-factoring-amber">Atenção</strong>. Embora administrável, recomenda-se alongar prazos com fornecedores para reduzir o ritmo de antecipações diárias.</span>
+                      ) : (
+                        <span> Este nível é considerado <strong className="text-net-green">Saudável</strong>. As antecipações estão alinhadas à capacidade operacional de curto prazo sem pressionar o fluxo de caixa futuro.</span>
+                      )}
+                    </p>
+                  </>
+                )}
                 <div className="flex flex-wrap gap-2 pt-2">
                   <span className="inline-flex items-center rounded-full bg-white/5 px-2.5 py-0.5 font-mono text-[9px] tracking-wider text-muted-foreground border border-border/30">
                     JUROS PROJETADOS (30D): {formatBRL(alertMetrics.projectedInterest30d)}
@@ -2947,16 +3091,29 @@ const Historico = () => {
                 <h3 className="font-mono text-sm tracking-wider text-primary font-bold uppercase">
                   Visão Anual
                 </h3>
-                <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
-                  A projeção em escala anual mantendo a atual taxa efetiva indica um pagamento acumulado de juros de{" "}
-                  <strong className="text-cost-red font-mono text-base">{formatBRL(alertMetrics.projectedInterest1y)}</strong> ao ano.
-                  Esta é a quantia que deixará de entrar diretamente no caixa líquido da sua empresa.
-                </p>
-                <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
-                  Por outro lado, o uso do MykaCash em comparação com as taxas tradicionais de mercado (Factoring) está gerando uma economia anual projetada de{" "}
-                  <strong className="text-net-green font-mono text-base">{formatBRL(alertMetrics.annualSavingsProjected)}</strong>. 
-                  Isto demonstra o impacto positivo da gestão interna de crédito e taxas de repasse.
-                </p>
+                {loadingInsights ? (
+                  <div className="space-y-2 animate-pulse py-1">
+                    <div className="h-4 bg-white/5 rounded w-full"></div>
+                    <div className="h-4 bg-white/5 rounded w-3/4"></div>
+                  </div>
+                ) : aiInsights?.annualVisionText ? (
+                  <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
+                    {aiInsights.annualVisionText}
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
+                      A projeção em escala anual mantendo a atual taxa efetiva indica um pagamento acumulado de juros de{" "}
+                      <strong className="text-cost-red font-mono text-base">{formatBRL(alertMetrics.projectedInterest1y)}</strong> ao ano.
+                      Esta é a quantia que deixará de entrar diretamente no caixa líquido da sua empresa.
+                    </p>
+                    <p className="text-base text-justify text-foreground/90 leading-relaxed font-sans">
+                      Por outro lado, o uso do MykaCash em comparação com as taxas tradicionais de mercado (Factoring) está gerando uma economia anual projetada de{" "}
+                      <strong className="text-net-green font-mono text-base">{formatBRL(alertMetrics.annualSavingsProjected)}</strong>. 
+                      Isto demonstra o impacto positivo da gestão interna de crédito e taxas de repasse.
+                    </p>
+                  </>
+                )}
                 <div className="flex flex-wrap gap-2 pt-2 font-mono text-[9px] tracking-wider">
                   <span className="inline-flex items-center rounded-full bg-cost-red/10 px-2.5 py-0.5 text-cost-red border border-cost-red/20">
                     CUSTO DE ANTECIPAÇÃO ANUAL PROJETADO: {formatBRL(alertMetrics.projectedInterest1y)}
