@@ -2216,7 +2216,7 @@ const Historico = () => {
       )}
 
       <AppHeader />
-      <main className="mx-auto w-full max-w-[1600px] px-2 md:px-4 lg:px-6 py-4 md:py-6 pb-36 space-y-8">
+      <main className="mx-auto w-full max-w-[1600px] px-2 md:px-4 lg:px-6 py-4 md:py-6 pb-20 space-y-8">
         <PageNav />
 
         {isInitialLoading ? (
@@ -3517,7 +3517,7 @@ const Historico = () => {
           </>
         )}
 
-        <footer className="border-t border-border/40 py-6 text-center mt-8">
+        <footer className="border-t border-border/40 py-2 text-center mt-3">
           <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">MYKACA$H · VERSÃO 3.1</p>
         </footer>
       </main>
