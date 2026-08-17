@@ -462,7 +462,8 @@ const Historico = () => {
     let min = todayStr;
     let max = todayStr;
     for (const r of rows) {
-      if (r.operationDate < min) min = r.operationDate;
+      const opDate = r.isAdditional ? (r.settlementDate || r.dueDate) : r.operationDate;
+      if (opDate < min) min = opDate;
       const cDate = r.createdAt.slice(0, 10);
       if (cDate < min) min = cDate;
       if (r.settled && r.settledDate && r.settledDate < min) min = r.settledDate;
@@ -493,18 +494,28 @@ const Historico = () => {
       baseRows = rows.filter((r) => r.settled && r.settledDate && inRange(r.settledDate));
     } else if (statusFilter === "andamento") {
       baseRows = rows.filter(
-        (r) => !r.settled && r.operationDate <= range.to && r.dueDate >= range.from
+        (r) => {
+          if (r.settled) return false;
+          const opDate = r.isAdditional ? (r.settlementDate || r.dueDate) : r.operationDate;
+          return opDate <= range.to && r.dueDate >= range.from;
+        }
       );
     } else if (statusFilter === "a_vencer") {
       baseRows = rows.filter((r) => !r.settled && inRange(r.dueDate));
     } else if (statusFilter === "todas") {
       // Para "todas", incluímos tudo que começou até o fim do período.
-      // A lógica de carryOver e eventos cuidará de abater o que já foi liquidado.
-      baseRows = rows.filter((r) => r.operationDate <= range.to);
+      // Para operações adicionais, a data relevante é a data de liquidação (vencimento).
+      baseRows = rows.filter((r) => {
+        const opDate = r.isAdditional ? (r.settlementDate || r.dueDate) : r.operationDate;
+        return opDate <= range.to;
+      });
     } else if (statusFilter === "vencidas") {
       baseRows = rows.filter((r) => !r.settled && r.overdue && inRange(r.dueDate));
     } else {
-      const base = rows.filter((r) => inRange(r.operationDate));
+      const base = rows.filter((r) => {
+        const opDate = r.isAdditional ? (r.settlementDate || r.dueDate) : r.operationDate;
+        return inRange(opDate);
+      });
       baseRows = base.filter((r) => !r.settled); 
     }
 
@@ -521,9 +532,11 @@ const Historico = () => {
       );
     }
 
-    // Ordenação padrão: data de abertura mais recente primeiro, depois por número de registro decrescente
+    // Ordenação padrão: data mais recente primeiro (para adicionais, usa data de liquidação), depois por número de registro decrescente
     baseRows.sort((a, b) => {
-      const dateCmp = b.operationDate.localeCompare(a.operationDate);
+      const aDate = a.isAdditional ? (a.settlementDate || a.dueDate) : a.operationDate;
+      const bDate = b.isAdditional ? (b.settlementDate || b.dueDate) : b.operationDate;
+      const dateCmp = bDate.localeCompare(aDate);
       if (dateCmp !== 0) return dateCmp;
       return (b.opNumber ?? 0) - (a.opNumber ?? 0);
     });
@@ -897,7 +910,10 @@ const Historico = () => {
 
     // Calcular a evolução do score para cada ponto do gráfico
     const getScoreAtDate = (dStr: string) => {
-      const rowsUpToDate = rows.filter(r => r.operationDate <= dStr);
+      const rowsUpToDate = rows.filter(r => {
+        const opDate = r.isAdditional ? (r.settlementDate || r.dueDate) : r.operationDate;
+        return opDate <= dStr;
+      });
       if (rowsUpToDate.length === 0) return 100;
 
       const g = rowsUpToDate.reduce(
@@ -1335,8 +1351,12 @@ const Historico = () => {
     const arr = [...filteredRows];
     const dir = sortDir === "asc" ? 1 : -1;
     arr.sort((a, b) => {
-      const av = (a as any)[sortKey];
-      const bv = (b as any)[sortKey];
+      let av = (a as any)[sortKey];
+      let bv = (b as any)[sortKey];
+      if (sortKey === "operationDate") {
+        av = a.isAdditional ? (a.settlementDate || a.dueDate) : a.operationDate;
+        bv = b.isAdditional ? (b.settlementDate || b.dueDate) : b.operationDate;
+      }
       let primary: number;
       if (typeof av === "number" && typeof bv === "number") {
         primary = (av - bv) * dir;
@@ -1357,7 +1377,8 @@ const Historico = () => {
   useEffect(() => {
     const keys: Record<string, boolean> = {};
     for (const r of sortedRows) {
-      const key = r.operationDate.substring(0, 7);
+      const opDate = r.isAdditional ? (r.settlementDate || r.dueDate) : r.operationDate;
+      const key = opDate.substring(0, 7);
       keys[key] = false;
     }
     setCollapsedMonths(keys);
@@ -1384,7 +1405,8 @@ const Historico = () => {
   const groupedByMonth = useMemo(() => {
     const groups: { [key: string]: typeof sortedRows } = {};
     for (const r of sortedRows) {
-      const key = r.operationDate.substring(0, 7);
+      const opDate = r.isAdditional ? (r.settlementDate || r.dueDate) : r.operationDate;
+      const key = opDate.substring(0, 7);
       if (!groups[key]) groups[key] = [];
       groups[key].push(r);
     }
