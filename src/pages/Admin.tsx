@@ -224,7 +224,7 @@ const Admin = () => {
         </div>
 
         <div className="flex items-center justify-center text-center min-w-0">
-          <h1 className="font-title title-gradient text-sm sm:text-base md:text-lg font-bold tracking-tight whitespace-nowrap uppercase">
+          <h1 className="font-title title-gradient text-sm sm:text-base md:text-lg font-normal tracking-wide whitespace-nowrap uppercase">
             ADMINISTRAÇÃO
           </h1>
         </div>

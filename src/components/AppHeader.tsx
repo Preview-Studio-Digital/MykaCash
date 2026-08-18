@@ -43,7 +43,7 @@ export const AppHeader = () => {
       {/* Header bar */}
       <div className="relative z-10 mx-auto w-full max-w-[1600px] px-2 md:px-4 lg:px-6 flex items-center justify-between gap-2 py-2 md:py-3 text-xs font-mono tracking-widest text-muted-foreground">
         <Link to="/" className="hover:opacity-80 transition-opacity shrink-0">
-          <span className="font-title title-gradient title-shimmer font-extrabold leading-none tracking-tighter text-xl sm:text-2xl md:text-3xl lg:text-4xl">
+          <span className="font-title title-gradient title-shimmer font-normal leading-none tracking-normal text-xl sm:text-2xl md:text-3xl lg:text-4xl">
             MYKACA$H
           </span>
         </Link>

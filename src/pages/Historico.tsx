@@ -2248,9 +2248,9 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
                 <VaporizeTextCycle
                   texts={["MYKACA$H"]}
                   font={{
-                    fontFamily: '"Allerta Stencil", "Space Grotesk", system-ui, sans-serif',
+                    fontFamily: '"Saira Stencil One", "Space Grotesk", system-ui, sans-serif',
                     fontSize: "52px",
-                    fontWeight: 800,
+                    fontWeight: 400,
                   }}
                   color="gradient"
                   spread={4}

@@ -15,7 +15,7 @@ export default {
     extend: {
       fontFamily: {
         display: ['"Space Grotesk"', "system-ui", "sans-serif"],
-        title: ['"Allerta Stencil"', '"Space Grotesk"', "system-ui", "sans-serif"],
+        title: ['"Saira Stencil One"', '"Space Grotesk"', "system-ui", "sans-serif"],
         sans: ['"DM Sans"', "system-ui", "sans-serif"],
         mono: ['"JetBrains Mono"', "ui-monospace", "monospace"],
       },
