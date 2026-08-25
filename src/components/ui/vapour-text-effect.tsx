@@ -830,24 +830,36 @@ const calculateVaporizeSpread = (fontSize: number) => {
  * @returns Valid RGBA color string
  */
 const parseColor = (color: string) => {
-  if (color === "gradient") return "gradient";
+  if (!color || color === "gradient") return "gradient";
+  
   // Try to match rgb/rgba pattern
-  const rgbMatch = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-  const rgbaMatch = color.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
+  const rgbMatch = color.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/i);
+  const rgbaMatch = color.match(/^rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)$/i);
   
   if (rgbaMatch) {
-    // If RGBA format
     const [_, r, g, b, a] = rgbaMatch;
     return `rgba(${r}, ${g}, ${b}, ${a})`;
   } else if (rgbMatch) {
-    // If RGB format
     const [_, r, g, b] = rgbMatch;
     return `rgba(${r}, ${g}, ${b}, 1)`;
   }
+
+  // Handle Hex (#fff or #ffffff)
+  if (color.startsWith("#")) {
+    let hex = color.slice(1);
+    if (hex.length === 3) {
+      hex = hex.split("").map((c) => c + c).join("");
+    }
+    if (hex.length === 6) {
+      const num = parseInt(hex, 16);
+      const r = (num >> 16) & 255;
+      const g = (num >> 8) & 255;
+      const b = num & 255;
+      return `rgba(${r}, ${g}, ${b}, 1)`;
+    }
+  }
   
-  // Fallback to black if parsing fails
-  console.warn("Could not parse color:", color);
-  return "rgba(0, 0, 0, 1)";
+  return color;
 };
 
 /**

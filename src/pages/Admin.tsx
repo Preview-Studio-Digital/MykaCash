@@ -10,6 +10,7 @@ import { ArrowLeft, Pencil, Trash2, Shield, Users, Settings, UserPlus, Wallet, M
 import SoundSettings from "@/components/SoundSettings";
 import { AccountCashFlow } from "@/components/AccountCashFlow";
 import { AdminAuditLogs } from "@/components/AdminAuditLogs";
+import { AppFooter } from "@/components/AppFooter";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import {
@@ -211,7 +212,7 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <header className="border-b border-border/60 px-2 sm:px-3 md:px-6 py-3 grid grid-cols-3 items-center gap-1 sm:gap-2 bg-background/50 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center justify-start min-w-0">
           <Link
@@ -356,6 +357,7 @@ const Admin = () => {
         )}
       </div>
 
+      <AppFooter className="mt-auto" />
 
       {/* Create user dialog */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>

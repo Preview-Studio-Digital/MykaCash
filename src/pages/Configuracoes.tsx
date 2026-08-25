@@ -1,11 +1,12 @@
 import { AppHeader } from "@/components/AppHeader";
+import { AppFooter } from "@/components/AppFooter";
 import SoundSettings from "@/components/SoundSettings";
 
 export default function Configuracoes() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <AppHeader />
-      <main className="container max-w-3xl py-8 space-y-8">
+      <main className="container max-w-3xl py-8 space-y-8 flex-1">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
             <span className="h-2 w-2 rounded-full animate-color-cycle" />
@@ -19,6 +20,7 @@ export default function Configuracoes() {
         </div>
         <SoundSettings />
       </main>
+      <AppFooter />
     </div>
   );
 }

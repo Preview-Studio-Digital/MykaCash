@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import { AppHeader } from "@/components/AppHeader";
 import { PageNav } from "@/components/PageNav";
+import { AppFooter } from "@/components/AppFooter";
 import VaporizeTextCycle from "@/components/ui/vapour-text-effect";
 import { RegistrationSection } from "@/components/RegistrationSection";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { calculate, formatBRL, formatPct, FACTORING_MONTHLY_RATE_PCT, type Installment } from "@/lib/calc";
 import { toast } from "sonner";
 import { playSound } from "@/lib/sounds";
-import { CheckCircle2, Circle, Pencil, Trash2, Plus, X, ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal, ChevronDown, ChevronRight, Search, AlertTriangle, AlertOctagon, Calendar, Coins, User } from "lucide-react";
+import { CheckCircle2, Circle, Pencil, Trash2, Plus, X, ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal, ChevronDown, ChevronRight, Search, AlertTriangle, AlertOctagon, Calendar, Coins, User, Clock, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { logOperationAction } from "@/lib/auditLogger";
@@ -181,6 +182,7 @@ const Historico = () => {
     annualVisionText: string;
   } | null>(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
+  const [aiLastUpdated, setAiLastUpdated] = useState<Date | null>(() => new Date());
 
   useEffect(() => {
     if (typeof document !== "undefined" && "fonts" in document) {
@@ -2143,14 +2145,16 @@ const Historico = () => {
 
   useEffect(() => {
     if (invoices.length === 0) return;
+
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey || apiKey === "SUA_CHAVE_DO_GEMINI_AQUI" || apiKey.trim() === "") {
+      setLoadingInsights(false);
+      return;
+    }
     
     setLoadingInsights(true);
     const delayDebounce = setTimeout(async () => {
       try {
-        const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-        if (!apiKey) {
-          throw new Error("VITE_GEMINI_API_KEY is not configured in your .env file.");
-        }
 
         const prompt = `
 Você é o MykaCash AI, um consultor financeiro de elite especializado em fluxo de caixa e antecipação de recebíveis.
@@ -2208,6 +2212,7 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
 
         const parsedData = JSON.parse(responseText.trim());
         setAiInsights(parsedData);
+        setAiLastUpdated(new Date());
       } catch (err) {
         console.error("Erro ao carregar insights de IA:", err);
         setAiInsights(null);
@@ -3039,7 +3044,7 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
           key={`alerts-${rows.length}-${alertMetrics.scoreNumeric}`}
           className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up"
         >
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full animate-color-cycle opacity-75"></span>
@@ -3049,6 +3054,17 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
                 Análise de Compromisso e Saúde Financeira
               </h2>
             </div>
+            {aiLastUpdated && (
+              <div className="flex items-center gap-2 font-mono text-[10px] sm:text-xs text-muted-foreground bg-white/[0.04] border border-border/40 px-3 py-1.5 rounded-full shadow-inner w-fit">
+                <Sparkles className="h-3.5 w-3.5 text-primary-glow animate-pulse" />
+                <span>
+                  {aiInsights ? "Diagnóstico IA gerado em: " : "Diagnóstico atualizado em: "}
+                  <strong className="text-foreground font-semibold">
+                    {aiLastUpdated.toLocaleDateString("pt-BR")} às {aiLastUpdated.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                  </strong>
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="w-full space-y-6 flex flex-col justify-between">
@@ -3204,9 +3220,14 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
               )}
             >
               <span className="text-xs animate-pulse drop-shadow-[0_0_6px_rgba(250,204,21,0.8)]">💡</span>
-              <div className="space-y-0.5">
-                <div className="font-mono text-[9px] tracking-wider text-muted-foreground uppercase">
-                  Recomendação do Consultor AI · {advisorRecommendation.headline}
+              <div className="space-y-0.5 w-full">
+                <div className="font-mono text-[9px] tracking-wider text-muted-foreground uppercase flex items-center justify-between gap-2">
+                  <span>Recomendação do Consultor AI · {advisorRecommendation.headline}</span>
+                  {aiLastUpdated && (
+                    <span className="text-[9px] opacity-75 font-mono">
+                      {aiLastUpdated.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-justify text-muted-foreground leading-normal font-sans">
                   {advisorRecommendation.body}
@@ -3560,6 +3581,32 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
                   <span className="hidden sm:inline">Taxa Efetiva: <strong className="text-white">{formatPct(totalEffective)}</strong></span>
                 </div>
               </div>
+
+              {/* Monthly Average Summary Bar */}
+              {(() => {
+                const numMonths = Math.max(1, groupedByMonth.length);
+                const monthlyAvgValue = totals.value / numMonths;
+                const monthlyAvgPresentValue = totals.presentValue / numMonths;
+                const monthlyAvgCost = totals.cost / numMonths;
+                const monthlyAvgEffective = totalEffective;
+
+                return (
+                  <div className="flex flex-wrap justify-between items-center bg-muted/20 border border-border/40 rounded-xl p-4 font-mono text-xs md:text-sm shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold tracking-wider text-muted-foreground uppercase">MÉDIA MENSAL</span>
+                      <span className="text-[10px] font-normal px-2 py-0.5 rounded-full bg-white/5 border border-border/30 text-muted-foreground">
+                        {numMonths} {numMonths === 1 ? "mês" : "meses"}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-x-6 gap-y-2">
+                      <span>Bruto: <strong className="text-factoring-amber">{formatBRL(monthlyAvgValue)}</strong></span>
+                      <span>Líquido: <strong className="text-net-green">{formatBRL(monthlyAvgPresentValue)}</strong></span>
+                      <span>Custo: <strong className="text-cost-red">{formatBRL(monthlyAvgCost)}</strong></span>
+                      <span className="hidden sm:inline">Taxa Efetiva: <strong className="text-white">{formatPct(monthlyAvgEffective)}</strong></span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
         </section>
@@ -3567,9 +3614,7 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
           </>
         )}
 
-        <footer className="border-t border-border/40 py-2 text-center mt-3">
-          <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground">MYKACA$H · VERSÃO 3.2</p>
-        </footer>
+        <AppFooter className="mt-6" />
       </main>
 
       {/* Fixed bottom filter bar */}
