@@ -3572,13 +3572,14 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
               })}
 
               {/* Overall Total Summary Bar */}
-              <div className="flex flex-wrap justify-between items-center bg-muted/40 border border-border/60 rounded-xl p-4 font-mono text-xs md:text-sm shadow-sm">
-                <span className="font-bold tracking-wider text-primary-glow uppercase">TOTAL GERAL DO PERÍODO</span>
-                <div className="flex flex-wrap gap-x-6 gap-y-2">
-                  <span>Bruto: <strong className="text-factoring-amber">{formatBRL(totals.value)}</strong></span>
-                  <span>Líquido: <strong className="text-net-green">{formatBRL(totals.presentValue)}</strong></span>
-                  <span>Custo: <strong className="text-cost-red">{formatBRL(totals.cost)}</strong></span>
-                  <span className="hidden sm:inline">Taxa Efetiva: <strong className="text-white">{formatPct(totalEffective)}</strong></span>
+              <div className="relative overflow-hidden rounded-xl bg-factoring-amber/15 border border-factoring-amber/40 backdrop-blur-md p-4 font-mono text-xs md:text-sm shadow-[0_0_20px_-5px_hsl(var(--factoring-amber)/0.25)] flex flex-wrap justify-between items-center gap-2">
+                <div className="absolute inset-0 bg-gradient-to-r from-factoring-amber/10 via-transparent to-factoring-amber/10 pointer-events-none" />
+                <span className="relative font-bold tracking-wider text-factoring-amber uppercase drop-shadow-sm">TOTAL GERAL DO PERÍODO</span>
+                <div className="relative flex flex-wrap gap-x-6 gap-y-2 text-foreground/90">
+                  <span>Bruto: <strong className="text-factoring-amber font-bold">{formatBRL(totals.value)}</strong></span>
+                  <span>Líquido: <strong className="text-net-green font-bold">{formatBRL(totals.presentValue)}</strong></span>
+                  <span>Custo: <strong className="text-cost-red font-bold">{formatBRL(totals.cost)}</strong></span>
+                  <span className="hidden sm:inline">Taxa Efetiva: <strong className="text-white font-bold">{formatPct(totalEffective)}</strong></span>
                 </div>
               </div>
 
@@ -3591,18 +3592,19 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
                 const monthlyAvgEffective = totalEffective;
 
                 return (
-                  <div className="flex flex-wrap justify-between items-center bg-muted/20 border border-border/40 rounded-xl p-4 font-mono text-xs md:text-sm shadow-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold tracking-wider text-muted-foreground uppercase">MÉDIA MENSAL</span>
-                      <span className="text-[10px] font-normal px-2 py-0.5 rounded-full bg-white/5 border border-border/30 text-muted-foreground">
+                  <div className="relative overflow-hidden rounded-xl bg-cost-red/15 border border-cost-red/40 backdrop-blur-md p-4 font-mono text-xs md:text-sm shadow-[0_0_20px_-5px_hsl(var(--cost-red)/0.25)] flex flex-wrap justify-between items-center gap-2">
+                    <div className="absolute inset-0 bg-gradient-to-r from-cost-red/10 via-transparent to-cost-red/10 pointer-events-none" />
+                    <div className="relative flex items-center gap-2">
+                      <span className="font-bold tracking-wider text-cost-red uppercase drop-shadow-sm">MÉDIA MENSAL</span>
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-cost-red/20 border border-cost-red/30 text-cost-red">
                         {numMonths} {numMonths === 1 ? "mês" : "meses"}
                       </span>
                     </div>
-                    <div className="flex flex-wrap gap-x-6 gap-y-2">
-                      <span>Bruto: <strong className="text-factoring-amber">{formatBRL(monthlyAvgValue)}</strong></span>
-                      <span>Líquido: <strong className="text-net-green">{formatBRL(monthlyAvgPresentValue)}</strong></span>
-                      <span>Custo: <strong className="text-cost-red">{formatBRL(monthlyAvgCost)}</strong></span>
-                      <span className="hidden sm:inline">Taxa Efetiva: <strong className="text-white">{formatPct(monthlyAvgEffective)}</strong></span>
+                    <div className="relative flex flex-wrap gap-x-6 gap-y-2 text-foreground/90">
+                      <span>Bruto: <strong className="text-factoring-amber font-bold">{formatBRL(monthlyAvgValue)}</strong></span>
+                      <span>Líquido: <strong className="text-net-green font-bold">{formatBRL(monthlyAvgPresentValue)}</strong></span>
+                      <span>Custo: <strong className="text-cost-red font-bold">{formatBRL(monthlyAvgCost)}</strong></span>
+                      <span className="hidden sm:inline">Taxa Efetiva: <strong className="text-white font-bold">{formatPct(monthlyAvgEffective)}</strong></span>
                     </div>
                   </div>
                 );
