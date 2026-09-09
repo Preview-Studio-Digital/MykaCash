@@ -183,15 +183,42 @@ export const AdminAuditLogs = () => {
             </span>
           </span>
         );
-      case "UPDATE":
+      case "UPDATE": {
+        // Extrair diffs caso existam no log.details: " | Alterações: [Cliente: "A" ➔ "B"; NF: ...]"
+        let diffContent: string | null = null;
+        if (log.details && log.details.includes("Alterações: [")) {
+          const match = log.details.match(/Alterações:\s*\[(.*?)\]/);
+          if (match && match[1]) {
+            diffContent = match[1];
+          }
+        }
+
         return (
-          <span>
-            <strong className="text-foreground text-xs sm:text-sm">{log.author}</strong> editou a operação{" "}
-            <span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
-              (Reg: {op}, Cliente: {client}, NF: {nf}{valText}, {time})
+          <div className="flex flex-col gap-1">
+            <span>
+              <strong className="text-foreground text-xs sm:text-sm">{log.author}</strong> editou a operação{" "}
+              <span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
+                (Reg: {op}, Cliente: {client}, NF: {nf}{valText}, {time})
+              </span>
             </span>
-          </span>
+            {diffContent && (
+              <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                <span className="text-[10px] text-primary-glow font-semibold tracking-wider uppercase">
+                  Alterações:
+                </span>
+                {diffContent.split("; ").map((item, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center px-2 py-0.5 rounded bg-muted/60 border border-border/40 text-[10px] sm:text-[11px] text-foreground/90 font-mono"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         );
+      }
       case "SETTLE":
         return (
           <span>

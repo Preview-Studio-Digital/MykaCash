@@ -339,9 +339,57 @@ export const RegistrationSection = ({
     // Registrar log da operação
     const opNumStr = savedOpNumber ? String(savedOpNumber).padStart(4, "0") : "—";
     const logAction = invoiceToEdit ? "UPDATE" : "CREATE";
-    const logDetails = invoiceToEdit
-      ? `Editou a operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber.trim()}, Valor Líquido: ${formatBRL(result.netValue)})`
-      : `Abriu a operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber.trim()}, Valor Líquido: ${formatBRL(result.netValue)})`;
+    let logDetails: string;
+
+    if (invoiceToEdit) {
+      const changes: string[] = [];
+
+      // Verificar alterações nos campos
+      if (invoiceToEdit.client_id !== clientId) {
+        const oldClient = clients.find((c) => c.id === invoiceToEdit.client_id)?.name ?? "—";
+        changes.push(`Cliente: "${oldClient}" ➔ "${clientName}"`);
+      }
+      if (invoiceToEdit.invoice_number.trim() !== invoiceNumber.trim()) {
+        changes.push(`NF: "${invoiceToEdit.invoice_number.trim()}" ➔ "${invoiceNumber.trim()}"`);
+      }
+      if (Math.abs(Number(invoiceToEdit.invoice_value) - Number(invoiceValue)) > 0.001) {
+        changes.push(`Valor Bruto: ${formatBRL(invoiceToEdit.invoice_value)} ➔ ${formatBRL(invoiceValue)}`);
+      }
+      if (invoiceToEdit.operation_date !== operationDate) {
+        const fmtDate = (d: string) => d.split("-").reverse().join("/");
+        changes.push(`Data Op.: ${fmtDate(invoiceToEdit.operation_date)} ➔ ${fmtDate(operationDate)}`);
+      }
+      if (Math.abs(Number(invoiceToEdit.monthly_rate) - Number(monthlyRate)) > 0.001) {
+        changes.push(`Taxa: ${invoiceToEdit.monthly_rate}% ➔ ${monthlyRate}%`);
+      }
+
+      // Comparação de parcelas
+      const oldInsts = invoiceToEdit.installments || [];
+      const isInstDiff =
+        oldInsts.length !== installments.length ||
+        oldInsts.some((oldI, idx) => {
+          const newI = installments[idx];
+          return (
+            !newI ||
+            Math.abs(Number(oldI.value) - Number(newI.value)) > 0.01 ||
+            oldI.dueDate !== newI.dueDate
+          );
+        });
+
+      if (isInstDiff) {
+        if (oldInsts.length !== installments.length) {
+          changes.push(`Parcelas: ${oldInsts.length}x ➔ ${installments.length}x`);
+        } else {
+          changes.push(`Vencimentos/Parcelas reajustados`);
+        }
+      }
+
+      const diffSummary = changes.length > 0 ? ` | Alterações: [${changes.join("; ")}]` : "";
+      logDetails = `Editou a operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber.trim()}, Valor Líquido: ${formatBRL(result.netValue)})${diffSummary}`;
+    } else {
+      logDetails = `Abriu a operação (Registro: ${opNumStr}, Cliente: ${clientName}, NF: ${invoiceNumber.trim()}, Valor Líquido: ${formatBRL(result.netValue)})`;
+    }
+
     await logOperationAction(logAction, opNumStr, clientName, invoiceNumber.trim(), logDetails, result.netValue);
     try {
       // Wait a tick so the offscreen archive re-renders with the final operation number
