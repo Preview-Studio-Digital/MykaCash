@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AppFooter } from "@/components/AppFooter";
+import logoImg from "/money-management.ico?url";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -65,9 +66,9 @@ const Login = () => {
       <main className="relative w-full max-w-md mx-auto my-auto px-4 py-8">
         <div className="rounded-2xl border border-border/60 bg-gradient-card p-8 shadow-panel animate-fade-up">
           <div className="mb-8 text-center flex flex-col items-center">
-            <img src="/money-management.ico" alt="Smart Money" className="h-16 w-16 mb-4" />
+            <img src={logoImg} alt="Smart Money" className="h-16 w-16 mb-4 object-contain" />
             <h1 className="font-title font-normal title-gradient text-3xl sm:text-4xl whitespace-nowrap tracking-wide">MYKACA$H</h1>
-            <p className="mt-2 font-mono text-xs tracking-[0.4em] text-muted-foreground">VERSÃO 3.3</p>
+            <p className="mt-2 font-mono text-xs tracking-[0.4em] text-muted-foreground">VERSÃO 3.4</p>
           </div>
 
           <form onSubmit={onSubmit} className="space-y-4">

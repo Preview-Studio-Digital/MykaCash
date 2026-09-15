@@ -9,7 +9,7 @@ export const AppFooter = ({ className }: AppFooterProps) => {
   return (
     <footer className={cn("border-t border-border/40 py-4 text-center mt-auto", className)}>
       <p className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground uppercase">
-        MYKACA$H · VERSÃO 3.3
+        MYKACA$H · VERSÃO 3.4
       </p>
     </footer>
   );

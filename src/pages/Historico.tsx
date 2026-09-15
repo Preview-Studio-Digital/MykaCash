@@ -3592,11 +3592,11 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
                 const monthlyAvgEffective = totalEffective;
 
                 return (
-                  <div className="relative overflow-hidden rounded-xl bg-cost-red/15 border border-cost-red/40 backdrop-blur-md p-4 font-mono text-xs md:text-sm shadow-[0_0_20px_-5px_hsl(var(--cost-red)/0.25)] flex flex-wrap justify-between items-center gap-2">
-                    <div className="absolute inset-0 bg-gradient-to-r from-cost-red/10 via-transparent to-cost-red/10 pointer-events-none" />
+                  <div className="relative overflow-hidden rounded-xl bg-cyan-950/30 border border-cyan-500/40 backdrop-blur-md p-4 font-mono text-xs md:text-sm shadow-[0_0_20px_-5px_rgba(6,182,212,0.25)] flex flex-wrap justify-between items-center gap-2">
+                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-transparent to-cyan-500/10 pointer-events-none" />
                     <div className="relative flex items-center gap-2">
-                      <span className="font-bold tracking-wider text-cost-red uppercase drop-shadow-sm">MÉDIA MENSAL</span>
-                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-cost-red/20 border border-cost-red/30 text-cost-red">
+                      <span className="font-bold tracking-wider text-cyan-400 uppercase drop-shadow-sm">MÉDIA MENSAL</span>
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-cyan-300">
                         {numMonths} {numMonths === 1 ? "mês" : "meses"}
                       </span>
                     </div>
