@@ -1437,20 +1437,20 @@ const Historico = () => {
     const active = sortKey === sKey;
     const Icon = sortDir === "asc" ? ArrowUp : ArrowDown;
     return (
-      <th className={"px-1.5 py-2 text-center font-medium whitespace-nowrap " + className}>
+      <th className={"px-1 lg:px-1.5 py-1.5 lg:py-2 text-center font-medium whitespace-nowrap " + className}>
         <button
           type="button"
           onClick={() => toggleSort(sKey)}
           title="Clique para ordenar"
           className={
-            "inline-flex items-center justify-center transition-all px-1.5 py-1 rounded-md " +
+            "inline-flex items-center justify-center transition-all px-1 py-0.5 rounded " +
             (active
               ? "text-foreground bg-foreground/5"
               : "hover:text-foreground hover:bg-foreground/10")
           }
         >
           <span>{label}</span>
-          {active && <Icon className="ml-1 h-3 w-3 text-primary" />}
+          {active && <Icon className="ml-0.5 h-3 w-3 text-primary shrink-0" />}
         </button>
       </th>
     );
@@ -1613,7 +1613,7 @@ const Historico = () => {
     }
 
     return (
-      <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up mb-6">
+      <section className="rounded-2xl border border-border/60 bg-gradient-card p-4 sm:p-6 lg:p-8 shadow-card animate-fade-up mb-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
@@ -1730,23 +1730,23 @@ const Historico = () => {
             </div>
 
             {/* Desktop table */}
-            <div className="hidden md:block overflow-visible">
-              <table className="w-full table-auto text-xs lg:text-sm">
-                <thead className="bg-muted/40 font-mono tracking-widest">
-                  <tr className="text-muted-foreground whitespace-nowrap">
-                    <th className="px-1.5 py-2 text-center font-medium">REGISTRO</th>
-                    <th className="px-1.5 py-2 text-center font-medium">STATUS</th>
-                    <th className="px-1.5 py-2 text-left font-medium">CLIENTE</th>
-                    <th className="px-1.5 py-2 text-center font-medium">NF</th>
-                    <th className="px-1.5 py-2 text-center font-medium">ABERTURA</th>
-                    <th className="px-1.5 py-2 text-center font-medium">VENCIMENTO</th>
-                    <th className="px-1.5 py-2 text-center font-medium">LIQUIDAÇÃO</th>
-                    <th className="px-1.5 py-2 text-center font-medium">DIAS</th>
-                    <th className="px-1.5 py-2 text-center font-medium">TAXA EFET.</th>
-                    <th className="px-1.5 py-2 text-center font-medium">BRUTO (R$)</th>
-                    <th className="px-1.5 py-2 text-center font-medium">LÍQUIDO (R$)</th>
-                    <th className="px-1.5 py-2 text-center font-medium">CUSTO (R$)</th>
-                    <th className="px-1.5 py-2 text-center font-medium">AUTOR</th>
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full table-auto text-[11px] xl:text-xs 2xl:text-sm">
+                <thead className="bg-muted/40 font-mono tracking-wider xl:tracking-widest">
+                  <tr className="text-muted-foreground whitespace-nowrap text-[10px] xl:text-xs">
+                    <th className="px-1 xl:px-1.5 py-1.5 xl:py-2 text-center font-medium">REGISTRO</th>
+                    <th className="px-1 xl:px-1.5 py-1.5 xl:py-2 text-center font-medium">STATUS</th>
+                    <th className="px-1 xl:px-2 py-1.5 xl:py-2 text-left font-medium">CLIENTE</th>
+                    <th className="px-1 xl:px-1.5 py-1.5 xl:py-2 text-center font-medium">NF</th>
+                    <th className="px-1 xl:px-1.5 py-1.5 xl:py-2 text-center font-medium">ABERTURA</th>
+                    <th className="px-1 xl:px-1.5 py-1.5 xl:py-2 text-center font-medium">VENCIMENTO</th>
+                    <th className="px-1 xl:px-1.5 py-1.5 xl:py-2 text-center font-medium">LIQUIDAÇÃO</th>
+                    <th className="px-0.5 xl:px-1 py-1.5 xl:py-2 text-center font-medium">DIAS</th>
+                    <th className="px-1 xl:px-1.5 py-1.5 xl:py-2 text-center font-medium">TAXA EFET.</th>
+                    <th className="px-1 xl:px-1.5 py-1.5 xl:py-2 text-center font-medium">BRUTO (R$)</th>
+                    <th className="px-1 xl:px-1.5 py-1.5 xl:py-2 text-center font-medium">LÍQUIDO (R$)</th>
+                    <th className="px-1 xl:px-1.5 py-1.5 xl:py-2 text-center font-medium">CUSTO (R$)</th>
+                    <th className="px-1 xl:px-1.5 py-1.5 xl:py-2 text-center font-medium">AUTOR</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1756,12 +1756,12 @@ const Historico = () => {
                       <tr
                         key={`resumo-tr-${r.key}`}
                         className={cn(
-                          "group/row border-t border-border/40 font-mono tabular-nums text-center transition-colors h-9",
+                          "group/row border-t border-border/40 font-mono tabular-nums text-center transition-colors h-8 xl:h-9",
                           rowClass(r)
                         )}
                       >
                         <td
-                          className="px-1.5 py-2 text-muted-foreground relative"
+                          className="px-1 xl:px-1.5 py-1 xl:py-1.5 text-muted-foreground relative"
                           onMouseEnter={() => canManage && setRegHoverKey(r.key)}
                           onMouseLeave={() => setRegHoverKey((k) => k === r.key ? null : k)}
                         >
@@ -1791,7 +1791,7 @@ const Historico = () => {
                           </div>
                         </td>
 
-                        <td className="px-2 py-2">
+                        <td className="px-1 xl:px-1.5 py-1 xl:py-1.5">
                           <div className="inline-flex items-center justify-center">
                             <button
                               type="button"
@@ -1802,7 +1802,7 @@ const Historico = () => {
                                   : "Clique para marcar como LIQUIDADA"
                               }
                               className={cn(
-                                "group status-pill relative inline-flex items-center justify-center h-5 w-[92px] whitespace-nowrap rounded-full px-2 text-[10px] tracking-widest transition-all cursor-pointer",
+                                "group status-pill relative inline-flex items-center justify-center h-4.5 xl:h-5 w-[76px] xl:w-[90px] whitespace-nowrap rounded-full px-1 xl:px-2 text-[9px] xl:text-[10px] tracking-wider transition-all cursor-pointer",
                                 r.isAdditional
                                   ? "bg-purple-500/20 text-purple-400 hover:bg-purple-500/30"
                                   : r.settled
@@ -1829,19 +1829,19 @@ const Historico = () => {
                             </button>
                           </div>
                         </td>
-                        <td className="px-2 py-2 max-w-[160px] truncate" title={r.clientName}>
+                        <td className="px-1 xl:px-2 py-1 xl:py-1.5 max-w-[110px] xl:max-w-[160px] truncate text-left" title={r.clientName}>
                           {r.clientName}
                         </td>
-                        <td className="px-1.5 py-2">{r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}</td>
-                        <td className="px-1.5 py-2">{fmtDateShort(r.operationDate)}</td>
-                        <td className="px-1.5 py-2">{fmtDateShort(r.dueDate)}</td>
-                        <td className="px-1.5 py-2">{r.settlementDate ? fmtDateShort(r.settlementDate) : "—"}</td>
-                        <td className="px-1.5 py-2">{r.days}</td>
-                        <td className="px-1.5 py-2">{formatPct(r.effectivePct)}</td>
-                        <td className="px-1.5 py-2 text-factoring-amber font-bold">{r.isAdditional ? "—" : formatBRL(r.value)}</td>
-                        <td className="px-1.5 py-2 text-net-green font-bold">{r.isAdditional ? "—" : formatBRL(r.presentValue)}</td>
-                        <td className="px-1.5 py-2 text-cost-red font-bold">{formatBRL(r.cost)}</td>
-                        <td className="px-1.5 py-2 text-muted-foreground truncate max-w-[100px]" title={r.createdBy}>{r.createdBy}</td>
+                        <td className="px-1 xl:px-1.5 py-1 xl:py-1.5">{r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}</td>
+                        <td className="px-1 xl:px-1.5 py-1 xl:py-1.5">{fmtDateShort(r.operationDate)}</td>
+                        <td className="px-1 xl:px-1.5 py-1 xl:py-1.5">{fmtDateShort(r.dueDate)}</td>
+                        <td className="px-1 xl:px-1.5 py-1 xl:py-1.5">{r.settlementDate ? fmtDateShort(r.settlementDate) : "—"}</td>
+                        <td className="px-0.5 xl:px-1 py-1 xl:py-1.5">{r.days}</td>
+                        <td className="px-1 xl:px-1.5 py-1 xl:py-1.5">{formatPct(r.effectivePct)}</td>
+                        <td className="px-1 xl:px-1.5 py-1 xl:py-1.5 text-factoring-amber font-bold">{r.isAdditional ? "—" : formatBRL(r.value)}</td>
+                        <td className="px-1 xl:px-1.5 py-1 xl:py-1.5 text-net-green font-bold">{r.isAdditional ? "—" : formatBRL(r.presentValue)}</td>
+                        <td className="px-1 xl:px-1.5 py-1 xl:py-1.5 text-cost-red font-bold">{formatBRL(r.cost)}</td>
+                        <td className="px-1 xl:px-1.5 py-1 xl:py-1.5 text-muted-foreground truncate max-w-[80px] xl:max-w-[100px]" title={r.createdBy}>{r.createdBy}</td>
                       </tr>
                     );
                   })}
@@ -3246,7 +3246,7 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
         {renderResumoDoDia()}
 
         {/* Table */}
-        <section className="rounded-2xl border border-border/60 bg-gradient-card p-6 md:p-8 shadow-card animate-fade-up">
+        <section className="rounded-2xl border border-border/60 bg-gradient-card p-4 sm:p-6 lg:p-8 shadow-card animate-fade-up">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
               <div className="flex items-center gap-3">
@@ -3430,12 +3430,12 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
                         </div>
 
                         {/* Desktop table */}
-                        <div className="hidden md:block overflow-visible">
-                          <table className="w-full table-auto text-xs lg:text-sm">
-                            <thead className="bg-muted/40 font-mono tracking-widest">
-                              <tr className="text-muted-foreground whitespace-nowrap">
-                                <th className="px-1.5 py-2 text-center font-medium">REGISTRO</th>
-                                <th className="px-1.5 py-2 text-center font-medium">STATUS</th>
+                        <div className="hidden md:block overflow-x-auto">
+                          <table className="w-full table-auto text-[11px] xl:text-xs 2xl:text-sm">
+                            <thead className="bg-muted/40 font-mono tracking-wider xl:tracking-widest">
+                              <tr className="text-muted-foreground whitespace-nowrap text-[10px] xl:text-xs">
+                                <th className="px-1 xl:px-1.5 py-1.5 xl:py-2 text-center font-medium">REGISTRO</th>
+                                <th className="px-1 xl:px-1.5 py-1.5 xl:py-2 text-center font-medium">STATUS</th>
                                 <SortableTh label="CLIENTE" sKey="clientName" />
                                 <SortableTh label="NF" sKey="invoiceNumber" />
                                 <SortableTh label="ABERTURA" sKey="operationDate" />
@@ -3456,12 +3456,12 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
                                   <tr
                                     key={r.key}
                                     className={cn(
-                                      "group/row border-t border-border/40 font-mono tabular-nums text-center transition-colors h-9",
+                                      "group/row border-t border-border/40 font-mono tabular-nums text-center transition-colors h-8 xl:h-9",
                                       rowClass(r)
                                     )}
                                   >
                                       <td
-                                        className="px-1.5 py-2 text-muted-foreground relative"
+                                        className="px-1 xl:px-1.5 py-1 xl:py-1.5 text-muted-foreground relative"
                                         onMouseEnter={() => canManage && setRegHoverKey(r.key)}
                                         onMouseLeave={() => setRegHoverKey((k) => k === r.key ? null : k)}
                                       >
@@ -3490,7 +3490,7 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
                                           )}
                                         </div>
                                       </td>
-                                    <td className="px-2 py-2">
+                                    <td className="px-1 xl:px-1.5 py-1 xl:py-1.5">
                                       <div className="inline-flex items-center justify-center">
                                         <button
                                           type="button"
@@ -3501,7 +3501,7 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
                                               : "Clique para marcar como LIQUIDADA"
                                           }
                                           className={cn(
-                                            "group status-pill relative inline-flex items-center justify-center h-5 w-[92px] whitespace-nowrap rounded-full px-2 text-[10px] tracking-widest transition-all cursor-pointer",
+                                            "group status-pill relative inline-flex items-center justify-center h-4.5 xl:h-5 w-[76px] xl:w-[90px] whitespace-nowrap rounded-full px-1 xl:px-2 text-[9px] xl:text-[10px] tracking-wider transition-all cursor-pointer",
                                             r.isAdditional
                                               ? "bg-purple-500/20 text-purple-400 hover:bg-purple-500/30"
                                               : r.settled
@@ -3528,39 +3528,39 @@ Responda apenas com o JSON. Não inclua blocos de código com markdown como \`\`
                                         </button>
                                       </div>
                                     </td>
-                                    <td className="px-2 py-2 max-w-[160px] truncate" title={r.clientName}>
+                                    <td className="px-1 xl:px-2 py-1 xl:py-1.5 max-w-[110px] xl:max-w-[160px] truncate text-left" title={r.clientName}>
                                       {r.clientName}
                                     </td>
-                                    <td className="px-1.5 py-2">{r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}</td>
-                                    <td className="px-1.5 py-2">{fmtDateShort(r.operationDate)}</td>
-                                    <td className="px-1.5 py-2">{fmtDateShort(r.dueDate)}</td>
-                                    <td className="px-1.5 py-2">{r.settlementDate ? fmtDateShort(r.settlementDate) : "—"}</td>
-                                    <td className="px-1.5 py-2">{r.days}</td>
-                                    <td className="px-1.5 py-2">{formatPct(r.effectivePct)}</td>
-                                    <td className="px-1.5 py-2 text-factoring-amber">{r.isAdditional ? "—" : formatBRLNum(r.value)}</td>
-                                    <td className="px-1.5 py-2 text-net-green">{r.isAdditional ? "—" : formatBRLNum(r.presentValue)}</td>
-                                    <td className="px-1.5 py-2 text-cost-red">{formatBRLNum(r.cost)}</td>
-                                    <td className="px-2 py-2 max-w-[120px] truncate" title={r.createdBy}>
+                                    <td className="px-1 xl:px-1.5 py-1 xl:py-1.5">{r.invoiceNumber}{r.parcelLabel === "ÚNICA" ? "" : String.fromCharCode(96 + (parseInt(r.parcelLabel) || 0))}</td>
+                                    <td className="px-1 xl:px-1.5 py-1 xl:py-1.5">{fmtDateShort(r.operationDate)}</td>
+                                    <td className="px-1 xl:px-1.5 py-1 xl:py-1.5">{fmtDateShort(r.dueDate)}</td>
+                                    <td className="px-1 xl:px-1.5 py-1 xl:py-1.5">{r.settlementDate ? fmtDateShort(r.settlementDate) : "—"}</td>
+                                    <td className="px-0.5 xl:px-1 py-1 xl:py-1.5">{r.days}</td>
+                                    <td className="px-1 xl:px-1.5 py-1 xl:py-1.5">{formatPct(r.effectivePct)}</td>
+                                    <td className="px-1 xl:px-1.5 py-1 xl:py-1.5 text-factoring-amber">{r.isAdditional ? "—" : formatBRLNum(r.value)}</td>
+                                    <td className="px-1 xl:px-1.5 py-1 xl:py-1.5 text-net-green">{r.isAdditional ? "—" : formatBRLNum(r.presentValue)}</td>
+                                    <td className="px-1 xl:px-1.5 py-1 xl:py-1.5 text-cost-red">{formatBRLNum(r.cost)}</td>
+                                    <td className="px-1 xl:px-1.5 py-1 xl:py-1.5 max-w-[80px] xl:max-w-[120px] truncate" title={r.createdBy}>
                                       {r.createdBy}
                                     </td>
                                   </tr>
                                 );
                               })}
 
-                              <tr className="border-t-2 border-primary-glow/40 bg-primary-glow/[0.07] font-mono tabular-nums text-center font-semibold">
-                                <td className="px-2 py-2">—</td>
-                                <td className="px-2 py-2">—</td>
-                                <td className="px-2 py-2 tracking-widest text-primary-glow">SUBTOTAL</td>
-                                <td className="px-2 py-2">—</td>
-                                <td className="px-2 py-2">—</td>
-                                <td className="px-2 py-2">—</td>
-                                <td className="px-2 py-2">—</td>
-                                <td className="px-2 py-2">—</td>
-                                <td className="px-1.5 py-2 text-center font-medium text-factoring-amber text-muted-foreground">{formatPct(monthEffective)}</td>
-                                <td className="px-1.5 py-2 text-factoring-amber">{formatBRLNum(monthTotals.value)}</td>
-                                <td className="px-1.5 py-2 text-net-green">{formatBRLNum(monthTotals.presentValue)}</td>
-                                <td className="px-1.5 py-2 text-cost-red">{formatBRLNum(monthTotals.cost)}</td>
-                                <td className="px-2 py-2">—</td>
+                              <tr className="border-t-2 border-primary-glow/40 bg-primary-glow/[0.07] font-mono tabular-nums text-center font-semibold text-[11px] xl:text-xs">
+                                <td className="px-1 xl:px-1.5 py-1.5 xl:py-2">—</td>
+                                <td className="px-1 xl:px-1.5 py-1.5 xl:py-2">—</td>
+                                <td className="px-1 xl:px-2 py-1.5 xl:py-2 tracking-widest text-primary-glow text-left">SUBTOTAL</td>
+                                <td className="px-1 xl:px-1.5 py-1.5 xl:py-2">—</td>
+                                <td className="px-1 xl:px-1.5 py-1.5 xl:py-2">—</td>
+                                <td className="px-1 xl:px-1.5 py-1.5 xl:py-2">—</td>
+                                <td className="px-1 xl:px-1.5 py-1.5 xl:py-2">—</td>
+                                <td className="px-0.5 xl:px-1 py-1.5 xl:py-2">—</td>
+                                <td className="px-1 xl:px-1.5 py-1.5 xl:py-2 text-center font-medium text-factoring-amber text-muted-foreground">{formatPct(monthEffective)}</td>
+                                <td className="px-1 xl:px-1.5 py-1.5 xl:py-2 text-factoring-amber">{formatBRLNum(monthTotals.value)}</td>
+                                <td className="px-1 xl:px-1.5 py-1.5 xl:py-2 text-net-green">{formatBRLNum(monthTotals.presentValue)}</td>
+                                <td className="px-1 xl:px-1.5 py-1.5 xl:py-2 text-cost-red">{formatBRLNum(monthTotals.cost)}</td>
+                                <td className="px-1 xl:px-1.5 py-1.5 xl:py-2">—</td>
                               </tr>
                             </tbody>
                           </table>
