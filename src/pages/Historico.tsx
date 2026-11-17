@@ -548,8 +548,8 @@ const Historico = () => {
 
   const totals = filteredRows.reduce(
     (a, r) => ({
-      value: a.value + r.value,
-      presentValue: a.presentValue + r.presentValue,
+      value: a.value + (r.isAdditional ? 0 : r.value),
+      presentValue: a.presentValue + (r.isAdditional ? 0 : r.presentValue),
       cost: a.cost + r.cost,
       factoring: a.factoring + r.factoringCost,
       savings: a.savings + r.savings,
@@ -559,8 +559,8 @@ const Historico = () => {
   const totalEffective = totals.value > 0 ? (totals.cost / totals.value) * 100 : 0;
   const factoringSavings = Math.max(0, totals.factoring - totals.cost);
   const factoringEffectiveRate = totals.value > 0 ? (totals.factoring / totals.value) * 100 : 0;
-  const settledPresent = filteredRows.reduce((s, r) => s + (r.settled ? r.value : 0), 0);
-  const openPresent = filteredRows.reduce((s, r) => s + (r.settled ? 0 : r.value), 0);
+  const settledPresent = filteredRows.reduce((s, r) => s + (r.settled ? (r.isAdditional ? 0 : r.value) : 0), 0);
+  const openPresent = filteredRows.reduce((s, r) => s + (r.settled ? 0 : (r.isAdditional ? r.cost : r.value)), 0);
 
   const countBusinessDays = (fromISO: string, toISO: string) => {
     const start = new Date(fromISO + "T00:00:00");
@@ -1061,12 +1061,16 @@ const Historico = () => {
     const isSettled = current.some((e) => settledIdOf(e) === row.installmentId);
 
     if (isSettled) {
-      // Se já está liquidada, apenas remove sem perguntar data
+      // Confirmação para evitar cliques acidentais que desliquidam a operação
+      const opDesc = row.opNumber ? `da operação ${String(row.opNumber).padStart(4, "0")}` : "desta operação";
+      if (!window.confirm(`Deseja realmente desfazer a liquidação ${opDesc}?`)) {
+        return;
+      }
       const next: SettledEntry[] = current.filter((e) => settledIdOf(e) !== row.installmentId);
       await saveSettlement(inv.id, next, "Liquidação removida");
     } else {
-      // Se vai liquidar, pergunta a data (padrão é o dia atual)
-      setSettlementDate(todayStr);
+      // Se vai liquidar, pergunta a data (se for adicional, sugere o vencimento dela que é a data da liquidação original)
+      setSettlementDate(row.isAdditional ? (row.dueDate || todayStr) : todayStr);
       setSettlingRow(row);
     }
   };
@@ -1124,7 +1128,8 @@ const Historico = () => {
 
     const delayDays = diffDaysHelper(settlingRow.dueDate, settlementDate);
 
-    if (delayDays > 5) {
+    // Operações que já são adicionais não geram outro encargo adicional
+    if (delayDays > 5 && !settlingRow.isAdditional) {
       // Encargo adicional: taxa fixa de 3%/mês sobre os dias em atraso
       const r = 0.03;
       const valueNew = settlingRow.value * Math.pow(1 + r, delayDays / 30);
@@ -1857,11 +1862,11 @@ const Historico = () => {
   const globalStats = useMemo(() => {
     const g = rows.reduce(
       (a, r) => ({
-        value: a.value + r.value,
+        value: a.value + (r.isAdditional ? 0 : r.value),
         cost: a.cost + r.cost,
         factoring: a.factoring + r.factoringCost,
-        settled: a.settled + (r.settled ? r.value : 0),
-        open: a.open + (r.settled ? 0 : r.value),
+        settled: a.settled + (r.settled ? (r.isAdditional ? 0 : r.value) : 0),
+        open: a.open + (r.settled ? 0 : (r.isAdditional ? r.cost : r.value)),
       }),
       { value: 0, cost: 0, factoring: 0, settled: 0, open: 0 }
     );

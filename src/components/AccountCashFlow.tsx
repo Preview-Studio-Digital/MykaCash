@@ -474,7 +474,8 @@ export const AccountCashFlow = () => {
 
       calc.installmentCalcs.forEach(inst => {
         if (inst.dueDate >= start && inst.dueDate <= end && !settledIds.has(inst.id)) {
-          periodOpen += inst.value;
+          // Operações adicionais cobram apenas o encargo (juros do atraso), e não o valor de face todo, evitando duplicar o principal
+          periodOpen += isAdditional ? (inst.value - inst.presentValue) : inst.value;
         }
       });
     });

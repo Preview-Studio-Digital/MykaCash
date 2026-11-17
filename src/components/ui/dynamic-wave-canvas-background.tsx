@@ -13,10 +13,10 @@ const HeroWave = () => {
     const SCALE = 2;
 
     const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      width = Math.floor(canvas.width / SCALE);
-      height = Math.floor(canvas.height / SCALE);
+      canvas.width = window.innerWidth || 300;
+      canvas.height = window.innerHeight || 150;
+      width = Math.max(1, Math.floor(canvas.width / SCALE));
+      height = Math.max(1, Math.floor(canvas.height / SCALE));
       imageData = ctx.createImageData(width, height);
       data = imageData.data;
     };
